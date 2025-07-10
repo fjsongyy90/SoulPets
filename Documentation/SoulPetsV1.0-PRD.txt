@@ -1,0 +1,208 @@
+SoulPets v1.0 (MVP) 产品需求文档 (PRD)
+文档版本	v1.0
+项目名称	SoulPets
+创建日期	2025年7月11日
+文档目的	明确定义SoulPets应用v1.0版本的功能范围、产品需求及非功能性要求，作为产品开发、设计和测试的统一依据。
+1. 文档概述 (Overview)
+1.1 产品简介
+SoulPets是一款面向海外市场的iOS应用，专注于提供一个安全、私密且全面的宠物生活管理解决方案。它帮助宠物主记录、追踪和提醒与爱宠相关的一切重要事务，通过数字化手段加深人与宠物之间的情感纽带。
+1.2 品牌口号与承诺
+•	主品牌口号 (情感愿景): The digital heartbeat of your bond with pets.
+•	核心隐私承诺 (理性承诺): Your pet's data never leaves your device.
+1.3 目标用户
+•	核心用户： 注重数据隐私安全、希望精细化、情感化管理爱宠生活的海外宠物主。
+•	MVP (v1.0) 阶段用户： 以猫、狗的主人为主。
+1.4 商业模式 (Freemium)
+MVP版本完全免费，以建立用户信任和验证核心功能价值。未来的Pro版本将提供增值服务。
+
+功能模块	基础版 (Free)	会员版 (Pro) - 未来规划
+宠物档案	无限制数量	-
+核心功能	记录、提醒、体重	记账、高级统计、宠物减肥助手
+iCloud 同步	单用户多设备同步 (核心优势)	家庭共享 (iCloud Family Sharing)
+标签系统	使用所有预设标签	自定义标签 (创建/编辑/删除)
+照片存储	每只宠物最多3张	无限存储
+其他	-	iOS桌面小组件, 数据导出
+
+2. MVP (v1.0) 版本范围
+核心原则： 坚守MVP范围，抵制诱惑。v1.0专注于打磨核心的单用户体验闭环，确保稳定与流畅。
+•	核心功能: 宠物管理、事件记录、体重追踪、事件提醒。
+•	宠物类型: 仅支持猫 (Cat) 和狗 (Dog)。其他类型图标置灰并标注 "Soon"。
+•	标签系统: 仅支持预设标签，不支持自定义。
+•	数据同步: 仅支持单用户iCloud同步。
+•	语言: 仅支持英文 (English)。
+•	平台: 仅支持iOS。
+•	砍掉的功能: 记账功能整体推迟到未来版本。
+3. 功能需求 (Functional Requirements)
+3.1 核心导航 (Core Navigation)
+采用标准的底部标签栏 (Bottom Tab Bar) 作为App一级导航。
+•	Home: 宠物列表/当前宠物的“仪表盘”主页。
+•	Records: 查看当前选中宠物的记录时间线。
+•	Weight: 查看当前选中宠物的体重图表。
+•	Reminders: 查看所有宠物的提醒事项。
+3.2 宠物管理 (Pet Management)
+3.2.1 宠物列表主页 (Home Screen)
+•	顶部区域:
+o	左侧显示个性化问候 (如 "Hello, [User's Name]!")。
+o	右上角放置全局唯一的“添加新宠物” + 按钮。
+•	宠物选择器:
+o	顶部下方为横向滚动的圆形宠物头像列表。
+o	当前选中的宠物头像有高亮或放大状态。
+o	点击头像可切换下方“信息卡片”的内容。
+•	当前宠物信息卡片 (Dashboard):
+o	基本信息: 宠物名字、品种/类型。
+o	情感化数据:
+	年龄 (Age): e.g., 2y 5m 3d
+	相伴天数 (Together for): e.g., 642 days
+	下个生日 (Next birthday): e.g., In 362 days
+o	关键健康速览:
+	上次体重 (Last Weight): e.g., 5.2 kg
+	下个提醒 (Next Reminder): e.g., Vaccine in 15 days
+o	入口: 卡片上提供“查看档案”的入口，跳转至宠物档案查看页。
+3.2.2 添加新宠物流程 (3个步骤)
+•	步骤一：选择宠物类型
+o	采用可爱的插画风格圆形图标网格。
+o	MVP版本中，仅“猫”和“狗”的图标可点击，其他置灰并标注 "Soon"。
+•	步骤二：填写核心信息
+o	表单字段: 头像上传、名字 (Name)、品种/花色 (Breed/Color)、性别 (Gender - 使用Male/Female/Other分段控件)、是否绝育 (Neutered/Spayed? - 使用开关控件)。
+•	步骤三：设定重要日期
+o	表单字段: 生日 (Birthday)、领养日 (Adoption/Gotcha Day)。
+o	国际化设置: 体重单位 (Weight Unit - kg/lbs)，根据用户手机地区设置智能推荐默认值。
+o	完成按钮: 文案为 Finish & Welcome [Pet's Name]!，点击后弹出提示，询问是否自动添加生日提醒。
+3.2.3 查看/编辑宠物档案
+•	查看页 (View Profile):
+o	以只读形式、卡片分组清晰展示宠物所有信息。
+o	右上角提供 "Edit" 按钮，点击进入编辑页。
+o	展示字段: 基本信息、健康信息 (Microchip ID, Insurance Policy No.)、日期信息、偏好设置 (体重单位) 等。
+•	编辑页 (Edit Profile):
+o	布局与查看页类似，但所有字段均为可编辑控件。
+o	采用“返回时提示保存”的交互模式，替代右上角独立的“Save”按钮，防止误操作。
+o	提供“删除宠物”的选项 (在 "..." 菜单内)。
+3.3 记录模块 (Record Module)
+3.3.1 记录主页 (Records Screen)
+•	视图: 采用按时间倒序排列的垂直时间线 (Timeline)。
+•	添加入口: 右上角放置 + 按钮，用于添加新记录。
+•	筛选功能:
+o	提供按宠物 ([当前宠物名] / All Pets) 筛选的分段控件。
+o	提供搜索框，支持按关键字或标签筛选。
+•	记录卡片: 清晰展示标签图标与名称、日期时间、备注预览、照片缩略图。若查看All Pets，则卡片上显示对应宠物的头像。
+•	空状态: 当无记录时，显示友好插画和鼓励性文案。
+3.3.2 添加新记录流程
+•	交互: 点击 + 后，弹出全屏模态窗口。
+•	第一步：选择宠物与事件
+o	顶部为支持多选的横向宠物选择器。
+o	下方为动态刷新的标签选择网格。网格内容根据上方所选宠物（猫、狗或两者皆有）实时更新，仅显示共同标签。
+o	标签按“日常生活”、“日常保健”等预设分类展示。
+•	第二步：填写记录详情
+o	页面标题动态显示为所选标签名 (如 "Vaccine")。
+o	表单字段: 日期与时间 (Date & Time，默认为当前)、备注 (Memo/Notes)、照片附件 (+ Add Photos)。
+o	为未来记账功能预留可选的“花费 (Cost)”输入框。
+3.4 体重模块 (Weight Module)
+3.4.1 体重主页 (Weight Screen)
+•	添加入口: 右上角放置 + 按钮，用于添加新体重记录。
+•	布局:
+o	顶部为体重历史曲线图。
+o	图表下方为横向宠物选择器。
+o	中部为数据摘要卡片。
+o	底部为体重历史记录列表。
+•	核心组件:
+o	体重曲线图: 支持触摸滑动查看历史数据。若设定目标，图表中会额外绘制“目标线”。
+o	数据摘要卡片:
+	当前体重 (Current Weight)。
+	体重变化 (Weight Change)，用箭头表示升降。
+	体重目标卡 (Set a Weight Goal): 此功能对所有用户免费。点击可设定目标，设定后动态显示当前进度。
+•	空状态: 当无数据时，显示友好插画和引导性文案。
+3.4.2 添加/编辑体重记录
+•	交互: 点击 + 或历史记录，从下方弹出模态窗口。
+•	字段: 宠物选择、体重数值输入、单位选择 (kg/lbs)、日期选择。
+3.5 提醒模块 (Reminder Module)
+3.5.1 提醒主页 (Reminders Screen)
+•	添加入口: 右上角放置 + 按钮，用于添加新提醒。
+•	筛选功能:
+o	按宠物 ([当前宠物名] / All Pets) 筛选。
+o	按状态 (Upcoming / Completed) 筛选。
+•	布局: 顶部以醒目卡片展示“今日待办”，下方列表展示“未来安排”。
+•	卡片交互:
+o	右滑完成 (Slide to Complete): 主要操作。
+o	长按弹出菜单 (Long Press for Menu): 提供编辑、删除、稍后提醒等选项。
+o	轻点进入编辑 (Tap to Edit): 快捷操作。
+•	空状态: 当“待办”列表为空时，显示治愈系文案与插画。
+3.5.2 创建/编辑提醒流程
+•	标签选择: 复用“添加记录”的网格化、图标化标签选择界面。
+•	表单字段:
+o	重复频率 (Repeat): 支持高度灵活的重复规则 (如“每3周”、“每2个月”)。
+o	其他字段包括：日期与时间 (Date & Time)、备注 (Notes)。
+3.5.3 “提醒-记录”闭环 (核心创新)
+•	当用户完成一个提醒 (如“打疫苗”) 后，系统会弹窗询问是否为此创建一条记录。
+•	若用户同意，App会自动跳转到“添加记录”页面，并预先填好宠物、标签、日期等核心信息，用户只需补充细节即可。
+3.6 标签系统 (Tag System)
+3.6.1 预设标签库 (MVP)
+•	猫 (Cat) 标签列表:
+o	Daily Life: Dinner/Food, Water, Treats/Wet Food, Play, Milk Feed, Potty (仅记录).
+o	Routine Health: Medication, Supplements, Deworm/Flea & Tick, Vaccine.
+o	Grooming & Cleaning: Brushing, Teeth Brushing, Nail Trim, Ear Cleaning, Bath.
+o	Home & Supplies: Buy Supplies, Scoop Litterbox, Wash Bowls, Supplies Refill, Change Litter, Wash Litterbox, Wash Bed/Tree, Wash Toys.
+o	Medical Care: Check-up, Grooming Appointment, Antibody Titer, Abnormal Condition (仅记录), Surgery (仅记录), Hospitalization (仅记录).
+o	Planning & Milestones: Pet Sitter, Boarding, License Renewal, Insurance Renewal, Birthday, Adoption/Gotcha Day.
+•	狗 (Dog) 标签列表:
+o	Daily Life: Dinner/Food, Water, Walk, Training, Treats, Play, Milk Feed, Potty (仅记录).
+o	Routine Health: Medication, Supplements, Deworm/Flea & Tick, Vaccine.
+o	Grooming & Cleaning: Brushing, Teeth Brushing, Nail Trim, Anal Gland Express, Ear Cleaning, Bath.
+o	Home & Supplies: Buy Supplies, Wash Bowls, Supplies Refill, Wash Bed, Wash Crate/Pen, Wash Toys.
+o	Medical Care: (同猫)
+o	Planning & Milestones: (同猫)
+3.6.2 标签管理页 (MVP)
+•	入口: 在“创建记录/提醒”的标签选择页右上角提供 "Manage Tags" 入口。
+•	功能 (免费):
+o	排序 (Sort): 用户可拖拽调整分类内标签的顺序。
+o	用于提醒 (Usable for Reminders): 每个标签旁提供开关，决定该标签是否出现在“创建提醒”的列表中。
+o	隐藏 (Hide): 提供“眼睛”图标，可将不常用的标签从所有选择器中隐藏。
+•	未来功能预告: 列表底部放置一个灰色、不可点击的按钮 + Add Custom Tag (Pro)。
+3.7 设置页 (Settings)
+•	入口: 主页右上角齿轮⚙️图标。
+•	卡片一: 通用 (General):
+o	外观 (Appearance): Light / Dark / System。
+o	通知 (Notifications): 跳转至系统设置。
+o	语言 (Language): MVP版本点击后提示敬请期待。
+•	卡片二: 支持与反馈 (Support & Feedback):
+o	功能建议、去App Store评分、分享应用。
+•	卡片三: 关于 (About):
+o	隐私政策、服务条款、版本号。
+4. 非功能性需求 (Non-Functional Requirements)
+4.1 技术栈
+•	UI 框架: SwiftUI
+•	数据持久化: SwiftData
+•	图表: Charts Framework (Apple官方)
+•	通知: UserNotifications Framework (Apple官方)
+4.2 设计与用户体验 (Design & UX)
+•	核心哲学: 情感化治愈感、逻辑清晰至上、隐私优先、国际化视野。
+•	设计规范: 严格遵循苹果人机交互指南 (Apple HIG)，保证原生体验。界面追求干净、整洁、直观。
+•	视觉风格:
+o	配色: #FDFBF8 (柔和米白) 为背景, #E5B487 (温暖棕褐) 为主强调色。
+o	布局: 大量使用带柔和阴影的大圆角卡片式设计，保持宽松的间距。
+o	字体: 使用系统默认或圆润感的无衬线字体 (如 Nunito, Poppins)。
+o	图标: 采用生动、可爱、统一的手绘风格。
+4.3 性能与数据
+•	数据存储: 100%本地化数据存储，通过iCloud加密同步实现单用户多设备共享。
+•	提醒逻辑: 重复提醒采用“动态计算”模型，数据库只存储模板规则，不在数据库中预生成大量实例，保证长期高性能。
+4.4 国际化与本地化 (i18n & l10n)
+•	技术预埋: 所有面向用户的字符串，必须使用支持本地化的API包裹 (如 String(localized:))。
+•	文化适配: 不硬编码任何日期、时间、数字或货币格式。调用iOS系统API，使其自动根据用户手机的地区设置来显示。
+5. 未来版本规划 (Post-MVP)
+以下功能已记录在案，将在v1.0发布并收集用户反馈后，纳入未来版本的开发计划 (Backlog)。
+•	Pro会员体系: 实现订阅与Pro权益功能。
+•	核心功能扩展:
+o	推出自定义标签功能
+o	上线“记账”模块。
+o	实现高级统计与年度报告。
+o	推出“宠物减肥助手”功能。
+•	宠物支持:
+o	逐步支持更多宠物类型 (老鼠、蛇、兔、蜥蜴、龟、鸟等)。
+o	宠物排序功能。
+•	个性化与社交:
+o	自定义标签。
+o	iCloud家庭共享。
+o	iOS桌面小组件。
+o	宠物中心 (Pet's Hub): 整合档案、照片墙、健康中心。
+o	分享功能 (分享单条记录或宠物报告)。
+•	多语言支持: 根据App Store Connect的数据分析，优先支持下载量高的国家/地区语言。
+

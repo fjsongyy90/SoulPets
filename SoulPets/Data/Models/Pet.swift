@@ -1,0 +1,120 @@
+import Foundation
+import SwiftData
+
+/// 宠物类型枚举
+enum PetType: String, Codable, CaseIterable {
+    case cat = "Cat"
+    case dog = "Dog"
+}
+
+/// 性别枚举
+enum Gender: String, Codable, CaseIterable {
+    case male = "Male"
+    case female = "Female"
+    case other = "Other"
+}
+
+/// 体重单位枚举
+enum WeightUnit: String, Codable, CaseIterable {
+    case kg = "kg"
+    case lbs = "lbs"
+}
+
+@Model
+final class Pet {
+    // MARK: - 属性
+    var id: UUID
+    var name: String
+    var petType: PetType
+    var breed: String
+    var avatar: Data?
+    var gender: Gender
+    var isNeutered: Bool
+    var birthday: Date
+    var adoptionDay: Date?
+    var microchipID: String?
+    var insurancePolicyNo: String?
+    var weightUnitPreference: WeightUnit
+    var createdAt: Date
+    var updatedAt: Date
+    
+    // MARK: - 关系
+    @Relationship(.cascade, inverse: \Weight.pet)
+    var weights: [Weight]?
+    
+    @Relationship(inverse: \Record.pets)
+    var records: [Record]?
+    
+    @Relationship(inverse: \Reminder.pets)
+    var reminders: [Reminder]?
+    
+    // MARK: - 初始化
+    init(
+        id: UUID = UUID(),
+        name: String,
+        petType: PetType,
+        breed: String,
+        avatar: Data? = nil,
+        gender: Gender,
+        isNeutered: Bool,
+        birthday: Date,
+        adoptionDay: Date? = nil,
+        microchipID: String? = nil,
+        insurancePolicyNo: String? = nil,
+        weightUnitPreference: WeightUnit,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.name = name
+        self.petType = petType
+        self.breed = breed
+        self.avatar = avatar
+        self.gender = gender
+        self.isNeutered = isNeutered
+        self.birthday = birthday
+        self.adoptionDay = adoptionDay
+        self.microchipID = microchipID
+        self.insurancePolicyNo = insurancePolicyNo
+        self.weightUnitPreference = weightUnitPreference
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}
+
+// MARK: - 计算属性
+extension Pet {
+    /// 计算宠物年龄
+    var age: (years: Int, months: Int, days: Int) {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day], from: birthday, to: Date())
+        return (years: components.year ?? 0, months: components.month ?? 0, days: components.day ?? 0)
+    }
+    
+    /// 计算领养天数
+    var daysWithOwner: Int? {
+        guard let adoptionDay = adoptionDay else { return nil }
+        return Calendar.current.dateComponents([.day], from: adoptionDay, to: Date()).day
+    }
+    
+    /// 计算到下个生日的天数
+    var daysToNextBirthday: Int {
+        let calendar = Calendar.current
+        let today = Date()
+        let currentYear = calendar.component(.year, from: today)
+        
+        // 获取生日的月和日
+        let birthdayMonth = calendar.component(.month, from: birthday)
+        let birthdayDay = calendar.component(.day, from: birthday)
+        
+        // 计算今年的生日日期
+        var birthdayThisYear = calendar.date(from: DateComponents(year: currentYear, month: birthdayMonth, day: birthdayDay)) ?? Date()
+        
+        // 如果今年的生日已经过了，计算明年的生日
+        if birthdayThisYear < today {
+            birthdayThisYear = calendar.date(from: DateComponents(year: currentYear + 1, month: birthdayMonth, day: birthdayDay)) ?? Date()
+        }
+        
+        return calendar.dateComponents([.day], from: today, to: birthdayThisYear).day ?? 0
+    }
+} 
