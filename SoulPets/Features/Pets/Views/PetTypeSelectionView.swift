@@ -102,25 +102,6 @@ struct PetTypeSelectionView: View {
             .padding(.horizontal)
             
             Spacer()
-            
-            // Next 按钮
-            Button(action: {
-                // 这里什么都不做，因为按钮交互由父视图处理
-            }) {
-                Text(LocalizedStringKey("Next"))
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(.systemGray5))
-                    )
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom)
-            .disabled(true)
         }
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
         .alert(LocalizedStringKey("Coming Soon"), isPresented: $showUnsupportedAlert) {

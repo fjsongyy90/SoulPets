@@ -24,15 +24,16 @@ struct PetImportantDatesView: View {
                     .foregroundColor(.secondary)
                 
                 HStack {
-                    DatePicker("", selection: $viewModel.birthday, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                    
-                    Spacer()
-                    
                     Image(systemName: "calendar")
                         .font(.system(size: 20))
                         .foregroundColor(Color(red: 0.69, green: 0.45, blue: 0.25))
+                        .padding(.leading)
+                    
+                    Spacer()
+                    
+                    DatePicker("", selection: $viewModel.birthday, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
                         .padding(.trailing)
                 }
                 .padding()
@@ -58,6 +59,33 @@ struct PetImportantDatesView: View {
                     DatePicker("", selection: $viewModel.adoptionDay, displayedComponents: .date)
                         .datePickerStyle(.compact)
                         .labelsHidden()
+                        .padding(.trailing)
+                }
+                .padding()
+                .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                .cornerRadius(20)
+            }
+            .padding(.horizontal)
+            
+            // 初始体重输入
+            VStack(alignment: .leading, spacing: 8) {
+                Text(LocalizedStringKey("Initial Weight"))
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                HStack {
+                    Image(systemName: "scalemass")
+                        .font(.system(size: 20))
+                        .foregroundColor(.brown)
+                        .padding(.leading)
+                    
+                    TextField(LocalizedStringKey("Enter weight"), text: $viewModel.initialWeight)
+                        .keyboardType(.decimalPad)
+                        .padding(.horizontal)
+                    
+                    Text(viewModel.weightUnitPreference.rawValue)
+                        .foregroundColor(.secondary)
+                        .padding(.trailing)
                 }
                 .padding()
                 .background(Color(red: 0.95, green: 0.91, blue: 0.85))
@@ -95,24 +123,6 @@ struct PetImportantDatesView: View {
             .padding(.horizontal)
             
             Spacer()
-            
-            // 完成按钮
-            Button(action: {
-                // 这里什么都不做，由父视图处理
-            }) {
-                Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(red: 0.69, green: 0.45, blue: 0.25))
-                    )
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom)
         }
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
     }

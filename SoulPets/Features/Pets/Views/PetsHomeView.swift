@@ -7,6 +7,8 @@ struct PetsHomeView: View {
     @Query(sort: \Pet.name) private var pets: [Pet]
     @State private var showingAddPetSheet = false
     @State private var selectedPetIndex: Int = 0
+    @State private var showingEditPetSheet = false
+    @State private var selectedPet: Pet?
     
     // 背景和强调色
     private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
@@ -65,15 +67,15 @@ struct PetsHomeView: View {
                     }
                     .padding(.top, -8)
                     
-                    Spacer()
-                    
                     // 底部文案
                     Text("The digital heartbeat of your bond with pets.")
                         .font(.system(size: 16))
                         .italic()
                         .foregroundColor(accentColor)
-                        .multilineTextAlignment(.center)
+                        .padding(.top, 10)
                         .padding(.bottom, 20)
+                    
+                    Spacer()
                 } else {
                     // 无宠物时的提示
                     noPetsView
@@ -95,6 +97,11 @@ struct PetsHomeView: View {
         .sheet(isPresented: $showingAddPetSheet) {
             AddPetView(modelContext: modelContext)
         }
+        .sheet(isPresented: $showingEditPetSheet) {
+            if let pet = selectedPet {
+                EditPetView(pet: pet)
+            }
+        }
     }
     
     // 宠物身份卡片 - 参考图中的身份证样式
@@ -109,7 +116,7 @@ struct PetsHomeView: View {
                 
                 Spacer()
                 
-                Text("\(pet.petType == .cat ? "灰白色" : "棕色") • \(pet.gender == .female ? "Female" : "Male")")
+                Text("\(pet.breed) • \(pet.gender == .female ? "Female" : "Male")")
                     .font(.subheadline)
                     .foregroundColor(.white)
             }
@@ -154,23 +161,6 @@ struct PetsHomeView: View {
                     }
                 }
                 .padding(.top, 20)
-                
-                // 性格
-                HStack {
-                    Text("🍪")
-                        .font(.title2)
-                    
-                    Text("Character")
-                        .font(.headline)
-                        .foregroundColor(.gray)
-                    
-                    Spacer()
-                    
-                    Text("爱生气")
-                        .font(.headline)
-                        .foregroundColor(accentColor)
-                }
-                .padding(.horizontal)
                 
                 // 年龄
                 HStack {
@@ -232,6 +222,24 @@ struct PetsHomeView: View {
                     }
                 }
                 .padding(.horizontal)
+
+                // 芯片ID
+                HStack {
+                    Text("💉")
+                        .font(.title2)
+                    
+                    Text("Microchip ID")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                    
+                    Text(pet.microchipID ?? "Secret")
+                        .font(.headline)
+                        .foregroundColor(accentColor)
+                }
+                .padding(.horizontal)
+                .padding(.bottom)
                 
                 Divider()
                     .padding(.horizontal)
@@ -269,7 +277,8 @@ struct PetsHomeView: View {
                     Spacer()
                     
                     Button(action: {
-                        // 进入档案详情
+                        selectedPet = pet
+                        showingEditPetSheet = true
                     }) {
                         Text("Enter ID file→")
                             .font(.caption)
@@ -286,6 +295,10 @@ struct PetsHomeView: View {
         }
         .padding(.horizontal)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .onTapGesture {
+            selectedPet = pet
+            showingEditPetSheet = true
+        }
     }
     
     // 无宠物时的视图
@@ -332,6 +345,7 @@ struct PetsHomeView: View {
                 .font(.system(size: 16))
                 .italic()
                 .foregroundColor(accentColor)
+                .padding(.top, 10)
                 .padding(.bottom, 20)
         }
         .padding()

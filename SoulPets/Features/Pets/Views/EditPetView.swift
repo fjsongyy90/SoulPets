@@ -11,7 +11,11 @@ struct EditPetView: View {
     
     init(pet: Pet) {
         self.pet = pet
-        _viewModel = StateObject(wrappedValue: PetViewModel(modelContext: pet.modelContext!))
+        // 创建一个临时的ViewModel，使用一个空的ModelContext
+        // 我们将在onAppear中更新为环境中的modelContext
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try! ModelContainer(for: Pet.self, configurations: config)
+        _viewModel = StateObject(wrappedValue: PetViewModel(modelContext: container.mainContext))
     }
     
     var body: some View {
@@ -111,6 +115,8 @@ struct EditPetView: View {
                 }
             }
             .onAppear {
+                // 在视图出现时，使用环境中的modelContext
+                viewModel.updateModelContext(modelContext)
                 // 加载宠物数据到表单
                 viewModel.loadPet(pet)
             }
@@ -144,4 +150,5 @@ struct EditPetView: View {
     container.mainContext.insert(pet)
     
     return EditPetView(pet: pet)
+        .modelContainer(container)
 } 

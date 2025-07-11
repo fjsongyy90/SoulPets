@@ -6,7 +6,7 @@ import os.log
 /// 宠物管理视图模型
 class PetViewModel: ObservableObject {
     // MARK: - 属性
-    private let modelContext: ModelContext
+    private var modelContext: ModelContext
     private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "PetViewModel")
     
     // 新宠物表单数据
@@ -21,6 +21,7 @@ class PetViewModel: ObservableObject {
     @Published var microchipID: String = ""
     @Published var insurancePolicyNo: String = ""
     @Published var weightUnitPreference: WeightUnit = .kg
+    @Published var initialWeight: String = ""
     
     // 表单验证
     @Published var nameError: String?
@@ -33,6 +34,11 @@ class PetViewModel: ObservableObject {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         validateForm()
+    }
+    
+    // 更新ModelContext
+    func updateModelContext(_ newModelContext: ModelContext) {
+        self.modelContext = newModelContext
     }
     
     // MARK: - 表单验证
@@ -76,6 +82,18 @@ class PetViewModel: ObservableObject {
             
             // 保存到数据库
             modelContext.insert(pet)
+            
+            // 如果提供了初始体重，创建体重记录
+            if let weightValue = Double(initialWeight), weightValue > 0 {
+                let weight = Weight(
+                    date: Date(),
+                    weightInKg: weightValue,
+                    pet: pet
+                )
+                modelContext.insert(weight)
+                logger.info("为宠物添加初始体重记录: \(weightValue) kg")
+            }
+            
             try modelContext.save()
             
             logger.info("成功创建宠物档案: \(pet.id.uuidString)")
@@ -161,6 +179,7 @@ class PetViewModel: ObservableObject {
         microchipID = ""
         insurancePolicyNo = ""
         weightUnitPreference = .kg
+        initialWeight = ""
         currentStep = .selectType
     }
     

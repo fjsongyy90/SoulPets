@@ -142,27 +142,6 @@ struct PetBasicInfoView: View {
             .padding(.horizontal)
             
             Spacer()
-            
-            // 下一步按钮
-            Button(action: {
-                // 这里什么都不做，由父视图处理
-            }) {
-                Text(LocalizedStringKey("Next"))
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(viewModel.formIsValid ? 
-                                  Color(red: 0.69, green: 0.45, blue: 0.25) : 
-                                  Color.gray)
-                    )
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom)
-            .disabled(!viewModel.formIsValid)
         }
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
     }
