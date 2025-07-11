@@ -109,3 +109,37 @@ Pro 功能专注于提供更强大的个性化、多用户协作和高级数据�
 2.  打开 `SoulPets.xcodeproj` 文件。
 3.  选择一个模拟器或连接真实的 iOS 设备。
 4.  点击 "Run" (▶) 按钮编译并运行。
+
+---
+
+## 项目结构
+
+SoulPets项目采用模块化的目录结构，清晰地分离了不同功能组件：
+
+```
+SoulPets/
+├── .cursor/rules/         # Cursor IDE规则配置
+├── Assets.xcassets/       # 应用资源文件
+├── Common/                # 通用组件和工具类
+├── Core/                  # 核心功能模块
+├── Data/                  # 数据层
+│   ├── Models/            # 数据模型定义
+│   ├── Services/          # 数据服务
+│   └── ModelRegistration.swift  # 模型注册
+├── Features/              # 功能模块
+│   ├── Pets/              # 宠物管理功能
+│   ├── Record/            # 记录功能
+│   ├── Reminders/         # 提醒功能
+│   ├── Tags/              # 标签功能
+│   └── Weight/            # 体重功能
+├── Resources/             # 资源文件
+├── ContentView.swift      # 主内容视图
+├── SoulPetsApp.swift      # 应用入口
+├── SoulPets.xcodeproj/    # Xcode项目文件
+├── SoulPetsTests/         # 单元测试
+├── SoulPetsUITests/       # UI测试
+├── .gitignore             # Git忽略配置
+└── README.md              # 项目说明文档
+```
+
+这种结构遵循了功能模块化的设计原则，使代码组织更加清晰，便于维护和扩展。每个功能模块都有自己的目录，包含相关的视图、视图模型和辅助组件。

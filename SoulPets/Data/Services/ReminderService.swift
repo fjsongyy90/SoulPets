@@ -93,14 +93,17 @@ class ReminderService {
     
     /// 获取特定宠物的所有提醒
     static func getRemindersForPet(pet: Pet, modelContext: ModelContext) -> [Reminder] {
-        let descriptor = FetchDescriptor<Reminder>(
-            predicate: #Predicate<Reminder> { reminder in
-                reminder.pets?.contains(pet) == true
-            }
-        )
+        // 首先获取所有提醒
+        let descriptor = FetchDescriptor<Reminder>()
         
         do {
-            return try modelContext.fetch(descriptor)
+            let allReminders = try modelContext.fetch(descriptor)
+            
+            // 然后在内存中过滤
+            return allReminders.filter { reminder in
+                guard let pets = reminder.pets else { return false }
+                return pets.contains(where: { $0.id == pet.id })
+            }
         } catch {
             logger.error("获取宠物提醒时出错: \(error.localizedDescription)")
             return []

@@ -8,15 +8,16 @@ class WeightService {
     
     /// 获取宠物的所有体重记录（按日期降序排列）
     static func getWeightEntries(for pet: Pet, modelContext: ModelContext) -> [Weight] {
+        // 获取所有体重记录
         let descriptor = FetchDescriptor<Weight>(
-            predicate: #Predicate<Weight> { weight in
-                weight.pet.id == pet.id
-            },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         
         do {
-            return try modelContext.fetch(descriptor)
+            let allWeights = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤特定宠物的体重记录
+            return allWeights.filter { $0.pet.id == pet.id }
         } catch {
             logger.error("获取宠物体重记录时出错: \(error.localizedDescription)")
             return []
@@ -25,17 +26,16 @@ class WeightService {
     
     /// 获取宠物的最近体重记录
     static func getLatestWeight(for pet: Pet, modelContext: ModelContext) -> Weight? {
+        // 获取所有体重记录
         let descriptor = FetchDescriptor<Weight>(
-            predicate: #Predicate<Weight> { weight in
-                weight.pet.id == pet.id
-            },
-            sortBy: [SortDescriptor(\.date, order: .reverse)],
-            fetchLimit: 1
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         
         do {
-            let weights = try modelContext.fetch(descriptor)
-            return weights.first
+            let allWeights = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤并获取最近的一条记录
+            return allWeights.filter { $0.pet.id == pet.id }.first
         } catch {
             logger.error("获取宠物最近体重记录时出错: \(error.localizedDescription)")
             return nil
@@ -92,22 +92,24 @@ class WeightService {
     
     /// 获取宠物的体重变化趋势（最近几条记录的体重差异）
     static func getWeightTrend(pet: Pet, modelContext: ModelContext) -> Double? {
+        // 获取所有体重记录
         let descriptor = FetchDescriptor<Weight>(
-            predicate: #Predicate<Weight> { weight in
-                weight.pet.id == pet.id
-            },
-            sortBy: [SortDescriptor(\.date, order: .reverse)],
-            fetchLimit: 2
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         
         do {
-            let recentWeights = try modelContext.fetch(descriptor)
+            let allWeights = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤特定宠物的体重记录并获取最近两条
+            let recentWeights = allWeights.filter { $0.pet.id == pet.id }.prefix(2)
             
             // 需要至少有两条记录才能计算趋势
             guard recentWeights.count >= 2 else { return nil }
             
-            let latestWeight = recentWeights[0].weightInKg
-            let previousWeight = recentWeights[1].weightInKg
+            // 获取最新和次新的体重
+            let weights = Array(recentWeights)
+            let latestWeight = weights[0].weightInKg
+            let previousWeight = weights[1].weightInKg
             
             // 计算差异（正值表示增重，负值表示减重）
             return latestWeight - previousWeight
@@ -119,15 +121,16 @@ class WeightService {
     
     /// 获取宠物的活跃体重目标
     static func getActiveWeightGoal(for pet: Pet, modelContext: ModelContext) -> WeightGoal? {
-        let descriptor = FetchDescriptor<WeightGoal>(
-            predicate: #Predicate<WeightGoal> { goal in
-                goal.pet.id == pet.id && goal.isActive == true
-            }
-        )
+        // 获取所有体重目标
+        let descriptor = FetchDescriptor<WeightGoal>()
         
         do {
-            let goals = try modelContext.fetch(descriptor)
-            return goals.first
+            let allGoals = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤特定宠物的活跃目标
+            return allGoals.first { goal in
+                goal.pet.id == pet.id && goal.isActive == true
+            }
         } catch {
             logger.error("获取体重目标时出错: \(error.localizedDescription)")
             return nil
@@ -160,14 +163,17 @@ class WeightService {
     
     /// 将宠物当前的所有体重目标设为非活跃
     private static func deactivateCurrentWeightGoals(pet: Pet, modelContext: ModelContext) {
-        let descriptor = FetchDescriptor<WeightGoal>(
-            predicate: #Predicate<WeightGoal> { goal in
-                goal.pet.id == pet.id && goal.isActive == true
-            }
-        )
+        // 获取所有体重目标
+        let descriptor = FetchDescriptor<WeightGoal>()
         
         do {
-            let activeGoals = try modelContext.fetch(descriptor)
+            let allGoals = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤特定宠物的活跃目标
+            let activeGoals = allGoals.filter { goal in
+                goal.pet.id == pet.id && goal.isActive == true
+            }
+        
             for goal in activeGoals {
                 goal.isActive = false
                 goal.updatedAt = Date()
@@ -188,15 +194,18 @@ class WeightService {
             return []
         }
         
+        // 获取所有体重记录
         let descriptor = FetchDescriptor<Weight>(
-            predicate: #Predicate<Weight> { weight in
-                weight.pet.id == pet.id && weight.date >= startDate
-            },
-            sortBy: [SortDescriptor(\.date, order: .ascending)]
+            sortBy: [SortDescriptor(\.date, order: .forward)]
         )
         
         do {
-            return try modelContext.fetch(descriptor)
+            let allWeights = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤特定宠物的体重记录并按时间范围筛选
+            return allWeights.filter { 
+                $0.pet.id == pet.id && $0.date >= startDate 
+            }
         } catch {
             logger.error("获取体重图表数据时出错: \(error.localizedDescription)")
             return []

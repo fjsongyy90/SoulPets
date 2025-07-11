@@ -8,25 +8,23 @@ class RecordService {
     
     /// 获取所有记录（可按宠物筛选）
     static func getAllRecords(forPet pet: Pet? = nil, modelContext: ModelContext) -> [Record] {
-        var descriptor: FetchDescriptor<Record>
-        
-        if let pet = pet {
-            // 获取特定宠物的记录
-            descriptor = FetchDescriptor<Record>(
-                predicate: #Predicate<Record> { record in
-                    record.pets?.contains(pet) == true
-                },
-                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-            )
-        } else {
             // 获取所有记录
-            descriptor = FetchDescriptor<Record>(
+        let descriptor = FetchDescriptor<Record>(
                 sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
             )
-        }
         
         do {
-            return try modelContext.fetch(descriptor)
+            let records = try modelContext.fetch(descriptor)
+            
+            // 如果指定了宠物，则在内存中过滤
+            if let pet = pet {
+                return records.filter { record in
+                    guard let pets = record.pets else { return false }
+                    return pets.contains(where: { $0.id == pet.id })
+                }
+            } else {
+                return records
+            }
         } catch {
             logger.error("获取记录时出错: \(error.localizedDescription)")
             return []
@@ -35,15 +33,18 @@ class RecordService {
     
     /// 按标签搜索记录
     static func searchRecords(withTag tag: Tag, modelContext: ModelContext) -> [Record] {
+        // 获取所有记录
         let descriptor = FetchDescriptor<Record>(
-            predicate: #Predicate<Record> { record in
-                record.tag.id == tag.id
-            },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
         
         do {
-            return try modelContext.fetch(descriptor)
+            let records = try modelContext.fetch(descriptor)
+            
+            // 在内存中过滤符合标签的记录
+            return records.filter { record in
+                record.tag.id == tag.id
+            }
         } catch {
             logger.error("按标签搜索记录时出错: \(error.localizedDescription)")
             return []
@@ -54,16 +55,20 @@ class RecordService {
     static func searchRecords(withKeyword keyword: String, modelContext: ModelContext) -> [Record] {
         guard !keyword.isEmpty else { return [] }
         
+        // 首先获取所有记录
         let descriptor = FetchDescriptor<Record>(
-            predicate: #Predicate<Record> { record in
-                record.notes?.localizedCaseInsensitiveContains(keyword) == true ||
-                record.tag.name.localizedCaseInsensitiveContains(keyword) == true
-            },
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
         
         do {
-            return try modelContext.fetch(descriptor)
+            let allRecords = try modelContext.fetch(descriptor)
+            
+            // 在内存中进行过滤
+            return allRecords.filter { record in
+                let notesMatch = record.notes?.range(of: keyword, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                let tagMatch = record.tag.name.range(of: keyword, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                return notesMatch || tagMatch
+            }
         } catch {
             logger.error("按关键字搜索记录时出错: \(error.localizedDescription)")
             return []
@@ -72,10 +77,11 @@ class RecordService {
     
     /// 获取特定时间范围内的记录
     static func getRecords(from startDate: Date, to endDate: Date, modelContext: ModelContext) -> [Record] {
+        let predicate = #Predicate<Record> { record in
+            record.timestamp >= startDate && record.timestamp <= endDate
+        }
         let descriptor = FetchDescriptor<Record>(
-            predicate: #Predicate<Record> { record in
-                record.timestamp >= startDate && record.timestamp <= endDate
-            },
+            predicate: predicate,
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
         

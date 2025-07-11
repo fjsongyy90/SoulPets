@@ -14,7 +14,7 @@ final class WeightGoal {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship
+    @Relationship(deleteRule: .nullify)
     var pet: Pet
     
     // MARK: - 初始化

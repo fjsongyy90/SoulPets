@@ -21,13 +21,13 @@ final class Reminder {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship(.nullify)
+    @Relationship(deleteRule: .nullify)
     var tag: Tag
     
-    @Relationship
+    @Relationship(deleteRule: .nullify)
     var pets: [Pet]?
     
-    @Relationship(.cascade, inverse: \ReminderCompletion.reminder)
+    @Relationship(deleteRule: .cascade, inverse: \ReminderCompletion.reminder)
     var completions: [ReminderCompletion]?
     
     // MARK: - 初始化
@@ -63,7 +63,7 @@ final class ReminderCompletion {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship
+    @Relationship(deleteRule: .nullify)
     var reminder: Reminder
     
     // MARK: - 初始化

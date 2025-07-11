@@ -25,10 +25,10 @@ final class Tag {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship(inverse: \Record.tag)
+    @Relationship(deleteRule: .cascade, inverse: \Record.tag)
     var records: [Record]?
     
-    @Relationship(inverse: \Reminder.tag)
+    @Relationship(deleteRule: .cascade, inverse: \Reminder.tag)
     var reminders: [Reminder]?
     
     // MARK: - 初始化
@@ -53,4 +53,4 @@ final class Tag {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-} 
+}

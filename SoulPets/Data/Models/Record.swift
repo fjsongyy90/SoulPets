@@ -11,13 +11,13 @@ final class Record {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship(.nullify)
+    @Relationship(deleteRule: .nullify)
     var tag: Tag
     
-    @Relationship(.cascade, inverse: \RecordPhoto.record)
+    @Relationship(deleteRule: .cascade, inverse: \RecordPhoto.record)
     var photos: [RecordPhoto]?
     
-    @Relationship
+    @Relationship(deleteRule: .nullify)
     var pets: [Pet]?
     
     // MARK: - 初始化
@@ -49,7 +49,7 @@ final class RecordPhoto {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship
+    @Relationship(deleteRule: .nullify)
     var record: Record
     
     // MARK: - 初始化

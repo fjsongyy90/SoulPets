@@ -36,19 +36,17 @@ class NotificationService {
     
     /// 为提醒创建本地通知
     static func scheduleReminderNotification(reminder: Reminder, pet: Pet) {
-        guard let tag = reminder.tag.name else {
-            logger.error("无法为提醒创建通知：标签名为空")
-            return
-        }
+        // 获取标签名称，如果为空则使用默认值
+        let tagName = reminder.tag.name ?? "提醒"
         
         // 构建通知内容
         let content = UNMutableNotificationContent()
-        content.title = "\(pet.name): \(tag)"
+        content.title = "\(pet.name): \(tagName)"
         
         if let notes = reminder.notes, !notes.isEmpty {
             content.body = notes
         } else {
-            content.body = "是时候给\(pet.name)进行\(tag)了"
+            content.body = "是时候给\(pet.name)进行\(tagName)了"
         }
         
         content.sound = .default
@@ -68,7 +66,7 @@ class NotificationService {
             if let error = error {
                 logger.error("添加通知失败: \(error.localizedDescription)")
             } else {
-                logger.info("成功为\(pet.name)的\(tag)添加通知，ID: \(identifier)")
+                logger.info("成功为\(pet.name)的\(tagName)添加通知，ID: \(identifier)")
             }
         }
     }

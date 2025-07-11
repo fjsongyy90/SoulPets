@@ -39,13 +39,13 @@ final class Pet {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship(.cascade, inverse: \Weight.pet)
+    @Relationship(deleteRule: .cascade, inverse: \Weight.pet)
     var weights: [Weight]?
     
-    @Relationship(inverse: \Record.pets)
+    @Relationship(deleteRule: .nullify, inverse: \Record.pets)
     var records: [Record]?
     
-    @Relationship(inverse: \Reminder.pets)
+    @Relationship(deleteRule: .nullify, inverse: \Reminder.pets)
     var reminders: [Reminder]?
     
     // MARK: - 初始化
