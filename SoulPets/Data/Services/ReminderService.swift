@@ -116,15 +116,19 @@ class ReminderService {
         let allRemindersDescriptor = FetchDescriptor<Reminder>()
         
         do {
+            // 获取所有提醒模板
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
             
+            // 在内存中进行过滤，避免在谓词中使用可选链
             if isCompleted {
                 // 获取已完成的提醒
-                return allReminders.filter { $0.isCompletedToday }
+                return allReminders.filter { reminder in
+                    return reminder.isCompletedOn(date: today)
+                }
             } else {
                 // 获取未完成的提醒
                 return allReminders.filter { reminder in
-                    reminder.needsReminderOn(date: today) && !reminder.isCompletedToday
+                    return reminder.needsReminderOn(date: today) && !reminder.isCompletedOn(date: today)
                 }
             }
         } catch {

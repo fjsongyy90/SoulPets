@@ -6,68 +6,115 @@ struct PetImportantDatesView: View {
     @ObservedObject var viewModel: PetViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(spacing: 30) {
+            Text(LocalizedStringKey("A few more details"))
+                .font(.title2)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            // 步骤进度指示器
+            ProgressBar(progress: 0.9)
+                .padding(.horizontal, 40)
+            
             // 生日选择
             VStack(alignment: .leading, spacing: 8) {
                 Text(LocalizedStringKey("Birthday"))
                     .font(.headline)
+                    .foregroundColor(.secondary)
                 
-                DatePicker("", selection: $viewModel.birthday, displayedComponents: .date)
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
+                HStack {
+                    DatePicker("", selection: $viewModel.birthday, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                    
+                    Spacer()
+                    
+                    Image(systemName: "calendar")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(red: 0.69, green: 0.45, blue: 0.25))
+                        .padding(.trailing)
+                }
+                .padding()
+                .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                .cornerRadius(20)
             }
+            .padding(.horizontal)
             
             // 领养日选择
             VStack(alignment: .leading, spacing: 8) {
-                Text(LocalizedStringKey("Adoption / Gotcha Day"))
+                Text(LocalizedStringKey("Adoption Day / Gotcha Day"))
                     .font(.headline)
+                    .foregroundColor(.secondary)
                 
-                DatePicker("", selection: $viewModel.adoptionDay, displayedComponents: .date)
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
+                HStack {
+                    Image(systemName: "pawprint.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.brown)
+                        .padding(.leading)
+                    
+                    Spacer()
+                    
+                    DatePicker("", selection: $viewModel.adoptionDay, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                }
+                .padding()
+                .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                .cornerRadius(20)
             }
+            .padding(.horizontal)
             
             // 体重单位偏好
             VStack(alignment: .leading, spacing: 8) {
                 Text(LocalizedStringKey("Weight Unit"))
                     .font(.headline)
+                    .foregroundColor(.secondary)
                 
-                Picker("", selection: $viewModel.weightUnitPreference) {
+                HStack(spacing: 15) {
                     ForEach(WeightUnit.allCases, id: \.self) { unit in
-                        Text(unit.rawValue).tag(unit)
+                        Button(action: {
+                            viewModel.weightUnitPreference = unit
+                        }) {
+                            Text(unit.rawValue)
+                                .fontWeight(viewModel.weightUnitPreference == unit ? .bold : .regular)
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 30)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(viewModel.weightUnitPreference == unit ? 
+                                      Color(red: 0.69, green: 0.45, blue: 0.25) : 
+                                      Color(red: 0.95, green: 0.91, blue: 0.85))
+                        )
+                        .foregroundColor(viewModel.weightUnitPreference == unit ? .white : .primary)
                     }
                 }
-                .pickerStyle(.segmented)
             }
-            
-            // 可选健康信息
-            VStack(alignment: .leading, spacing: 16) {
-                Text(LocalizedStringKey("Optional Health Information"))
-                    .font(.headline)
-                    .padding(.top)
-                
-                // 芯片ID
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(LocalizedStringKey("Microchip ID"))
-                        .font(.subheadline)
-                    
-                    TextField("", text: $viewModel.microchipID)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                
-                // 保险单号
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(LocalizedStringKey("Insurance Policy No."))
-                        .font(.subheadline)
-                    
-                    TextField("", text: $viewModel.insurancePolicyNo)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-            }
+            .padding(.horizontal)
             
             Spacer()
+            
+            // 完成按钮
+            Button(action: {
+                // 这里什么都不做，由父视图处理
+            }) {
+                Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(red: 0.69, green: 0.45, blue: 0.25))
+                    )
+            }
+            .padding(.horizontal, 40)
+            .padding(.bottom)
         }
-        .padding()
+        .background(Color(red: 0.99, green: 0.98, blue: 0.94))
     }
 }
 
@@ -76,4 +123,5 @@ struct PetImportantDatesView: View {
     let container = try! ModelContainer(for: Pet.self, configurations: config)
     let viewModel = PetViewModel(modelContext: container.mainContext)
     return PetImportantDatesView(viewModel: viewModel)
+        .background(Color(red: 0.99, green: 0.98, blue: 0.94))
 } 

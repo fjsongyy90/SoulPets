@@ -8,8 +8,9 @@ struct AddPetView: View {
     @State private var showingBirthdayReminderAlert = false
     @State private var shouldCreateBirthdayReminder = false
     
-    // 步骤标题
-    private let stepTitles = ["Pet Type", "Basic Info", "Important Dates"]
+    // 背景和强调色
+    private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
+    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: PetViewModel(modelContext: modelContext))
@@ -17,83 +18,106 @@ struct AddPetView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // 步骤指示器
-                StepIndicator(
-                    currentStep: stepForAddPetStep(viewModel.currentStep),
-                    totalSteps: 3,
-                    stepTitles: stepTitles
-                )
-                .padding(.top)
+            ZStack {
+                // 背景色
+                backgroundColor.ignoresSafeArea()
                 
-                // 当前步骤内容
-                ScrollView {
-                    switch viewModel.currentStep {
-                    case .selectType:
-                        PetTypeSelectionView(selectedType: $viewModel.petType)
-                            .padding(.top, 20)
-                    case .basicInfo:
-                        PetBasicInfoView(viewModel: viewModel)
-                    case .importantDates:
-                        PetImportantDatesView(viewModel: viewModel)
+                VStack(spacing: 0) {
+                    // 当前步骤内容
+                    ScrollView {
+                        switch viewModel.currentStep {
+                        case .selectType:
+                            PetTypeSelectionView(selectedType: $viewModel.petType)
+                                .padding(.top, 20)
+                        case .basicInfo:
+                            PetBasicInfoView(viewModel: viewModel)
+                        case .importantDates:
+                            PetImportantDatesView(viewModel: viewModel)
+                        }
+                    }
+                    
+                    // 导航按钮 - 使用新的UI风格
+                    if viewModel.currentStep == .selectType {
+                        Button(action: {
+                            viewModel.moveToNextStep()
+                        }) {
+                            Text(LocalizedStringKey("Next"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(accentColor)
+                                )
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.bottom, 20)
+                    } else if viewModel.currentStep == .basicInfo {
+                        Button(action: {
+                            viewModel.moveToNextStep()
+                        }) {
+                            Text(LocalizedStringKey("Next"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(viewModel.formIsValid ? accentColor : Color.gray)
+                                )
+                        }
+                        .disabled(!viewModel.formIsValid)
+                        .padding(.horizontal, 40)
+                        .padding(.bottom, 20)
+                    } else if viewModel.currentStep == .importantDates {
+                        Button(action: {
+                            // 最后一步，保存宠物
+                            saveAndFinish()
+                        }) {
+                            Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(accentColor)
+                                )
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.bottom, 20)
                     }
                 }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(LocalizedStringKey("SoulPets"))
+                        .font(.headline)
+                        .foregroundColor(accentColor)
+                }
                 
-                // 导航按钮
-                HStack {
-                    // 上一步按钮
-                    if viewModel.currentStep != .selectType {
+                if viewModel.currentStep != .selectType {
+                    ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
                             viewModel.moveToPreviousStep()
                         }) {
-                            HStack {
-                                Image(systemName: "chevron.left")
-                                Text(LocalizedStringKey("Back"))
-                            }
-                            .padding()
-                            .foregroundColor(Color("AccentColor"))
+                            Image(systemName: "arrow.left")
+                                .foregroundColor(accentColor)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // 下一步/完成按钮
-                    Button(action: {
-                        if viewModel.currentStep == .importantDates {
-                            // 最后一步，保存宠物
-                            saveAndFinish()
-                        } else {
-                            // 进入下一步
-                            viewModel.moveToNextStep()
-                        }
-                    }) {
-                        HStack {
-                            Text(viewModel.currentStep == .importantDates ? 
-                                 LocalizedStringKey("Finish & Welcome \(viewModel.name)!") : 
-                                 LocalizedStringKey("Next"))
-                            
-                            if viewModel.currentStep != .importantDates {
-                                Image(systemName: "chevron.right")
-                            }
-                        }
-                        .padding()
-                        .foregroundColor(.white)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(viewModel.currentStep == .basicInfo && !viewModel.formIsValid ? 
-                                      Color.gray : Color("AccentColor"))
-                        )
-                    }
-                    .disabled(viewModel.currentStep == .basicInfo && !viewModel.formIsValid)
                 }
-                .padding()
-            }
-            .navigationTitle(LocalizedStringKey("Add New Pet"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("Cancel")) {
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
                         dismiss()
+                    }) {
+                        Text(LocalizedStringKey("Cancel"))
+                            .foregroundColor(accentColor)
                     }
                 }
             }
@@ -111,15 +135,6 @@ struct AddPetView: View {
         }
     }
     
-    // 将枚举步骤转换为数字索引
-    private func stepForAddPetStep(_ step: AddPetStep) -> Int {
-        switch step {
-        case .selectType: return 0
-        case .basicInfo: return 1
-        case .importantDates: return 2
-        }
-    }
-    
     // 保存宠物并显示生日提醒询问
     private func saveAndFinish() {
         do {
@@ -132,12 +147,10 @@ struct AddPetView: View {
     
     // 完成并关闭视图
     private func finishAndDismiss() {
-        // TODO: 如果用户选择了创建生日提醒，这里应该创建一个提醒
         if shouldCreateBirthdayReminder {
-            // 在这里创建生日提醒的代码
+            // 创建生日提醒的代码
             print("应该创建生日提醒")
         }
-        
         dismiss()
     }
 }
