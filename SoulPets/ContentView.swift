@@ -15,8 +15,16 @@ struct ContentView: View {
     @State private var isModelReady = false
     @State private var errorMessage: String? = nil
     
+    // 颜色定义
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    
     var body: some View {
         ZStack {
+            // 应用背景色
+            backgroundColor.ignoresSafeArea()
+            
             if let error = errorMessage {
                 // 显示错误信息
                 VStack(spacing: 20) {
@@ -27,16 +35,18 @@ struct ContentView: View {
                     Text("数据加载出错")
                         .font(.title)
                         .fontWeight(.bold)
+                        .foregroundColor(textColor)
                     
                     Text(error)
                         .multilineTextAlignment(.center)
+                        .foregroundColor(textColor)
                         .padding()
                     
                     Button("重试") {
                         checkModelContext()
                     }
                     .padding()
-                    .background(Color("AccentColor"))
+                    .background(accentColor)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
@@ -58,17 +68,19 @@ struct ContentView: View {
                     
                     // 提醒标签 (未来实现)
                     Text(LocalizedStringKey("Reminders Coming Soon"))
+                        .foregroundColor(textColor)
                         .tabItem {
                             Label(LocalizedStringKey("Reminders"), systemImage: "bell")
                         }
                     
                     // 体重标签 (未来实现)
                     Text(LocalizedStringKey("Weight Coming Soon"))
+                        .foregroundColor(textColor)
                         .tabItem {
                             Label(LocalizedStringKey("Weight"), systemImage: "scalemass")
                         }
                 }
-                .accentColor(Color("AccentColor"))
+                .accentColor(accentColor)
             }
         }
         .onAppear {

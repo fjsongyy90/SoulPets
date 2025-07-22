@@ -12,9 +12,11 @@ struct AddRecordView: View {
     // 照片选择器状态
     @State private var selectedItems: [PhotosPickerItem] = []
     
-    // 背景和强调色
-    private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
-    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    // 颜色定义
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: RecordViewModel(modelContext: modelContext))
@@ -45,6 +47,7 @@ struct AddRecordView: View {
                     Button(LocalizedStringKey("Cancel")) {
                         dismiss()
                     }
+                    .foregroundColor(accentColor)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -53,6 +56,7 @@ struct AddRecordView: View {
                             viewModel.moveToNextStep()
                         }
                         .disabled(!viewModel.formIsValid)
+                        .foregroundColor(viewModel.formIsValid ? accentColor : .gray)
                     } else {
                         Button(LocalizedStringKey("Add")) {
                             if viewModel.saveRecord() {
@@ -60,6 +64,7 @@ struct AddRecordView: View {
                             }
                         }
                         .disabled(!viewModel.formIsValid)
+                        .foregroundColor(viewModel.formIsValid ? accentColor : .gray)
                     }
                 }
             }
@@ -75,12 +80,13 @@ struct AddRecordView: View {
                 // 宠物选择器
                 Text(LocalizedStringKey("Select Pets"))
                     .font(.headline)
+                    .foregroundColor(textColor)
                     .padding(.horizontal)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
                         ForEach(pets) { pet in
-                            PetAvatarView(pet: pet, isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }))
+                            PetAvatarView(pet: pet, isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), accentColor: accentColor, textColor: textColor)
                                 .onTapGesture {
                                     viewModel.togglePetSelection(pet: pet)
                                 }
@@ -100,6 +106,7 @@ struct AddRecordView: View {
                 // 标签选择器
                 Text(LocalizedStringKey("Select Event Type"))
                     .font(.headline)
+                    .foregroundColor(textColor)
                     .padding(.horizontal)
                     .padding(.top)
                 
@@ -108,7 +115,7 @@ struct AddRecordView: View {
                     VStack(alignment: .leading) {
                         Text(LocalizedStringKey("Recently Used"))
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(labelColor)
                             .padding(.horizontal)
                         
                         tagGridView(tags: viewModel.recentlyUsedTags)
@@ -122,7 +129,7 @@ struct AddRecordView: View {
                         VStack(alignment: .leading) {
                             Text(LocalizedStringKey(category.rawValue))
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(labelColor)
                                 .padding(.horizontal)
                             
                             tagGridView(tags: filteredTags)
@@ -143,6 +150,7 @@ struct AddRecordView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Date & Time"))
                         .font(.headline)
+                        .foregroundColor(textColor)
                     
                     DatePicker("", selection: $viewModel.recordDate)
                         .labelsHidden()
@@ -153,6 +161,7 @@ struct AddRecordView: View {
                                 .fill(Color.white)
                                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                         )
+                        .accentColor(accentColor)
                 }
                 .padding(.horizontal)
                 
@@ -160,8 +169,10 @@ struct AddRecordView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Notes"))
                         .font(.headline)
+                        .foregroundColor(textColor)
                     
                     TextEditor(text: $viewModel.recordNotes)
+                        .foregroundColor(textColor)
                         .frame(minHeight: 100)
                         .padding()
                         .background(
@@ -173,7 +184,7 @@ struct AddRecordView: View {
                             Group {
                                 if viewModel.recordNotes.isEmpty {
                                     Text(LocalizedStringKey("Add some details about this event (optional)"))
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(labelColor)
                                         .padding(.horizontal, 20)
                                         .padding(.vertical, 16)
                                         .allowsHitTesting(false)
@@ -188,17 +199,20 @@ struct AddRecordView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Photos"))
                         .font(.headline)
+                        .foregroundColor(textColor)
                     
                     PhotosPicker(selection: $selectedItems, matching: .images) {
                         HStack {
                             Image(systemName: "photo")
+                                .foregroundColor(accentColor)
                             Text(LocalizedStringKey("Add Photos"))
+                                .foregroundColor(accentColor)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.secondary, style: StrokeStyle(lineWidth: 1, dash: [5]))
+                                .stroke(accentColor, style: StrokeStyle(lineWidth: 1, dash: [5]))
                         )
                     }
                     
@@ -235,9 +249,11 @@ struct AddRecordView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Cost"))
                         .font(.headline)
+                        .foregroundColor(textColor)
                     
                     TextField("0.00", text: $viewModel.recordCost)
                         .keyboardType(.decimalPad)
+                        .foregroundColor(textColor)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
@@ -270,7 +286,7 @@ struct AddRecordView: View {
     private func tagGridView(tags: [Tag]) -> some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
             ForEach(tags) { tag in
-                TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id)
+                TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
                     .onTapGesture {
                         viewModel.selectTag(tag)
                     }
@@ -304,9 +320,8 @@ struct AddRecordView: View {
 struct PetAvatarView: View {
     let pet: Pet
     let isSelected: Bool
-    
-    // 颜色
-    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    let accentColor: Color
+    let textColor: Color
     
     var body: some View {
         VStack {
@@ -341,7 +356,7 @@ struct PetAvatarView: View {
             // 宠物名称
             Text(pet.name)
                 .font(.caption)
-                .foregroundColor(isSelected ? accentColor : .primary)
+                .foregroundColor(isSelected ? accentColor : textColor)
                 .lineLimit(1)
         }
     }
@@ -351,9 +366,8 @@ struct PetAvatarView: View {
 struct TagItemView: View {
     let tag: Tag
     let isSelected: Bool
-    
-    // 颜色
-    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    let accentColor: Color
+    let textColor: Color
     
     var body: some View {
         HStack(spacing: 8) {
@@ -370,7 +384,7 @@ struct TagItemView: View {
             // 名称
             Text(LocalizedStringKey(tag.name))
                 .font(.subheadline)
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? .white : textColor)
                 .lineLimit(1)
             
             Spacer()

@@ -8,9 +8,11 @@ struct RecordsView: View {
     @State private var showingAddRecordSheet = false
     @State private var searchText = ""
     
-    // 背景和强调色
-    private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
-    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    // 颜色定义
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: RecordViewModel(modelContext: modelContext))
@@ -48,6 +50,7 @@ struct RecordsView: View {
                         showingAddRecordSheet = true
                     } label: {
                         Image(systemName: "plus")
+                            .foregroundColor(accentColor)
                     }
                 }
             }
@@ -68,7 +71,7 @@ struct RecordsView: View {
         HStack {
             Text("Filter:")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(labelColor)
             
             Picker("", selection: Binding(
                 get: { viewModel.isShowingAllPets },
@@ -79,6 +82,7 @@ struct RecordsView: View {
                 Text("Current Pet").tag(false)
             }
             .pickerStyle(SegmentedPickerStyle())
+            .accentColor(accentColor)
             
             Spacer()
         }
@@ -88,9 +92,10 @@ struct RecordsView: View {
     private var searchBarView: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(.secondary)
+                .foregroundColor(labelColor)
             
             TextField(LocalizedStringKey("Search records..."), text: $searchText)
+                .foregroundColor(textColor)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
         }
     }
@@ -107,11 +112,12 @@ struct RecordsView: View {
             Text(LocalizedStringKey("No Records"))
                 .font(.title2)
                 .fontWeight(.bold)
+                .foregroundColor(textColor)
             
             Text(LocalizedStringKey("Add your first record to start tracking your pet's journey."))
                 .font(.body)
                 .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
+                .foregroundColor(labelColor)
                 .padding(.horizontal, 40)
             
             Button {
@@ -137,13 +143,14 @@ struct RecordsView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 ForEach(viewModel.records) { record in
-                    RecordCardView(record: record)
+                    RecordCardView(record: record, accentColor: accentColor, textColor: textColor, labelColor: labelColor)
                         .padding(.horizontal)
                         .contextMenu {
                             Button {
                                 // 编辑记录
                             } label: {
                                 Label(LocalizedStringKey("Edit Record"), systemImage: "pencil")
+                                    .foregroundColor(accentColor)
                             }
                             
                             Button(role: .destructive) {
@@ -163,10 +170,12 @@ struct RecordsView: View {
 /// 记录卡片视图
 struct RecordCardView: View {
     let record: Record
+    let accentColor: Color
+    let textColor: Color
+    let labelColor: Color
     
     // 卡片颜色
     private let cardColor = Color.white
-    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -185,6 +194,7 @@ struct RecordCardView: View {
                     
                     Text(LocalizedStringKey(record.tag.name))
                         .font(.headline)
+                        .foregroundColor(textColor)
                 }
                 
                 Spacer()
@@ -192,7 +202,7 @@ struct RecordCardView: View {
                 // 时间戳
                 Text(formattedDate)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(labelColor)
             }
             
             // 宠物头像（如果是"所有宠物"视图）
@@ -226,7 +236,7 @@ struct RecordCardView: View {
             if let notes = record.notes, !notes.isEmpty {
                 Text(notes)
                     .font(.body)
-                    .foregroundColor(.primary)
+                    .foregroundColor(textColor)
                     .lineLimit(3)
             }
             
