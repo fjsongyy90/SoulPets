@@ -11,8 +11,8 @@ struct PetsHomeView: View {
     @State private var selectedPet: Pet?
     
     // 背景和强调色
-    private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
-    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94) // 更浅的背景色
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)     // 更深的棕色，增加对比度
     private let peachColor = Color(red: 0.97, green: 0.63, blue: 0.46)
     private let mintColor = Color(red: 0.85, green: 0.95, blue: 0.9)
     
@@ -152,7 +152,7 @@ struct PetsHomeView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Name")
                             .font(.title3)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                         
                         Text(pet.name)
                             .font(.system(size: 40))
@@ -169,7 +169,7 @@ struct PetsHomeView: View {
                     
                     Text("Age")
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                     
                     Spacer()
                     
@@ -186,7 +186,7 @@ struct PetsHomeView: View {
                     
                     Text("Birthday")
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                     
                     Spacer()
                     
@@ -207,7 +207,7 @@ struct PetsHomeView: View {
                     
                     Text("We already know each other")
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                     
                     Spacer()
                     
@@ -230,11 +230,11 @@ struct PetsHomeView: View {
                     
                     Text("Microchip ID")
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                     
                     Spacer()
                     
-                    Text(pet.microchipID ?? "Secret")
+                    Text(pet.microchipID.isEmpty ? "Secret" : pet.microchipID)
                         .font(.headline)
                         .foregroundColor(accentColor)
                 }
@@ -249,11 +249,11 @@ struct PetsHomeView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Latest net worth")
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                         
                         Text("Secret")
                             .font(.headline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                     }
                     
                     Spacer()
@@ -261,7 +261,7 @@ struct PetsHomeView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Latest weight")
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
                         
                         if let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first {
                             Text("\(String(format: "%.1f", latestWeight.weightInKg)) kg")
@@ -436,11 +436,11 @@ struct RoundedCorner: Shape {
     }
 }
 
-#Preview {
+#Preview("宠物主页") {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Pet.self, configurations: config)
     
-    // 添加预览数据
+    // 添加测试数据
     let pet1 = Pet(
         name: "mimi",
         petType: .cat,
@@ -461,7 +461,6 @@ struct RoundedCorner: Shape {
         adoptionDay: Calendar.current.date(byAdding: .day, value: -405, to: Date()),
         weightUnitPreference: .kg
     )
-    
     container.mainContext.insert(pet1)
     container.mainContext.insert(pet2)
     

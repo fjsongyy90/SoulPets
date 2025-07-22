@@ -62,6 +62,13 @@ struct CircleImagePicker: View {
 }
 
 #Preview {
+    struct PreviewWrapper: View {
     @State var image: UIImage? = nil
-    return CircleImagePicker(image: $image)
+        
+        var body: some View {
+            CircleImagePicker(image: $image)
+        }
+    }
+    
+    return PreviewWrapper()
 } 

@@ -1,0 +1,123 @@
+/* 
+  Localizable.strings
+  SoulPets
+  
+  Created for SoulPets App
+  English Localization
+*/
+
+// TabView 标签项
+"Home" = "Home";
+"Records" = "Records";
+"Reminders" = "Reminders";
+"Weight" = "Weight";
+"Records Coming Soon" = "Records Coming Soon";
+"Reminders Coming Soon" = "Reminders Coming Soon";
+"Weight Coming Soon" = "Weight Coming Soon";
+
+// 宠物管理 - 通用
+"Cancel" = "Cancel";
+"Save" = "Save";
+"Delete" = "Delete";
+"Edit" = "Edit";
+"Done" = "Done";
+"Next" = "Next";
+"Back" = "Back";
+"Hello, %@!" = "Hello, %@!";
+"Add Pet" = "Add Pet";
+
+// 宠物管理 - 添加宠物流程
+"Add New Pet" = "Add New Pet";
+"Step 1 of 3" = "Step 1 of 3";
+"Step 2 of 3" = "Step 2 of 3";
+"Step 3 of 3" = "Step 3 of 3";
+"Choose Pet Type" = "Choose Pet Type";
+"Basic Information" = "Basic Information";
+"Important Dates" = "Important Dates";
+
+// 宠物类型
+"Cat" = "Cat";
+"Dog" = "Dog";
+"Soon" = "Soon";
+"We're working hard to support more adorable pets soon!" = "We're working hard to support more adorable pets soon!";
+
+// 宠物信息表单
+"Name" = "Name";
+"Breed / Color" = "Breed / Color";
+"Gender" = "Gender";
+"Male" = "Male";
+"Female" = "Female";
+"Other" = "Other";
+"Neutered / Spayed?" = "Neutered / Spayed?";
+"Birthday" = "Birthday";
+"Adoption Day / Gotcha Day" = "Adoption Day / Gotcha Day";
+"Weight Unit" = "Weight Unit";
+"Finish & Welcome %@!" = "Finish & Welcome %@!";
+"Add Birthday Reminder?" = "Add Birthday Reminder?";
+"Would you like to set an annual reminder for %@'s birthday?" = "Would you like to set an annual reminder for %@'s birthday?";
+"Yes, please" = "Yes, please";
+"No, thanks" = "No, thanks";
+
+// 宠物档案
+"Pet Profile" = "Pet Profile";
+"Basic Info" = "Basic Info";
+"Health Info" = "Health Info";
+"Important Dates" = "Important Dates";
+"Preferences" = "Preferences";
+"Microchip ID" = "Microchip ID";
+"Insurance Policy No." = "Insurance Policy No.";
+"Age" = "Age";
+"Together for" = "Together for";
+"Next birthday" = "Next birthday";
+"Last Weight" = "Last Weight";
+"Next Reminder" = "Next Reminder";
+"View Profile" = "View Profile";
+"%dy %dm %dd" = "%dy %dm %dd";
+"%d days" = "%d days";
+"In %d days" = "In %d days";
+"%@ in %d days" = "%@ in %d days";
+
+// 删除确认
+"Delete Pet" = "Delete Pet";
+"Are you sure you want to delete %@? This action cannot be undone." = "Are you sure you want to delete %@? This action cannot be undone.";
+"Delete" = "Delete";
+"Cancel" = "Cancel";
+
+// 未保存更改提示
+"Unsaved Changes" = "Unsaved Changes";
+"You have unsaved changes. Would you like to save them?" = "You have unsaved changes. Would you like to save them?";
+"Save" = "Save";
+"Discard" = "Discard"; 
+
+// 记录模块 - 通用
+"All Pets" = "All Pets";
+"Search records..." = "Search records...";
+"No Records" = "No Records";
+"Add your first record to start tracking your pet's journey." = "Add your first record to start tracking your pet's journey.";
+"Add Record" = "Add Record";
+"Edit Record" = "Edit Record";
+"Delete Record" = "Delete Record";
+"Are you sure you want to delete this record?" = "Are you sure you want to delete this record?";
+
+// 记录模块 - 添加记录流程
+"Select Pets & Event" = "Select Pets & Event";
+"Record Details" = "Record Details";
+"Date & Time" = "Date & Time";
+"Notes" = "Notes";
+"Add Photos" = "Add Photos";
+"Recently Used" = "Recently Used";
+"Daily Life" = "Daily Life";
+"Routine Health" = "Routine Health";
+"Grooming & Cleaning" = "Grooming & Cleaning";
+"Home & Supplies" = "Home & Supplies";
+"Medical Care" = "Medical Care";
+"Planning & Milestones" = "Planning & Milestones";
+"Tell us what happened" = "Tell us what happened";
+"Add some details about this event (optional)" = "Add some details about this event (optional)";
+"Select at least one pet" = "Select at least one pet";
+"Select an event type" = "Select an event type";
+"Today" = "Today";
+"Yesterday" = "Yesterday";
+"Photos" = "Photos";
+"Cost" = "Cost";
+"Add" = "Add"; 

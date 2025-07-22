@@ -75,8 +75,8 @@ class PetViewModel: ObservableObject {
                 isNeutered: isNeutered,
                 birthday: birthday,
                 adoptionDay: adoptionDay,
-                microchipID: microchipID.isEmpty ? nil : microchipID,
-                insurancePolicyNo: insurancePolicyNo.isEmpty ? nil : insurancePolicyNo,
+                microchipID: microchipID,
+                insurancePolicyNo: insurancePolicyNo,
                 weightUnitPreference: weightUnitPreference
             )
             
@@ -121,8 +121,8 @@ class PetViewModel: ObservableObject {
             pet.isNeutered = isNeutered
             pet.birthday = birthday
             pet.adoptionDay = adoptionDay
-            pet.microchipID = microchipID.isEmpty ? nil : microchipID
-            pet.insurancePolicyNo = insurancePolicyNo.isEmpty ? nil : insurancePolicyNo
+            pet.microchipID = microchipID
+            pet.insurancePolicyNo = insurancePolicyNo
             pet.weightUnitPreference = weightUnitPreference
             pet.updatedAt = Date()
             
@@ -161,8 +161,8 @@ class PetViewModel: ObservableObject {
         isNeutered = pet.isNeutered
         birthday = pet.birthday
         adoptionDay = pet.adoptionDay ?? Date()
-        microchipID = pet.microchipID ?? ""
-        insurancePolicyNo = pet.insurancePolicyNo ?? ""
+        microchipID = pet.microchipID
+        insurancePolicyNo = pet.insurancePolicyNo
         weightUnitPreference = pet.weightUnitPreference
     }
     

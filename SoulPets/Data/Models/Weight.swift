@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+/// 体重记录模型
 @Model
 final class Weight {
     // MARK: - 属性
@@ -30,32 +31,37 @@ final class Weight {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-}
-
-// MARK: - 辅助方法
-extension Weight {
-    /// 将kg转换为lbs
+    
+    // MARK: - 辅助方法
+    
+    /// 转换为磅
     func weightInLbs() -> Double {
         return weightInKg * 2.20462
     }
     
-    /// 根据宠物首选单位显示体重
-    func formattedWeight() -> String {
+    /// 根据用户偏好获取格式化的体重字符串
+    func formattedWeight(unit: WeightUnit? = nil) -> String {
+        let preferredUnit = unit ?? pet.weightUnitPreference
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 2
+        formatter.maximumFractionDigits = 1
         
-        if pet.weightUnitPreference == .kg {
-            guard let formattedValue = formatter.string(from: NSNumber(value: weightInKg)) else {
-                return "\(weightInKg) kg"
-            }
-            return "\(formattedValue) kg"
+        let weightValue: Double
+        let unitString: String
+        
+        switch preferredUnit {
+        case .kg:
+            weightValue = weightInKg
+            unitString = "kg"
+        case .lbs:
+            weightValue = weightInLbs()
+            unitString = "lbs"
+        }
+        
+        if let formattedValue = formatter.string(from: NSNumber(value: weightValue)) {
+            return "\(formattedValue) \(unitString)"
         } else {
-            let lbs = weightInLbs()
-            guard let formattedValue = formatter.string(from: NSNumber(value: lbs)) else {
-                return "\(lbs) lbs"
-            }
-            return "\(formattedValue) lbs"
+            return "\(weightValue) \(unitString)"
         }
     }
 } 

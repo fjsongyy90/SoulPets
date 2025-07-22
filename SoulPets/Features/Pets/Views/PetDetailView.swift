@@ -10,6 +10,13 @@ struct PetDetailView: View {
     @State private var showingEditSheet = false
     @State private var showingDeleteAlert = false
     
+    // 颜色定义
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let cardColor = Color.white
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.5, green: 0.5, blue: 0.5)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    
     // 创建格式化器
     private let birthdayFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -54,14 +61,14 @@ struct PetDetailView: View {
                 }
                 
                 // 健康信息卡片
-                if pet.microchipID != nil || pet.insurancePolicyNo != nil {
+                if !pet.microchipID.isEmpty || !pet.insurancePolicyNo.isEmpty {
                     infoCard(title: "Health Information") {
-                        if let microchipID = pet.microchipID {
-                            infoRow(label: "Microchip ID", value: microchipID)
+                        if !pet.microchipID.isEmpty {
+                            infoRow(label: "Microchip ID", value: pet.microchipID)
                         }
                         
-                        if let insurancePolicyNo = pet.insurancePolicyNo {
-                            infoRow(label: "Insurance Policy No.", value: insurancePolicyNo)
+                        if !pet.insurancePolicyNo.isEmpty {
+                            infoRow(label: "Insurance Policy No.", value: pet.insurancePolicyNo)
                         }
                         
                         infoRow(label: "Weight Unit", value: pet.weightUnitPreference.rawValue)
@@ -70,6 +77,7 @@ struct PetDetailView: View {
             }
             .padding()
         }
+        .background(backgroundColor.ignoresSafeArea())
         .navigationTitle(pet.name)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarItems(
@@ -78,13 +86,13 @@ struct PetDetailView: View {
                     Button(action: {
                         showingEditSheet = true
                     }) {
-                        Label(LocalizedStringKey("Edit"), systemImage: "pencil")
+                        Label("Edit", systemImage: "pencil")
                     }
                     
                     Button(role: .destructive, action: {
                         showingDeleteAlert = true
                     }) {
-                        Label(LocalizedStringKey("Delete"), systemImage: "trash")
+                        Label("Delete", systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -94,13 +102,13 @@ struct PetDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
             EditPetView(pet: pet)
         }
-        .alert(LocalizedStringKey("Delete Pet"), isPresented: $showingDeleteAlert) {
-            Button(LocalizedStringKey("Cancel"), role: .cancel) {}
-            Button(LocalizedStringKey("Delete"), role: .destructive) {
+        .alert("Delete Pet", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
                 deletePet()
             }
         } message: {
-            Text(LocalizedStringKey("Are you sure you want to delete \(pet.name)? This action cannot be undone."))
+            Text("Are you sure you want to delete \(pet.name)? This action cannot be undone.")
         }
     }
     
@@ -115,7 +123,7 @@ struct PetDetailView: View {
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(Color("AccentColor"), lineWidth: 3)
+                            .stroke(accentColor, lineWidth: 3)
                     )
             } else {
                 Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
@@ -126,21 +134,23 @@ struct PetDetailView: View {
                     .background(Circle().fill(Color(.systemGray5)))
                     .overlay(
                         Circle()
-                            .stroke(Color("AccentColor"), lineWidth: 3)
+                            .stroke(accentColor, lineWidth: 3)
                     )
             }
             
             Text(pet.name)
                 .font(.title)
                 .fontWeight(.bold)
+                .foregroundColor(textColor)
         }
     }
     
     // 信息卡片容器
     private func infoCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(LocalizedStringKey(title))
+            Text(title)
                 .font(.headline)
+                .foregroundColor(accentColor)
                 .padding(.bottom, 4)
             
             content()
@@ -148,7 +158,7 @@ struct PetDetailView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(cardColor)
                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
     }
@@ -156,11 +166,12 @@ struct PetDetailView: View {
     // 信息行
     private func infoRow(label: String, value: String) -> some View {
         HStack {
-            Text(LocalizedStringKey(label))
-                .foregroundColor(.secondary)
+            Text(label)
+                .foregroundColor(labelColor)
             Spacer()
-            Text(LocalizedStringKey(value))
+            Text(value)
                 .fontWeight(.medium)
+                .foregroundColor(textColor)
         }
         .padding(.vertical, 4)
     }

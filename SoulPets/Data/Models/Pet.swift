@@ -20,6 +20,7 @@ enum WeightUnit: String, Codable, CaseIterable {
     case lbs = "lbs"
 }
 
+/// 宠物模型
 @Model
 final class Pet {
     // MARK: - 属性
@@ -32,8 +33,8 @@ final class Pet {
     var isNeutered: Bool
     var birthday: Date
     var adoptionDay: Date?
-    var microchipID: String?
-    var insurancePolicyNo: String?
+    var microchipID: String
+    var insurancePolicyNo: String
     var weightUnitPreference: WeightUnit
     var createdAt: Date
     var updatedAt: Date
@@ -42,7 +43,7 @@ final class Pet {
     @Relationship(deleteRule: .cascade, inverse: \Weight.pet)
     var weights: [Weight]?
     
-    @Relationship(deleteRule: .nullify, inverse: \Record.pets)
+    @Relationship(deleteRule: .nullify)
     var records: [Record]?
     
     @Relationship(deleteRule: .nullify, inverse: \Reminder.pets)
@@ -59,9 +60,9 @@ final class Pet {
         isNeutered: Bool,
         birthday: Date,
         adoptionDay: Date? = nil,
-        microchipID: String? = nil,
-        insurancePolicyNo: String? = nil,
-        weightUnitPreference: WeightUnit,
+        microchipID: String = "",
+        insurancePolicyNo: String = "",
+        weightUnitPreference: WeightUnit = .kg,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {

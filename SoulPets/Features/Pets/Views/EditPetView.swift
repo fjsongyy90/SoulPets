@@ -1,11 +1,13 @@
 import SwiftUI
 import SwiftData
+import os.log
 
 /// 编辑宠物视图
 struct EditPetView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
+    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "EditPetView")
     let pet: Pet
     @StateObject private var viewModel: PetViewModel
     
@@ -87,7 +89,7 @@ struct EditPetView: View {
                     // 体重单位
                     Picker(LocalizedStringKey("Weight Unit"), selection: $viewModel.weightUnitPreference) {
                         ForEach(WeightUnit.allCases, id: \.self) { unit in
-                            Text(unit.rawValue).tag(unit)
+                            Text(LocalizedStringKey(unit.rawValue)).tag(unit)
                         }
                     }
                     
@@ -127,9 +129,10 @@ struct EditPetView: View {
     private func saveChanges() {
         do {
             try viewModel.updatePet(pet)
+            logger.info("成功更新宠物信息: \(pet.name)")
             dismiss()
         } catch {
-            print("Error updating pet: \(error.localizedDescription)")
+            logger.error("更新宠物信息时出错: \(error.localizedDescription)")
         }
     }
 }
@@ -138,9 +141,9 @@ struct EditPetView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Pet.self, configurations: config)
     let pet = Pet(
-        name: "Whiskers",
+        name: String(localized: "Whiskers"),
         petType: .cat,
-        breed: "Tabby",
+        breed: String(localized: "Tabby"),
         gender: .male,
         isNeutered: true,
         birthday: Calendar.current.date(byAdding: .year, value: -2, to: Date())!,

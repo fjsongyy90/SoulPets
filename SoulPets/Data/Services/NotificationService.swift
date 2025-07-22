@@ -37,7 +37,7 @@ class NotificationService {
     /// 为提醒创建本地通知
     static func scheduleReminderNotification(reminder: Reminder, pet: Pet) {
         // 获取标签名称，如果为空则使用默认值
-        let tagName = reminder.tag.name ?? "提醒"
+        let tagName = reminder.tag.name.isEmpty ? "提醒" : reminder.tag.name
         
         // 构建通知内容
         let content = UNMutableNotificationContent()

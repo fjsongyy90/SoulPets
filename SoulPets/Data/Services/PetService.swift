@@ -78,8 +78,8 @@ class PetService {
             isNeutered: isNeutered,
             birthday: birthday,
             adoptionDay: adoptionDay,
-            microchipID: microchipID,
-            insurancePolicyNo: insurancePolicyNo,
+            microchipID: microchipID ?? "",
+            insurancePolicyNo: insurancePolicyNo ?? "",
             weightUnitPreference: weightUnitPreference
         )
         
@@ -119,8 +119,8 @@ class PetService {
         pet.isNeutered = isNeutered
         pet.birthday = birthday
         pet.adoptionDay = adoptionDay
-        pet.microchipID = microchipID
-        pet.insurancePolicyNo = insurancePolicyNo
+        pet.microchipID = microchipID ?? ""
+        pet.insurancePolicyNo = insurancePolicyNo ?? ""
         pet.weightUnitPreference = weightUnitPreference
         pet.updatedAt = Date()
         

@@ -159,7 +159,14 @@ struct PetTypeCircleButton: View {
 }
 
 #Preview {
+    struct PreviewWrapper: View {
     @State var selectedType: PetType = .cat
-    return PetTypeSelectionView(selectedType: $selectedType)
+        
+        var body: some View {
+            PetTypeSelectionView(selectedType: $selectedType)
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
+        }
+    }
+    
+    return PreviewWrapper()
 } 
