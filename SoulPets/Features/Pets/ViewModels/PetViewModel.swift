@@ -53,7 +53,7 @@ class PetViewModel: ObservableObject {
         debounceTimer?.invalidate()
         
         // 创建新的定时器，延迟执行验证
-        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
+        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
             self?.validateForm()
         }
     }
@@ -67,16 +67,20 @@ class PetViewModel: ObservableObject {
             guard let self = self else { return }
             
             // 验证名称
-            if self.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                DispatchQueue.main.async {
-                    self.nameError = "Please enter your pet's name"
-                    self.formIsValid = false
-                }
-                return
-            } else {
-                DispatchQueue.main.async {
-                    self.nameError = nil
-                    self.formIsValid = true
+            let trimmedName = self.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let isValid = !trimmedName.isEmpty
+            
+            // 只有当验证结果改变时才更新UI
+            DispatchQueue.main.async {
+                let oldError = self.nameError
+                let oldValid = self.formIsValid
+                
+                self.nameError = isValid ? nil : "Please enter your pet's name"
+                self.formIsValid = isValid
+                
+                // 减少不必要的UI更新
+                if oldError != self.nameError || oldValid != self.formIsValid {
+                    // 状态确实改变了，UI会自动更新
                 }
             }
         }

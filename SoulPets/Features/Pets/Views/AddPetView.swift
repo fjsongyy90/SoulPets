@@ -142,9 +142,8 @@ struct AddPetView: View {
             }
         }
         .onAppear {
-            // 设置键盘工具栏样式，避免约束冲突
-            UIToolbar.appearance().isTranslucent = true
-            UIToolbar.appearance().backgroundColor = UIColor.systemBackground
+            // 修复键盘工具栏布局问题
+            // 不再直接修改UIToolbar的外观，改为在PetBasicInfoView中处理
         }
     }
     
