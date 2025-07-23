@@ -11,11 +11,19 @@ struct PetTypeSelectionView: View {
     // 未来支持的宠物类型（仅作展示）
     private let futureTypes = ["Rabbit", "Hamster", "Bird", "Fish", "Turtle", "Guinea Pig", "Lizard"]
     
+    // 定义更高对比度的颜色
+    private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
+    private let labelColor = Color(red: 0.3, green: 0.3, blue: 0.3)
+    private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    private let catColor = Color.yellow
+    private let dogColor = Color.pink
+    
     var body: some View {
         VStack(spacing: 20) {
             Text(LocalizedStringKey("What kind of friend are you welcoming?"))
                 .font(.title2)
                 .fontWeight(.bold)
+                .foregroundColor(textColor)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
                 .padding(.bottom, 10)
@@ -23,17 +31,17 @@ struct PetTypeSelectionView: View {
             // 滑块选择
             HStack {
                 Text(LocalizedStringKey("Cat"))
-                    .foregroundColor(selectedType == .cat ? .yellow : .gray)
+                    .foregroundColor(selectedType == .cat ? catColor : labelColor)
                     .fontWeight(selectedType == .cat ? .bold : .regular)
                 
                 Slider(value: Binding(
                     get: { selectedType == .cat ? 0.0 : 1.0 },
                     set: { selectedType = $0 < 0.5 ? .cat : .dog }
                 ), in: 0...1, step: 1)
-                .tint(.yellow)
+                .tint(selectedType == .cat ? catColor : dogColor)
                 
                 Text(LocalizedStringKey("Dog"))
-                    .foregroundColor(selectedType == .dog ? .yellow : .gray)
+                    .foregroundColor(selectedType == .dog ? dogColor : labelColor)
                     .fontWeight(selectedType == .dog ? .bold : .regular)
             }
             .padding(.horizontal, 40)
@@ -46,7 +54,7 @@ struct PetTypeSelectionView: View {
                     iconName: "cat",
                     isSelected: selectedType == .cat,
                     isDisabled: false,
-                    backgroundColor: .yellow
+                    backgroundColor: catColor
                 ) {
                     selectedType = .cat
                 }
@@ -56,7 +64,7 @@ struct PetTypeSelectionView: View {
                     iconName: "dog",
                     isSelected: selectedType == .dog,
                     isDisabled: false,
-                    backgroundColor: .pink
+                    backgroundColor: dogColor
                 ) {
                     selectedType = .dog
                 }
@@ -90,10 +98,10 @@ struct PetTypeSelectionView: View {
             // 信息提示
             HStack(spacing: 12) {
                 Image(systemName: "info.circle.fill")
-                    .foregroundColor(.brown)
+                    .foregroundColor(accentColor)
                 Text(LocalizedStringKey("We are working hard and will support more cute friends soon!"))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(labelColor)
                     .multilineTextAlignment(.leading)
             }
             .padding()
@@ -108,6 +116,7 @@ struct PetTypeSelectionView: View {
             Button(LocalizedStringKey("OK"), role: .cancel) {}
         } message: {
             Text(LocalizedStringKey("We're working hard to support more lovely pets soon!"))
+                .foregroundColor(textColor)
         }
     }
 }
@@ -120,6 +129,9 @@ struct PetTypeCircleButton: View {
     let isDisabled: Bool
     let backgroundColor: Color
     let action: () -> Void
+    
+    // 定义更高对比度的颜色
+    private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
     
     var body: some View {
         Button(action: action) {
@@ -150,7 +162,7 @@ struct PetTypeCircleButton: View {
                 Text(LocalizedStringKey(type))
                     .font(.caption)
                     .fontWeight(isSelected ? .bold : .regular)
-                    .foregroundColor(isSelected ? backgroundColor : .primary)
+                    .foregroundColor(isSelected ? backgroundColor : textColor)
                     .opacity(isDisabled ? 0.5 : 1.0)
             }
         }

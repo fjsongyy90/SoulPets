@@ -11,6 +11,7 @@ struct AddPetView: View {
     // 背景和强调色
     private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
     private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
+    private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: PetViewModel(modelContext: modelContext))
@@ -35,6 +36,7 @@ struct AddPetView: View {
                             PetImportantDatesView(viewModel: viewModel)
                         }
                     }
+                    .scrollDismissesKeyboard(.immediately) // 滚动时立即收起键盘
                     
                     // 导航按钮 - 使用新的UI风格
                     if viewModel.currentStep == .selectType {
@@ -54,6 +56,7 @@ struct AddPetView: View {
                         }
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
+                        .padding(.top, 10)
                     } else if viewModel.currentStep == .basicInfo {
                         Button(action: {
                             viewModel.moveToNextStep()
@@ -72,6 +75,7 @@ struct AddPetView: View {
                         .disabled(!viewModel.formIsValid)
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
+                        .padding(.top, 10)
                     } else if viewModel.currentStep == .importantDates {
                         Button(action: {
                             // 最后一步，保存宠物
@@ -90,6 +94,7 @@ struct AddPetView: View {
                         }
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
+                        .padding(.top, 10)
                     }
                 }
             }
@@ -98,6 +103,7 @@ struct AddPetView: View {
                 ToolbarItem(placement: .principal) {
                     Text(LocalizedStringKey("SoulPets"))
                         .font(.headline)
+                        .fontWeight(.bold)
                         .foregroundColor(accentColor)
                 }
                 
@@ -118,6 +124,7 @@ struct AddPetView: View {
                     }) {
                         Text(LocalizedStringKey("Cancel"))
                             .foregroundColor(accentColor)
+                            .fontWeight(.semibold)
                     }
                 }
             }
@@ -131,8 +138,10 @@ struct AddPetView: View {
                 }
             } message: {
                 Text(LocalizedStringKey("Would you like to create an annual reminder for \(viewModel.name)'s birthday?"))
+                    .foregroundColor(textColor)
             }
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom) // 防止键盘顶起视图
     }
     
     // 保存宠物并显示生日提醒询问

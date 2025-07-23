@@ -8,6 +8,7 @@ class PetViewModel: ObservableObject {
     // MARK: - 属性
     private var modelContext: ModelContext
     private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "PetViewModel")
+    private var validationWorkItem: DispatchWorkItem?
     
     // 新宠物表单数据
     @Published var name: String = ""
@@ -43,17 +44,31 @@ class PetViewModel: ObservableObject {
     
     // MARK: - 表单验证
     func validateForm() {
-        // 验证名称
-        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            nameError = "Please enter your pet's name"
-            formIsValid = false
-            return
-        } else {
-            nameError = nil
+        // 取消之前的验证任务
+        validationWorkItem?.cancel()
+        
+        // 创建新的验证任务
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            
+            // 验证名称
+            if self.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                DispatchQueue.main.async {
+                    self.nameError = "Please enter your pet's name"
+                    self.formIsValid = false
+                }
+                return
+            } else {
+                DispatchQueue.main.async {
+                    self.nameError = nil
+                    self.formIsValid = true
+                }
+            }
         }
         
-        // 验证其他必填项
-        formIsValid = true
+        // 保存并延迟执行验证任务
+        validationWorkItem = workItem
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.3, execute: workItem)
     }
     
     // MARK: - 数据操作
@@ -77,7 +92,7 @@ class PetViewModel: ObservableObject {
                 adoptionDay: adoptionDay,
                 microchipID: microchipID,
                 insurancePolicyNo: insurancePolicyNo,
-                weightUnitPreference: weightUnitPreference
+                weightUnitPreference: self.weightUnitPreference
             )
             
             // 保存到数据库
@@ -87,11 +102,11 @@ class PetViewModel: ObservableObject {
             if let weightValue = Double(initialWeight), weightValue > 0 {
                 let weight = Weight(
                     date: Date(),
-                    weightInKg: weightValue,
+                    weightInKg: convertToKilograms(weightValue),
                     pet: pet
                 )
                 modelContext.insert(weight)
-                logger.info("为宠物添加初始体重记录: \(weightValue) kg")
+                logger.info("为宠物添加初始体重记录: \(weightValue) \(self.weightUnitPreference.rawValue)")
             }
             
             try modelContext.save()
@@ -123,7 +138,7 @@ class PetViewModel: ObservableObject {
             pet.adoptionDay = adoptionDay
             pet.microchipID = microchipID
             pet.insurancePolicyNo = insurancePolicyNo
-            pet.weightUnitPreference = weightUnitPreference
+            pet.weightUnitPreference = self.weightUnitPreference
             pet.updatedAt = Date()
             
             try modelContext.save()
@@ -163,7 +178,7 @@ class PetViewModel: ObservableObject {
         adoptionDay = pet.adoptionDay ?? Date()
         microchipID = pet.microchipID
         insurancePolicyNo = pet.insurancePolicyNo
-        weightUnitPreference = pet.weightUnitPreference
+        self.weightUnitPreference = pet.weightUnitPreference
     }
     
     /// 重置表单
@@ -178,7 +193,7 @@ class PetViewModel: ObservableObject {
         adoptionDay = Date()
         microchipID = ""
         insurancePolicyNo = ""
-        weightUnitPreference = .kg
+        self.weightUnitPreference = .kg
         initialWeight = ""
         currentStep = .selectType
     }
@@ -208,6 +223,18 @@ class PetViewModel: ObservableObject {
             currentStep = .selectType
         case .importantDates:
             currentStep = .basicInfo
+        }
+    }
+    
+    // MARK: - 辅助方法
+    
+    /// 将体重值转换为公斤
+    private func convertToKilograms(_ value: Double) -> Double {
+        switch self.weightUnitPreference {
+        case .kg:
+            return value
+        case .lbs:
+            return value * 0.453592 // 磅转公斤的转换系数
         }
     }
 }
