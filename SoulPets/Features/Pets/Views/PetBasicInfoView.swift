@@ -7,6 +7,7 @@ struct PetBasicInfoView: View {
     @ObservedObject var viewModel: PetViewModel
     @State private var photoItem: PhotosPickerItem?
     @FocusState private var focusedField: Field?
+    @State private var keyboardHeight: CGFloat = 0
     
     // 定义更高对比度的颜色
     private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
@@ -18,171 +19,206 @@ struct PetBasicInfoView: View {
     }
     
     var body: some View {
-        VStack(spacing: 30) {
-            Text(LocalizedStringKey("Tell us about your new friend"))
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(textColor)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            // 步骤进度指示器
-            ProgressBar(progress: 0.5)
-                .padding(.horizontal, 40)
-            
-            // 头像选择器
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.97, green: 0.90, blue: 0.83).opacity(0.5))
-                    .frame(width: 120, height: 120)
-                
-                if let petImage = viewModel.avatar {
-                    Image(uiImage: petImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
-                } else {
-                    Image(viewModel.petType == .dog ? "dog" : "cat")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 70)
-                }
-                
-                // 加号按钮
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 30, height: 30)
-                    .shadow(radius: 2)
-                    .overlay(
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(accentColor)
-                    )
-                    .offset(x: 40, y: -40)
-            }
-            .overlay(
-                PhotosPicker(selection: $photoItem, matching: .images) {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(width: 120, height: 120)
-                }
-            )
-            .onChange(of: photoItem) { _, newValue in
-                Task {
-                    if let data = try? await newValue?.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
-                        await MainActor.run {
-                            viewModel.avatar = image
-                        }
-                    }
-                }
-            }
-            
-            // 名字输入
-            VStack(alignment: .leading, spacing: 8) {
-                Text(LocalizedStringKey("Name"))
-                    .font(.headline)
-                    .foregroundColor(labelColor)
-                
-                TextField("", text: $viewModel.name)
-                    .focused($focusedField, equals: .name)
-                    .padding()
-                    .foregroundColor(textColor)
-                    .background(Color(red: 0.95, green: 0.91, blue: 0.85))
-                    .cornerRadius(20)
-                    .onChange(of: viewModel.name) { _, _ in
-                        // 使用防抖动方式验证表单，减少卡顿
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            viewModel.validateForm()
-                        }
-                    }
-                
-                if let error = viewModel.nameError {
-                    Text(LocalizedStringKey(error))
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-            }
-            .padding(.horizontal)
-            
-            // 品种/花色输入
-            VStack(alignment: .leading, spacing: 8) {
-                Text(LocalizedStringKey("Breed / Color"))
-                    .font(.headline)
-                    .foregroundColor(labelColor)
-                
-                HStack {
-                    TextField("", text: $viewModel.breed)
-                        .focused($focusedField, equals: .breed)
-                        .padding()
+        ScrollViewReader { scrollProxy in
+            ScrollView {
+                VStack(spacing: 30) {
+                    Text(LocalizedStringKey("Tell us about your new friend"))
+                        .font(.title2)
+                        .fontWeight(.bold)
                         .foregroundColor(textColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
                     
-                    Image(systemName: "circle")
-                        .foregroundColor(accentColor)
-                        .padding(.trailing)
-                }
-                .background(Color(red: 0.95, green: 0.91, blue: 0.85))
-                .cornerRadius(20)
-            }
-            .padding(.horizontal)
-            
-            // 性别选择
-            VStack(alignment: .leading, spacing: 8) {
-                Text(LocalizedStringKey("Gender"))
-                    .font(.headline)
-                    .foregroundColor(labelColor)
-                
-                HStack(spacing: 10) {
-                    ForEach(Gender.allCases, id: \.self) { gender in
-                        Button(action: {
-                            viewModel.gender = gender
-                        }) {
-                            Text(LocalizedStringKey(gender.rawValue))
-                                .fontWeight(viewModel.gender == gender ? .bold : .regular)
-                                .padding(.vertical, 10)
-                                .padding(.horizontal, 20)
-                                .frame(maxWidth: .infinity)
+                    // 步骤进度指示器
+                    ProgressBar(progress: 0.5)
+                        .padding(.horizontal, 40)
+                    
+                    // 头像选择器
+                    ZStack {
+                        Circle()
+                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83).opacity(0.5))
+                            .frame(width: 120, height: 120)
+                        
+                        if let petImage = viewModel.avatar {
+                            Image(uiImage: petImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                        } else {
+                            Image(viewModel.petType == .dog ? "dog" : "cat")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 70)
                         }
-                        .background(
-                            Capsule()
-                                .fill(viewModel.gender == gender ? 
-                                      accentColor : 
-                                      Color(red: 0.95, green: 0.91, blue: 0.85))
-                        )
-                        .foregroundColor(viewModel.gender == gender ? .white : textColor)
+                        
+                        // 加号按钮
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 30, height: 30)
+                            .shadow(radius: 2)
+                            .overlay(
+                                Image(systemName: "plus")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(accentColor)
+                            )
+                            .offset(x: 40, y: -40)
+                    }
+                    .overlay(
+                        PhotosPicker(selection: $photoItem, matching: .images) {
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(width: 120, height: 120)
+                        }
+                    )
+                    .onChange(of: photoItem) { _, newValue in
+                        Task {
+                            if let data = try? await newValue?.loadTransferable(type: Data.self),
+                               let image = UIImage(data: data) {
+                                await MainActor.run {
+                                    viewModel.avatar = image
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 名字输入
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(LocalizedStringKey("Name"))
+                            .font(.headline)
+                            .foregroundColor(labelColor)
+                        
+                        TextField("", text: $viewModel.name)
+                            .focused($focusedField, equals: .name)
+                            .padding()
+                            .foregroundColor(textColor)
+                            .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                            .cornerRadius(20)
+                            .id("nameField")
+                            .onChange(of: viewModel.name) { oldValue, newValue in
+                                // 使用防抖动方式验证表单，减少卡顿
+                                viewModel.debouncedValidateForm()
+                            }
+                        
+                        if let error = viewModel.nameError {
+                            Text(LocalizedStringKey(error))
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // 品种/花色输入
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(LocalizedStringKey("Breed / Color"))
+                            .font(.headline)
+                            .foregroundColor(labelColor)
+                        
+                        HStack {
+                            TextField("", text: $viewModel.breed)
+                                .focused($focusedField, equals: .breed)
+                                .padding()
+                                .foregroundColor(textColor)
+                            
+                            Image(systemName: "circle")
+                                .foregroundColor(accentColor)
+                                .padding(.trailing)
+                        }
+                        .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                        .cornerRadius(20)
+                        .id("breedField")
+                    }
+                    .padding(.horizontal)
+                    
+                    // 性别选择
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(LocalizedStringKey("Gender"))
+                            .font(.headline)
+                            .foregroundColor(labelColor)
+                        
+                        HStack(spacing: 10) {
+                            ForEach(Gender.allCases, id: \.self) { gender in
+                                Button(action: {
+                                    viewModel.gender = gender
+                                }) {
+                                    Text(LocalizedStringKey(gender.rawValue))
+                                        .fontWeight(viewModel.gender == gender ? .bold : .regular)
+                                        .padding(.vertical, 10)
+                                        .padding(.horizontal, 20)
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .background(
+                                    Capsule()
+                                        .fill(viewModel.gender == gender ? 
+                                              accentColor : 
+                                              Color(red: 0.95, green: 0.91, blue: 0.85))
+                                )
+                                .foregroundColor(viewModel.gender == gender ? .white : textColor)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // 绝育状态
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(LocalizedStringKey("Neutred Spray?"))
+                                .font(.headline)
+                                .foregroundColor(labelColor)
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $viewModel.isNeutered)
+                                .labelsHidden()
+                                .tint(accentColor)
+                        }
+                        .padding()
+                        .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                        .cornerRadius(20)
+                    }
+                    .padding(.horizontal)
+                    
+                    Spacer(minLength: 100) // 增加底部空间，防止键盘遮挡
+                }
+                .padding(.bottom, keyboardHeight)
+            }
+            .onChange(of: focusedField) { oldValue, newValue in
+                if newValue == .name {
+                    withAnimation {
+                        scrollProxy.scrollTo("nameField", anchor: .center)
+                    }
+                } else if newValue == .breed {
+                    withAnimation {
+                        scrollProxy.scrollTo("breedField", anchor: .center)
                     }
                 }
             }
-            .padding(.horizontal)
-            
-            // 绝育状态
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(LocalizedStringKey("Neutred Spray?"))
-                        .font(.headline)
-                        .foregroundColor(labelColor)
-                    
-                    Spacer()
-                    
-                    Toggle("", isOn: $viewModel.isNeutered)
-                        .labelsHidden()
-                        .tint(accentColor)
-                }
-                .padding()
-                .background(Color(red: 0.95, green: 0.91, blue: 0.85))
-                .cornerRadius(20)
-            }
-            .padding(.horizontal)
-            
-            Spacer(minLength: 100) // 增加底部空间，防止键盘遮挡
         }
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
         .onTapGesture {
             // 点击空白处收起键盘
             focusedField = nil
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom) // 防止键盘顶起视图
+        .onAppear {
+            // 监听键盘通知
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    keyboardHeight = keyboardFrame.height
+                }
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                keyboardHeight = 0
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") {
+                    focusedField = nil
+                }
+                .foregroundColor(accentColor)
+            }
+        }
     }
 }
 

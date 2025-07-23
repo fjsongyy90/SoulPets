@@ -31,6 +31,9 @@ class PetViewModel: ObservableObject {
     // 添加宠物的流程控制
     @Published var currentStep: AddPetStep = .selectType
     
+    // 防抖动计时器
+    private var debounceTimer: Timer?
+    
     // MARK: - 初始化
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -43,6 +46,18 @@ class PetViewModel: ObservableObject {
     }
     
     // MARK: - 表单验证
+    
+    /// 防抖动验证表单
+    func debouncedValidateForm() {
+        // 取消之前的定时器
+        debounceTimer?.invalidate()
+        
+        // 创建新的定时器，延迟执行验证
+        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
+            self?.validateForm()
+        }
+    }
+    
     func validateForm() {
         // 取消之前的验证任务
         validationWorkItem?.cancel()
@@ -68,7 +83,7 @@ class PetViewModel: ObservableObject {
         
         // 保存并延迟执行验证任务
         validationWorkItem = workItem
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.3, execute: workItem)
+        DispatchQueue.global(qos: .userInitiated).async(execute: workItem)
     }
     
     // MARK: - 数据操作

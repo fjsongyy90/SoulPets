@@ -141,7 +141,11 @@ struct AddPetView: View {
                     .foregroundColor(textColor)
             }
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom) // 防止键盘顶起视图
+        .onAppear {
+            // 设置键盘工具栏样式，避免约束冲突
+            UIToolbar.appearance().isTranslucent = true
+            UIToolbar.appearance().backgroundColor = UIColor.systemBackground
+        }
     }
     
     // 保存宠物并显示生日提醒询问
