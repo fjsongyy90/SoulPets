@@ -25,15 +25,13 @@ struct SoulPetsApp: App {
             ReminderCompletion.self
         ])
         
-        // 创建配置，使用迁移选项而不是删除数据库
+        // 暂时禁用 CloudKit 集成，使用本地存储
+        // 后续版本中将添加符合 CloudKit 要求的数据模型
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false,
-            cloudKitDatabase: .private("iCloud.com.yourapp.SoulPets")
+            isStoredInMemoryOnly: false
+            // cloudKitDatabase: .private("iCloud.com.yourapp.SoulPets") // 暂时注释掉
         )
-        
-        // 不再直接删除数据库文件
-        // SoulPetsApp.clearSwiftDataStore()
         
         do {
             // 尝试创建容器
@@ -73,10 +71,12 @@ struct SoulPetsApp: App {
     
     // 在后台线程初始化数据库
     private func initializeDatabase() async throws {
-        await Task.detached(priority: .background) {
-            // 初始化数据库
-            await ModelRegistration.initializeDatabase(modelContext: self.sharedModelContainer.mainContext)
-        }.value
+        // 直接在主线程上执行数据库初始化
+        _ = await MainActor.run {
+            Task {
+                await ModelRegistration.initializeDatabase(modelContext: self.sharedModelContainer.mainContext)
+            }
+        }
     }
     
     // 保留此方法但默认不使用，仅在需要重置数据时手动调用

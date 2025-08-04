@@ -21,6 +21,7 @@ struct ModelRegistration {
     }
     
     /// 初始化数据库
+    @MainActor
     static func initializeDatabase(modelContext: ModelContext) async {
         let startTime = Date()
         logger.info("开始初始化数据库...")
@@ -45,6 +46,7 @@ struct ModelRegistration {
     }
     
     /// 检查并创建预设标签
+    @MainActor
     private static func createDefaultTagsIfNeeded(modelContext: ModelContext) {
         let startTime = Date()
         

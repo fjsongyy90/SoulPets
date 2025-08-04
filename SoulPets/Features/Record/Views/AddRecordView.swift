@@ -284,7 +284,10 @@ struct AddRecordView: View {
     
     /// 标签网格视图
     private func tagGridView(tags: [Tag]) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
+        LazyVGrid(columns: [
+            GridItem(.flexible(), spacing: 8),
+            GridItem(.flexible(), spacing: 8)
+        ], spacing: 12) {
             ForEach(tags) { tag in
                 TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
                     .onTapGesture {
@@ -370,12 +373,12 @@ struct TagItemView: View {
     let textColor: Color
     
     var body: some View {
-        HStack(spacing: 8) {
+        VStack(spacing: 8) {
             // 图标
             Image(systemName: tag.iconName)
-                .font(.system(size: 14))
+                .font(.system(size: 20))
                 .foregroundColor(isSelected ? .white : accentColor)
-                .frame(width: 24, height: 24)
+                .frame(width: 32, height: 32)
                 .background(
                     Circle()
                         .fill(isSelected ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
@@ -383,14 +386,15 @@ struct TagItemView: View {
             
             // 名称
             Text(String(localized: LocalizedStringResource(stringLiteral: tag.name)))
-                .font(.subheadline)
+                .font(.caption)
                 .foregroundColor(isSelected ? .white : textColor)
-                .lineLimit(1)
-            
-            Spacer()
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(isSelected ? accentColor.opacity(0.8) : Color.white)

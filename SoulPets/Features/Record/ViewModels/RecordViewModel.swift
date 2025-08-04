@@ -34,6 +34,13 @@ class RecordViewModel: ObservableObject {
     // MARK: - 初始化
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+        
+        // 如果只有一只宠物，自动设置为当前宠物
+        let descriptor = FetchDescriptor<Pet>()
+        if let pets = try? modelContext.fetch(descriptor), pets.count == 1 {
+            self.currentPet = pets.first
+        }
+        
         loadRecords()
         loadRecentlyUsedTags()
     }
@@ -72,6 +79,41 @@ class RecordViewModel: ObservableObject {
     func togglePetFilter(isAllPets: Bool) {
         isShowingAllPets = isAllPets
         loadRecords()
+    }
+    
+    /// 按日期筛选记录
+    func filterRecordsByDate(_ date: Date) {
+        isLoading = true
+        
+        // 创建日期范围（从当天开始到当天结束）
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        
+        // 获取基础记录集合
+        var baseRecords: [Record]
+        if isShowingAllPets {
+            baseRecords = RecordService.getAllRecords(modelContext: modelContext)
+        } else if let pet = currentPet {
+            baseRecords = RecordService.getAllRecords(forPet: pet, modelContext: modelContext)
+        } else {
+            baseRecords = []
+        }
+        
+        // 按日期筛选
+        records = baseRecords.filter { record in
+            record.timestamp >= startOfDay && record.timestamp < endOfDay
+        }
+        
+        // 应用搜索过滤
+        if !searchText.isEmpty {
+            records = records.filter { record in
+                record.notes?.localizedCaseInsensitiveContains(searchText) == true ||
+                record.tag.name.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        isLoading = false
     }
     
     /// 选择宠物
@@ -148,6 +190,9 @@ class RecordViewModel: ObservableObject {
             // 更新最近使用的标签
             updateRecentlyUsedTag(tag)
             
+            // 立即刷新记录列表
+            loadRecords()
+            
             // 重置表单
             resetForm()
             
@@ -170,6 +215,60 @@ class RecordViewModel: ObservableObject {
             logger.info("成功删除记录")
         } catch {
             logger.error("删除记录时出错: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - 记录管理
+    
+    /// 创建记录
+    func createRecord() async -> Bool {
+        guard let selectedTag = selectedTag,
+              !selectedPets.isEmpty else {
+            logger.error("创建记录失败：缺少必要信息")
+            return false
+        }
+        
+        do {
+            // 创建记录
+            let record = Record(
+                timestamp: recordDate,
+                notes: recordNotes,
+                tag: selectedTag,
+                pets: selectedPets
+            )
+            
+            // 插入到数据库
+            modelContext.insert(record)
+            
+            // 添加照片
+            for photo in recordPhotos {
+                if let photoData = photo.jpegData(compressionQuality: 0.8) {
+                    let recordPhoto = RecordPhoto(
+                        photoData: photoData,
+                        record: record
+                    )
+                    modelContext.insert(recordPhoto)
+                    logger.info("成功为记录添加照片: \(recordPhoto.id)")
+                }
+            }
+            
+            // 保存更改
+            try modelContext.save()
+            
+            // 更新最近使用的标签
+            updateRecentlyUsedTag(selectedTag)
+            
+            logger.info("成功创建记录")
+            
+            // 立即刷新记录列表
+            await MainActor.run {
+                loadRecords()
+            }
+            
+            return true
+        } catch {
+            logger.error("创建记录失败: \(error.localizedDescription)")
+            return false
         }
     }
     
