@@ -7,6 +7,7 @@ struct RecordsView: View {
     @StateObject private var viewModel: RecordViewModel
     @State private var showingAddRecordSheet = false
     @State private var searchText = ""
+    @State private var currentPet: Pet?
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -14,8 +15,9 @@ struct RecordsView: View {
     private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, currentPet: Pet? = nil) {
         _viewModel = StateObject(wrappedValue: RecordViewModel(modelContext: modelContext))
+        _currentPet = State(initialValue: currentPet)
     }
     
     var body: some View {
@@ -43,7 +45,7 @@ struct RecordsView: View {
                     }
                 }
             }
-            .navigationTitle(LocalizedStringKey("Records"))
+            .navigationTitle(String(localized: "Records"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -61,6 +63,11 @@ struct RecordsView: View {
                 viewModel.searchText = newValue
                 viewModel.loadRecords()
             }
+            .onAppear {
+                if let currentPet = currentPet {
+                    viewModel.setCurrentPet(currentPet)
+                }
+            }
         }
     }
     
@@ -69,7 +76,7 @@ struct RecordsView: View {
     /// 宠物筛选器视图
     private var petFilterView: some View {
         HStack {
-            Text("Filter:")
+            Text(String(localized: "Filter:"))
                 .font(.subheadline)
                 .foregroundColor(labelColor)
             
@@ -77,9 +84,12 @@ struct RecordsView: View {
                 get: { viewModel.isShowingAllPets },
                 set: { viewModel.togglePetFilter(isAllPets: $0) }
             )) {
-                Text(LocalizedStringKey("All Pets")).tag(true)
-                // 这里应该动态显示当前选择的宠物名称
-                Text("Current Pet").tag(false)
+                Text(String(localized: "All Pets")).tag(true)
+                if let currentPet = currentPet {
+                    Text(currentPet.name).tag(false)
+                } else {
+                    Text(String(localized: "Current Pet")).tag(false)
+                }
             }
             .pickerStyle(SegmentedPickerStyle())
             .accentColor(accentColor)
@@ -94,7 +104,7 @@ struct RecordsView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(labelColor)
             
-            TextField(LocalizedStringKey("Search records..."), text: $searchText)
+            TextField(String(localized: "Search records..."), text: $searchText)
                 .foregroundColor(textColor)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
         }
@@ -109,12 +119,12 @@ struct RecordsView: View {
                 .font(.system(size: 70))
                 .foregroundColor(accentColor.opacity(0.7))
             
-            Text(LocalizedStringKey("No Records"))
+            Text(String(localized: "No Records"))
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
             
-            Text(LocalizedStringKey("Add your first record to start tracking your pet's journey."))
+            Text(String(localized: "Add your first record to start tracking your pet's journey."))
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(labelColor)
@@ -123,7 +133,7 @@ struct RecordsView: View {
             Button {
                 showingAddRecordSheet = true
             } label: {
-                Text(LocalizedStringKey("Add Record"))
+                Text(String(localized: "Add Record"))
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding()
@@ -143,22 +153,31 @@ struct RecordsView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 ForEach(viewModel.records) { record in
-                    RecordCardView(record: record, accentColor: accentColor, textColor: textColor, labelColor: labelColor)
+                    NavigationLink(destination: RecordDetailView(record: record)) {
+                        RecordCardView(
+                            record: record, 
+                            accentColor: accentColor, 
+                            textColor: textColor, 
+                            labelColor: labelColor,
+                            showPetAvatars: viewModel.isShowingAllPets
+                        )
                         .padding(.horizontal)
-                        .contextMenu {
-                            Button {
-                                // 编辑记录
-                            } label: {
-                                Label(LocalizedStringKey("Edit Record"), systemImage: "pencil")
-                                    .foregroundColor(accentColor)
-                            }
-                            
-                            Button(role: .destructive) {
-                                viewModel.deleteRecord(record)
-                            } label: {
-                                Label(LocalizedStringKey("Delete Record"), systemImage: "trash")
-                            }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .contextMenu {
+                        Button {
+                            // 编辑记录 - 现在通过详情页实现
+                        } label: {
+                            Label(String(localized: "View Details"), systemImage: "eye")
+                                .foregroundColor(accentColor)
                         }
+                        
+                        Button(role: .destructive) {
+                            viewModel.deleteRecord(record)
+                        } label: {
+                            Label(String(localized: "Delete Record"), systemImage: "trash")
+                        }
+                    }
                 }
                 .padding(.top, 16)
             }
@@ -173,6 +192,7 @@ struct RecordCardView: View {
     let accentColor: Color
     let textColor: Color
     let labelColor: Color
+    let showPetAvatars: Bool
     
     // 卡片颜色
     private let cardColor = Color.white
@@ -192,7 +212,7 @@ struct RecordCardView: View {
                                 .fill(accentColor)
                         )
                     
-                    Text(LocalizedStringKey(record.tag.name))
+                    Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
                         .font(.headline)
                         .foregroundColor(textColor)
                 }
@@ -206,7 +226,7 @@ struct RecordCardView: View {
             }
             
             // 宠物头像（如果是"所有宠物"视图）
-            if let pets = record.pets, !pets.isEmpty {
+            if showPetAvatars, let pets = record.pets, !pets.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(pets) { pet in

@@ -39,12 +39,12 @@ struct AddRecordView: View {
                 }
             }
             .navigationTitle(viewModel.currentStep == .selectPetsAndEvent ? 
-                             LocalizedStringKey("Select Pets & Event") : 
-                             LocalizedStringKey(viewModel.selectedTag?.name ?? "Record Details"))
+                             String(localized: "Select Pets & Event") : 
+                             String(localized: LocalizedStringResource(stringLiteral: viewModel.selectedTag?.name ?? "Record Details")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(LocalizedStringKey("Cancel")) {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
                     .foregroundColor(accentColor)
@@ -52,13 +52,13 @@ struct AddRecordView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.currentStep == .selectPetsAndEvent {
-                        Button(LocalizedStringKey("Next")) {
+                        Button(String(localized: "Next")) {
                             viewModel.moveToNextStep()
                         }
                         .disabled(!viewModel.formIsValid)
                         .foregroundColor(viewModel.formIsValid ? accentColor : .gray)
                     } else {
-                        Button(LocalizedStringKey("Add")) {
+                        Button(String(localized: "Add")) {
                             if viewModel.saveRecord() {
                                 dismiss()
                             }
@@ -78,7 +78,7 @@ struct AddRecordView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // 宠物选择器
-                Text(LocalizedStringKey("Select Pets"))
+                Text(String(localized: "Select Pets"))
                     .font(.headline)
                     .foregroundColor(textColor)
                     .padding(.horizontal)
@@ -97,14 +97,14 @@ struct AddRecordView: View {
                 
                 // 验证提示
                 if viewModel.selectedPets.isEmpty {
-                    Text(LocalizedStringKey("Select at least one pet"))
+                    Text(String(localized: "Select at least one pet"))
                         .font(.caption)
                         .foregroundColor(.red)
                         .padding(.horizontal)
                 }
                 
                 // 标签选择器
-                Text(LocalizedStringKey("Select Event Type"))
+                Text(String(localized: "Select Event Type"))
                     .font(.headline)
                     .foregroundColor(textColor)
                     .padding(.horizontal)
@@ -113,7 +113,7 @@ struct AddRecordView: View {
                 // 最近使用的标签
                 if !viewModel.recentlyUsedTags.isEmpty {
                     VStack(alignment: .leading) {
-                        Text(LocalizedStringKey("Recently Used"))
+                        Text(String(localized: "Recently Used"))
                             .font(.subheadline)
                             .foregroundColor(labelColor)
                             .padding(.horizontal)
@@ -127,7 +127,7 @@ struct AddRecordView: View {
                     let filteredTags = filterTags(for: category)
                     if !filteredTags.isEmpty {
                         VStack(alignment: .leading) {
-                            Text(LocalizedStringKey(category.rawValue))
+                            Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
                                 .font(.subheadline)
                                 .foregroundColor(labelColor)
                                 .padding(.horizontal)
@@ -148,7 +148,7 @@ struct AddRecordView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // 日期和时间选择器
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(LocalizedStringKey("Date & Time"))
+                    Text(String(localized: "Date & Time"))
                         .font(.headline)
                         .foregroundColor(textColor)
                     
@@ -167,7 +167,7 @@ struct AddRecordView: View {
                 
                 // 备注输入框
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(LocalizedStringKey("Notes"))
+                    Text(String(localized: "Notes"))
                         .font(.headline)
                         .foregroundColor(textColor)
                     
@@ -183,7 +183,7 @@ struct AddRecordView: View {
                         .overlay(
                             Group {
                                 if viewModel.recordNotes.isEmpty {
-                                    Text(LocalizedStringKey("Add some details about this event (optional)"))
+                                    Text(String(localized: "Add some details about this event (optional)"))
                                         .foregroundColor(labelColor)
                                         .padding(.horizontal, 20)
                                         .padding(.vertical, 16)
@@ -197,7 +197,7 @@ struct AddRecordView: View {
                 
                 // 照片选择器
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(LocalizedStringKey("Photos"))
+                    Text(String(localized: "Photos"))
                         .font(.headline)
                         .foregroundColor(textColor)
                     
@@ -205,7 +205,7 @@ struct AddRecordView: View {
                         HStack {
                             Image(systemName: "photo")
                                 .foregroundColor(accentColor)
-                            Text(LocalizedStringKey("Add Photos"))
+                            Text(String(localized: "Add Photos"))
                                 .foregroundColor(accentColor)
                         }
                         .frame(maxWidth: .infinity)
@@ -247,7 +247,7 @@ struct AddRecordView: View {
                 
                 // 花费输入框（为未来功能预留）
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(LocalizedStringKey("Cost"))
+                    Text(String(localized: "Cost"))
                         .font(.headline)
                         .foregroundColor(textColor)
                     
@@ -382,7 +382,7 @@ struct TagItemView: View {
                 )
             
             // 名称
-            Text(LocalizedStringKey(tag.name))
+            Text(String(localized: LocalizedStringResource(stringLiteral: tag.name)))
                 .font(.subheadline)
                 .foregroundColor(isSelected ? .white : textColor)
                 .lineLimit(1)

@@ -13,6 +13,7 @@ class RecordViewModel: ObservableObject {
     @Published var records: [Record] = []
     @Published var searchText: String = ""
     @Published var selectedPets: [Pet] = []
+    @Published var currentPet: Pet?
     @Published var isShowingAllPets: Bool = true
     @Published var isLoading: Bool = false
     
@@ -39,13 +40,21 @@ class RecordViewModel: ObservableObject {
     
     // MARK: - 公共方法
     
+    /// 设置当前宠物
+    func setCurrentPet(_ pet: Pet) {
+        currentPet = pet
+        if !isShowingAllPets {
+            loadRecords()
+        }
+    }
+    
     /// 加载记录
     func loadRecords() {
         isLoading = true
         
         if isShowingAllPets {
             records = RecordService.getAllRecords(modelContext: modelContext)
-        } else if let pet = selectedPets.first {
+        } else if let pet = currentPet {
             records = RecordService.getAllRecords(forPet: pet, modelContext: modelContext)
         } else {
             records = []
@@ -174,6 +183,7 @@ class RecordViewModel: ObservableObject {
         recordNotes = ""
         recordPhotos = []
         recordCost = ""
+        selectedPets = []
         formIsValid = false
     }
     
