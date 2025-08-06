@@ -5,12 +5,15 @@ import PhotosUI
 /// 添加记录视图
 struct AddRecordView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel: RecordViewModel
+    @StateObject var viewModel: RecordViewModel
     @Query private var pets: [Pet]
     @Query private var tags: [Tag]
     
     // 照片选择器状态
     @State private var selectedItems: [PhotosPickerItem] = []
+    
+    // 标签管理状态
+    @State private var showingTagManagement = false
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -68,7 +71,17 @@ struct AddRecordView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingTagManagement) {
+                TagManagementView(modelContext: viewModel.modelContext)
+            }
+            .onChange(of: showingTagManagement) { oldValue, newValue in
+                // 当标签管理页面关闭后，重新加载标签数据
+                if oldValue && !newValue {
+                    viewModel.loadTags()
+                }
+            }
         }
+        
     }
     
     // MARK: - 子视图
@@ -104,11 +117,28 @@ struct AddRecordView: View {
                 }
                 
                 // 标签选择器
-                Text(String(localized: "Select Event Type"))
-                    .font(.headline)
-                    .foregroundColor(textColor)
-                    .padding(.horizontal)
-                    .padding(.top)
+                HStack {
+                    Text(String(localized: "Select Event Type"))
+                        .font(.headline)
+                        .foregroundColor(textColor)
+                    
+                    Spacer()
+                    
+                    // 标签管理按钮
+                    Button(action: {
+                        showingTagManagement = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gear")
+                                .font(.caption)
+                            Text(String(localized: "Manage Tags"))
+                                .font(.caption)
+                        }
+                        .foregroundColor(accentColor)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top)
                 
                 // 最近使用的标签
                 if !viewModel.recentlyUsedTags.isEmpty {
@@ -201,20 +231,32 @@ struct AddRecordView: View {
                         .font(.headline)
                         .foregroundColor(textColor)
                     
-                    PhotosPicker(selection: $selectedItems, matching: .images) {
+                    PhotosPicker(selection: $selectedItems, matching: .images, photoLibrary: .shared()) {
                         HStack {
                             Image(systemName: "photo")
                                 .foregroundColor(accentColor)
+                                .font(.system(size: 16))
                             Text(String(localized: "Add Photos"))
                                 .foregroundColor(accentColor)
+                                .font(.body)
+                            Spacer()
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(accentColor)
+                                .font(.system(size: 20))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(accentColor, style: StrokeStyle(lineWidth: 1, dash: [5]))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.5))
+                                )
                         )
                     }
+                    .buttonStyle(PlainButtonStyle())
                     
                     // 已选照片预览
                     if !viewModel.recordPhotos.isEmpty {

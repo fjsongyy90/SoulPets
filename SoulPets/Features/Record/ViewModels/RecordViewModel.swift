@@ -6,7 +6,7 @@ import OSLog
 /// 记录模块的视图模型
 class RecordViewModel: ObservableObject {
     // MARK: - 属性
-    private var modelContext: ModelContext
+    var modelContext: ModelContext
     private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RecordViewModel")
     
     // 记录列表状态
@@ -14,12 +14,12 @@ class RecordViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var selectedPets: [Pet] = []
     @Published var currentPet: Pet?
+    @Published var selectedTag: Tag?
     @Published var isShowingAllPets: Bool = true
     @Published var isLoading: Bool = false
     
     // 添加记录状态
     @Published var currentStep: RecordCreationStep = .selectPetsAndEvent
-    @Published var selectedTag: Tag?
     @Published var recordDate: Date = Date()
     @Published var recordNotes: String = ""
     @Published var recordPhotos: [UIImage] = []
@@ -55,13 +55,22 @@ class RecordViewModel: ObservableObject {
         }
     }
     
+    /// 加载标签数据（用于标签管理后刷新）
+    func loadTags() {
+        loadRecentlyUsedTags()
+        logger.info("重新加载标签数据")
+    }
+    
     /// 加载记录
     func loadRecords() {
         isLoading = true
         
+        // 根据当前筛选条件获取记录
         if isShowingAllPets {
+            // 显示所有宠物的所有记录
             records = RecordService.getAllRecords(modelContext: modelContext)
         } else if let pet = currentPet {
+            // 显示包含该宠物的所有记录（包括多宠物记录）
             records = RecordService.getAllRecords(forPet: pet, modelContext: modelContext)
         } else {
             records = []
@@ -69,7 +78,10 @@ class RecordViewModel: ObservableObject {
         
         // 应用搜索过滤
         if !searchText.isEmpty {
-            records = RecordService.searchRecords(withKeyword: searchText, modelContext: modelContext)
+            records = records.filter { record in
+                record.notes?.localizedCaseInsensitiveContains(searchText) == true ||
+                record.tag.name.localizedCaseInsensitiveContains(searchText)
+            }
         }
         
         isLoading = false
@@ -93,8 +105,10 @@ class RecordViewModel: ObservableObject {
         // 获取基础记录集合
         var baseRecords: [Record]
         if isShowingAllPets {
+            // 显示所有宠物的所有记录
             baseRecords = RecordService.getAllRecords(modelContext: modelContext)
         } else if let pet = currentPet {
+            // 显示包含该宠物的所有记录（包括多宠物记录）
             baseRecords = RecordService.getAllRecords(forPet: pet, modelContext: modelContext)
         } else {
             baseRecords = []
@@ -103,6 +117,38 @@ class RecordViewModel: ObservableObject {
         // 按日期筛选
         records = baseRecords.filter { record in
             record.timestamp >= startOfDay && record.timestamp < endOfDay
+        }
+        
+        // 应用搜索过滤
+        if !searchText.isEmpty {
+            records = records.filter { record in
+                record.notes?.localizedCaseInsensitiveContains(searchText) == true ||
+                record.tag.name.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        isLoading = false
+    }
+    
+    /// 按标签筛选记录
+    func filterRecordsByTag(_ tag: Tag) {
+        isLoading = true
+        
+        // 获取基础记录集合
+        var baseRecords: [Record]
+        if isShowingAllPets {
+            // 显示所有宠物的所有记录
+            baseRecords = RecordService.getAllRecords(modelContext: modelContext)
+        } else if let pet = currentPet {
+            // 显示包含该宠物的所有记录（包括多宠物记录）
+            baseRecords = RecordService.getAllRecords(forPet: pet, modelContext: modelContext)
+        } else {
+            baseRecords = []
+        }
+        
+        // 按标签筛选
+        records = baseRecords.filter { record in
+            record.tag.id == tag.id
         }
         
         // 应用搜索过滤
@@ -158,37 +204,40 @@ class RecordViewModel: ObservableObject {
     
     /// 保存记录
     func saveRecord() -> Bool {
-        guard formIsValid else { return false }
-        
-        guard let tag = selectedTag else {
-            logger.error("保存记录失败：未选择标签")
+        guard let selectedTag = selectedTag,
+              !selectedPets.isEmpty else {
+            logger.error("保存记录失败：缺少必要信息")
             return false
         }
         
         do {
             // 创建记录
-            let newRecord = Record(
+            let record = Record(
                 timestamp: recordDate,
                 notes: recordNotes.isEmpty ? nil : recordNotes,
-                tag: tag,
+                tag: selectedTag,
                 pets: selectedPets
             )
             
-            // 添加到数据库
-            modelContext.insert(newRecord)
+            // 插入到数据库
+            modelContext.insert(record)
             
-            // 保存照片
-            for image in recordPhotos {
-                if let imageData = image.jpegData(compressionQuality: 0.7) {
-                    RecordService.addPhotoToRecord(record: newRecord, photoData: imageData, modelContext: modelContext)
+            // 添加照片
+            for photo in recordPhotos {
+                if let photoData = photo.jpegData(compressionQuality: 0.7) {
+                    let recordPhoto = RecordPhoto(
+                        photoData: photoData,
+                        record: record
+                    )
+                    modelContext.insert(recordPhoto)
                 }
             }
             
-            // 保存到数据库
+            // 保存更改
             try modelContext.save()
             
             // 更新最近使用的标签
-            updateRecentlyUsedTag(tag)
+            updateRecentlyUsedTag(selectedTag)
             
             // 立即刷新记录列表
             loadRecords()
@@ -196,7 +245,7 @@ class RecordViewModel: ObservableObject {
             // 重置表单
             resetForm()
             
-            logger.info("成功创建记录")
+            logger.info("成功保存记录")
             return true
             
         } catch {

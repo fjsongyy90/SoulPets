@@ -8,21 +8,22 @@ class RecordService {
     
     /// 获取所有记录（可按宠物筛选）
     static func getAllRecords(forPet pet: Pet? = nil, modelContext: ModelContext) -> [Record] {
-            // 获取所有记录
+        // 获取所有记录
         let descriptor = FetchDescriptor<Record>(
-                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-            )
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
         
         do {
             let records = try modelContext.fetch(descriptor)
             
-            // 如果指定了宠物，则在内存中过滤
+            // 如果指定了宠物，则筛选包含该宠物的所有记录（包括多宠物记录）
             if let pet = pet {
                 return records.filter { record in
                     guard let pets = record.pets else { return false }
                     return pets.contains(where: { $0.id == pet.id })
                 }
             } else {
+                // 如果是"All Pets"，返回所有记录
                 return records
             }
         } catch {

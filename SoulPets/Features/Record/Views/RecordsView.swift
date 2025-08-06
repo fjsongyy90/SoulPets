@@ -4,7 +4,7 @@ import SwiftData
 /// 记录主视图
 struct RecordsView: View {
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var viewModel: RecordViewModel
+    @StateObject var viewModel: RecordViewModel
     @State private var showingAddRecordSheet = false
     @State private var searchText = ""
     @State private var currentPet: Pet?
@@ -13,8 +13,11 @@ struct RecordsView: View {
     @State private var showingPetSelector = false
     @State private var showingDatePicker = false
     @State private var showingSearchBar = false
+    @State private var showingTagSelector = false
     @State private var selectedDate: Date?
+    @State private var selectedTag: Tag?
     @Query private var pets: [Pet]
+    @Query private var allTags: [Tag]
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -46,6 +49,13 @@ struct RecordsView: View {
                             .padding(.top, 8)
                     }
                     
+                    // 标签选择器（展开时显示）
+                    if showingTagSelector {
+                        tagSelectorView
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+                    
                     // 搜索栏（展开时显示）
                     if showingSearchBar {
                         searchBarView
@@ -72,7 +82,10 @@ struct RecordsView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddRecordSheet) {
+            .sheet(isPresented: $showingAddRecordSheet, onDismiss: {
+                // 当添加记录的sheet关闭时，重新加载记录
+                viewModel.loadRecords()
+            }) {
                 AddRecordView(modelContext: modelContext)
             }
             .sheet(isPresented: $showingDatePicker) {
@@ -85,6 +98,10 @@ struct RecordsView: View {
             .onChange(of: selectedDate) { oldValue, newValue in
                 // 根据选择的日期筛选记录
                 filterRecordsByDate()
+            }
+            .onChange(of: selectedTag) { oldValue, newValue in
+                // 根据选择的标签筛选记录
+                filterRecords()
             }
             .onAppear {
                 // 如果传入了当前宠物，设置为当前宠物
@@ -103,55 +120,57 @@ struct RecordsView: View {
     
     /// 新的筛选器和搜索栏视图
     private var filterAndSearchView: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             // All pets 按钮
             Button {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     showingPetSelector.toggle()
                     if showingPetSelector {
                         showingSearchBar = false
+                        showingTagSelector = false
                     }
                 }
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     if let currentPet = currentPet {
                         // 显示当前选中宠物的头像
                         if let avatarData = currentPet.avatar, let uiImage = UIImage(data: avatarData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 24, height: 24)
+                                .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
                             Image(currentPet.petType == .dog ? "dog" : "cat")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 16, height: 16)
-                                .padding(4)
+                                .frame(width: 14, height: 14)
+                                .padding(3)
                                 .background(
                                     Circle()
                                         .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
                                 )
                         }
                         Text(currentPet.name)
-                            .font(.subheadline)
+                            .font(.caption)
                             .fontWeight(.medium)
+                            .lineLimit(1)
                     } else {
                         Image(systemName: "pawprint.fill")
-                            .font(.system(size: 14))
-                        Text(String(localized: "All Pets"))
-                            .font(.subheadline)
+                            .font(.system(size: 12))
+                        Text(String(localized: "All"))
+                            .font(.caption)
                             .fontWeight(.medium)
                     }
                     
                     Image(systemName: showingPetSelector ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12))
+                        .font(.system(size: 10))
                 }
                 .foregroundColor(textColor)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .fill(Color.white)
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 )
@@ -161,25 +180,63 @@ struct RecordsView: View {
             Button {
                 showingDatePicker = true
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 14))
+                        .font(.system(size: 12))
                     if let selectedDate = selectedDate {
-                        Text(formatDate(selectedDate))
-                            .font(.subheadline)
+                        Text(formatShortDate(selectedDate))
+                            .font(.caption)
                             .fontWeight(.medium)
+                            .lineLimit(1)
                     } else {
                         Text(String(localized: "Date"))
-                            .font(.subheadline)
+                            .font(.caption)
                             .fontWeight(.medium)
                     }
                 }
                 .foregroundColor(selectedDate != nil ? accentColor : textColor)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .fill(selectedDate != nil ? accentColor.opacity(0.1) : Color.white)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
+            }
+            
+            // 标签选择按钮
+            Button {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showingTagSelector.toggle()
+                    if showingTagSelector {
+                        showingPetSelector = false
+                        showingSearchBar = false
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "tag")
+                        .font(.system(size: 12))
+                    if let selectedTag = selectedTag {
+                        Text(selectedTag.name)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                    } else {
+                        Text(String(localized: "Tag"))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    
+                    Image(systemName: showingTagSelector ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(selectedTag != nil ? accentColor : textColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(selectedTag != nil ? accentColor.opacity(0.1) : Color.white)
                         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                 )
             }
@@ -192,13 +249,14 @@ struct RecordsView: View {
                     showingSearchBar.toggle()
                     if showingSearchBar {
                         showingPetSelector = false
+                        showingTagSelector = false
                     }
                 }
             } label: {
                 Image(systemName: showingSearchBar ? "xmark" : "magnifyingglass")
-                    .font(.system(size: 16))
+                    .font(.system(size: 14))
                     .foregroundColor(showingSearchBar ? .white : textColor)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 32, height: 32)
                     .background(
                         Circle()
                             .fill(showingSearchBar ? accentColor : Color.white)
@@ -325,6 +383,95 @@ struct RecordsView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+        )
+    }
+    
+    /// 标签选择器视图
+    private var tagSelectorView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // "All Tags" 选项
+            HStack {
+                Button {
+                    selectedTag = nil
+                    viewModel.selectedTag = nil
+                    filterRecords()
+                    withAnimation {
+                        showingTagSelector = false
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "tag.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(selectedTag == nil ? .white : accentColor)
+                            .frame(width: 24, height: 24)
+                            .background(
+                                Circle()
+                                    .fill(selectedTag == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                            )
+                        
+                        Text(String(localized: "All Tags"))
+                            .font(.subheadline)
+                            .foregroundColor(selectedTag == nil ? accentColor : textColor)
+                            .fontWeight(selectedTag == nil ? .semibold : .regular)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Spacer()
+            }
+            
+            // 获取已使用的标签
+            let usedTags = getUsedTags()
+            
+            if !usedTags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(usedTags) { tag in
+                            Button {
+                                selectedTag = tag
+                                viewModel.selectedTag = tag
+                                filterRecords()
+                                withAnimation {
+                                    showingTagSelector = false
+                                }
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Image(systemName: tag.iconName)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(selectedTag?.id == tag.id ? .white : accentColor)
+                                        .frame(width: 32, height: 32)
+                                        .background(
+                                            Circle()
+                                                .fill(selectedTag?.id == tag.id ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                                        )
+                                    
+                                    Text(tag.name)
+                                        .font(.caption)
+                                        .foregroundColor(selectedTag?.id == tag.id ? accentColor : textColor)
+                                        .fontWeight(selectedTag?.id == tag.id ? .semibold : .regular)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.center)
+                                        .frame(width: 60)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+            } else {
+                Text(String(localized: "No tags used yet"))
+                    .font(.caption)
+                    .foregroundColor(labelColor)
+                    .padding(.horizontal, 8)
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.8))
+                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
         )
     }
     
@@ -476,12 +623,39 @@ struct RecordsView: View {
         return formatter.string(from: date)
     }
     
+    /// 格式化短日期
+    private func formatShortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: date)
+    }
+    
     /// 根据选择的日期筛选记录
     private func filterRecordsByDate() {
         if let selectedDate = selectedDate {
             viewModel.filterRecordsByDate(selectedDate)
         } else {
             viewModel.loadRecords() // 如果没有选择日期，则加载所有记录
+        }
+    }
+    
+    /// 获取已使用的标签
+    private func getUsedTags() -> [Tag] {
+        // 获取所有记录中使用过的标签
+        let allRecords = RecordService.getAllRecords(modelContext: modelContext)
+        let usedTagIds = Set(allRecords.map { $0.tag.id })
+        return allTags.filter { usedTagIds.contains($0.id) }
+    }
+    
+    /// 综合筛选记录
+    private func filterRecords() {
+        // 根据当前的筛选条件重新加载记录
+        if let selectedTag = selectedTag {
+            viewModel.filterRecordsByTag(selectedTag)
+        } else if let selectedDate = selectedDate {
+            viewModel.filterRecordsByDate(selectedDate)
+        } else {
+            viewModel.loadRecords()
         }
     }
 }
