@@ -59,15 +59,15 @@ class TagManagementService {
     
     // MARK: - 标签可见性管理
     
-    /// 标签是否隐藏（通过标签名称前缀判断）
+    /// 标签是否隐藏
     static func isTagHidden(_ tag: Tag) -> Bool {
-        return tag.name.hasPrefix("[Hidden]")
+        return tag.isHidden
     }
     
     /// 隐藏标签
     static func hideTag(_ tag: Tag, in modelContext: ModelContext) throws {
-        if !isTagHidden(tag) {
-            tag.name = "[Hidden] \(tag.name)"
+        if !tag.isHidden {
+            tag.isHidden = true
             tag.updatedAt = Date()
             try modelContext.save()
         }
@@ -75,8 +75,8 @@ class TagManagementService {
     
     /// 显示标签
     static func showTag(_ tag: Tag, in modelContext: ModelContext) throws {
-        if isTagHidden(tag) {
-            tag.name = tag.name.replacingOccurrences(of: "[Hidden] ", with: "")
+        if tag.isHidden {
+            tag.isHidden = false
             tag.updatedAt = Date()
             try modelContext.save()
         }
@@ -84,11 +84,9 @@ class TagManagementService {
     
     /// 切换标签可见性
     static func toggleTagVisibility(_ tag: Tag, in modelContext: ModelContext) throws {
-        if isTagHidden(tag) {
-            try showTag(tag, in: modelContext)
-        } else {
-            try hideTag(tag, in: modelContext)
-        }
+        tag.isHidden.toggle()
+        tag.updatedAt = Date()
+        try modelContext.save()
     }
     
     // MARK: - 标签排序管理

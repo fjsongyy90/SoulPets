@@ -338,8 +338,9 @@ class RecordViewModel: ObservableObject {
     /// 加载最近使用的标签
     private func loadRecentlyUsedTags() {
         // 这里应该从UserDefaults或其他持久化存储中加载最近使用的标签
-        // 目前先使用空数组
-        recentlyUsedTags = []
+        // 目前先使用空数组，但需要确保过滤掉隐藏的标签
+        // 如果有持久化的最近使用标签，需要过滤掉隐藏的标签
+        recentlyUsedTags = recentlyUsedTags.filter { !$0.isHidden }
     }
     
     /// 更新最近使用的标签

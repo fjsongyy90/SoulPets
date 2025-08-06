@@ -28,6 +28,7 @@ final class Tag {
     var iconName: String
     var category: TagCategory
     var defaultIsReminder: Bool
+    var isHidden: Bool // 标签是否隐藏
     var associatedPetTypes: String // 使用逗号分隔的字符串存储宠物类型
     var createdAt: Date
     var updatedAt: Date
@@ -40,6 +41,7 @@ final class Tag {
         iconName: String,
         category: TagCategory,
         defaultIsReminder: Bool = true,
+        isHidden: Bool = false,
         associatedPetTypes: [PetType],
         createdAt: Date = Date(),
         updatedAt: Date = Date()
@@ -50,6 +52,7 @@ final class Tag {
         self.iconName = iconName
         self.category = category
         self.defaultIsReminder = defaultIsReminder
+        self.isHidden = isHidden
         self.associatedPetTypes = associatedPetTypes.map { $0.rawValue }.joined(separator: ",") // 转换为逗号分隔的字符串
         self.createdAt = createdAt
         self.updatedAt = updatedAt

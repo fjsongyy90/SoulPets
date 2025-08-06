@@ -54,7 +54,7 @@ struct TagItemManagementView: View {
             VStack(alignment: .leading, spacing: 4) {
                 // 标签名称
                 HStack {
-                    Text(displayName)
+                    Text(tag.name)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(isHidden ? .gray : .primary)
@@ -152,13 +152,6 @@ struct TagItemManagementView: View {
     }
     
     // MARK: - 辅助方法
-    
-    private var displayName: String {
-        if isHidden {
-            return tag.name.replacingOccurrences(of: "[Hidden] ", with: "")
-        }
-        return tag.name
-    }
     
     private func getSystemIconName() -> String {
         // 将自定义图标名映射到系统图标

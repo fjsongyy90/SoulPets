@@ -109,6 +109,7 @@ class TagPresetService {
         iconName: String,
         category: TagCategory,
         defaultIsReminder: Bool,
+        isHidden: Bool = false, // 预设标签默认都是显示状态
         petTypes: [PetType]
     ) -> Tag {
         return Tag(
@@ -117,6 +118,7 @@ class TagPresetService {
             iconName: iconName,
             category: category,
             defaultIsReminder: defaultIsReminder,
+            isHidden: isHidden,
             associatedPetTypes: petTypes
         )
     }

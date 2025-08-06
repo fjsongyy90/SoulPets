@@ -348,10 +348,13 @@ struct AddRecordView: View {
         // 获取所有选中宠物的类型
         let selectedPetTypes = viewModel.selectedPets.map { $0.petType }
         
-        // 筛选同时适用于所有选中宠物类型的标签
+        // 筛选同时适用于所有选中宠物类型的标签，并排除隐藏的标签
         return tags.filter { tag in
             // 检查标签是否属于当前分类
             guard tag.category == category else { return false }
+            
+            // 排除隐藏的标签
+            guard !tag.isHidden else { return false }
             
             // 检查标签是否适用于所有选中的宠物类型
             return selectedPetTypes.allSatisfy { petType in
