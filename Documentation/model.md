@@ -64,6 +64,7 @@ erDiagram
 | 图标名 | `iconName` | String | 用于UI显示。 |
 | 所属分类 | `category` | Enum | `Daily Life`等，用于UI分组。 |
 | 默认可用于提醒 | `defaultIsReminder` | Bool | 决定此标签在创建提醒时是否默认可选。 |
+| 是否隐藏 | `isHidden` | Bool | 决定此标签是否显示默认显示。 |
 | 适用宠物类型 | `associatedPetTypes` | [Enum] | 宠物类型的数组，例如`[Cat, Dog]`。 |
 | 创建时间 | `createdAt` | Date | |
 | 最后更新时间 | `updatedAt` | Date | |

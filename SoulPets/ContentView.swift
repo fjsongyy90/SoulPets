@@ -66,9 +66,8 @@ struct ContentView: View {
                             Label(LocalizedStringKey("Records"), systemImage: "list.bullet.clipboard")
                         }
                     
-                    // 提醒标签 (未来实现)
-                    Text(LocalizedStringKey("Reminders Coming Soon"))
-                        .foregroundColor(textColor)
+                    // 提醒标签
+                    RemindersView()
                         .tabItem {
                             Label(LocalizedStringKey("Reminders"), systemImage: "bell")
                         }
