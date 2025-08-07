@@ -44,8 +44,20 @@ class WeightService {
     
     /// 添加新的体重记录
     static func addWeight(pet: Pet, weightInUnit: Double, unit: WeightUnit, date: Date, modelContext: ModelContext) {
+        // 验证输入参数
+        guard weightInUnit.isFinite, weightInUnit > 0, weightInUnit < 1000 else {
+            logger.error("无效的体重值: \(weightInUnit)")
+            return
+        }
+        
         // 将体重统一转换为kg存储
-        let weightInKg = (unit == .kg) ? weightInUnit : (weightInUnit / 2.20462)
+        let weightInKg: Double
+        if unit == .kg {
+            weightInKg = weightInUnit
+        } else {
+            let converted = weightInUnit / 2.20462
+            weightInKg = converted.isFinite && converted > 0 ? converted : weightInUnit
+        }
         
         let newWeight = Weight(
             date: date,
@@ -65,8 +77,22 @@ class WeightService {
     
     /// 更新体重记录
     static func updateWeight(weight: Weight, newWeightInUnit: Double, unit: WeightUnit, newDate: Date, modelContext: ModelContext) {
+        // 验证输入参数
+        guard newWeightInUnit.isFinite, newWeightInUnit > 0, newWeightInUnit < 1000 else {
+            logger.error("无效的体重值: \(newWeightInUnit)")
+            return
+        }
+        
         // 将体重统一转换为kg存储
-        weight.weightInKg = (unit == .kg) ? newWeightInUnit : (newWeightInUnit / 2.20462)
+        let weightInKg: Double
+        if unit == .kg {
+            weightInKg = newWeightInUnit
+        } else {
+            let converted = newWeightInUnit / 2.20462
+            weightInKg = converted.isFinite && converted > 0 ? converted : newWeightInUnit
+        }
+        
+        weight.weightInKg = weightInKg
         weight.date = newDate
         weight.updatedAt = Date()
         

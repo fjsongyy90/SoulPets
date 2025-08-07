@@ -26,7 +26,13 @@ final class Weight {
     ) {
         self.id = id
         self.date = date
-        self.weightInKg = weightInKg
+        // 验证体重值的有效性
+        if weightInKg.isFinite && weightInKg > 0 && weightInKg < 1000 {
+            self.weightInKg = weightInKg
+        } else {
+            // 如果体重值无效，使用默认值
+            self.weightInKg = 1.0
+        }
         self.pet = pet
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -36,7 +42,8 @@ final class Weight {
     
     /// 转换为磅
     func weightInLbs() -> Double {
-        return weightInKg * 2.20462
+        let lbsValue = weightInKg * 2.20462
+        return lbsValue.isFinite ? lbsValue : 0.0
     }
     
     /// 根据用户偏好获取格式化的体重字符串
@@ -58,10 +65,15 @@ final class Weight {
             unitString = "lbs"
         }
         
+        // 确保体重值是有效的
+        guard weightValue.isFinite && weightValue > 0 else {
+            return "-- \(unitString)"
+        }
+        
         if let formattedValue = formatter.string(from: NSNumber(value: weightValue)) {
             return "\(formattedValue) \(unitString)"
         } else {
-            return "\(weightValue) \(unitString)"
+            return "\(String(format: "%.1f", weightValue)) \(unitString)"
         }
     }
 } 

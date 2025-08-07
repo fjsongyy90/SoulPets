@@ -232,14 +232,15 @@ struct PetBasicInfoView: View {
                 }
                 .frame(height: 44)
                 .background(Color(UIColor.systemBackground).opacity(0.9))
-                .offset(y: -keyboardHeight + 44) // 放置在键盘上方
+                .offset(y: -(keyboardHeight.isFinite ? keyboardHeight : 0) + 44) // 确保offset值是有效的
             }
         }
         .onAppear {
             // 监听键盘通知
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
                 if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                    keyboardHeight = keyboardFrame.height
+                    let height = keyboardFrame.height
+                    keyboardHeight = height.isFinite && height >= 0 ? height : 0
                 }
             }
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in

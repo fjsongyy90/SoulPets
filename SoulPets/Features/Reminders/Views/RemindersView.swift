@@ -5,56 +5,120 @@ struct RemindersView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = RemindersViewModel()
     @State private var showingAddReminder = false
+    @State private var showingEditReminder = false
     @State private var showingReminderToRecordAlert = false
+    @State private var showingDeleteAlert = false
     @State private var selectedReminderForRecord: Reminder?
+    @State private var reminderToEdit: Reminder?
+    @State private var reminderToDelete: Reminder?
+    
+    // 新增状态管理 - 参考Record模块
+    @State private var showingPetSelector = false
+    @State private var showingSearchBar = false
+    @State private var searchText = ""
+    @State private var currentPet: Pet?
     
     @Query private var allPets: [Pet]
     
+    // 颜色定义 - 与Record模块保持一致
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // 筛选器
-                filterSection
+            ZStack {
+                // 背景色
+                backgroundColor.ignoresSafeArea()
                 
-                // 主内容
-                if viewModel.isLoading {
-                    loadingView
-                } else if viewModel.isEmpty {
-                    emptyStateView
-                } else {
-                    remindersList
+                VStack(spacing: 0) {
+                    // 筛选器和搜索栏 - 采用Record模块的设计
+                    filterAndSearchView
+                        .padding(.horizontal)
+                        .padding(.top)
+                    
+                    // 宠物选择器（展开时显示）
+                    if showingPetSelector {
+                        petSelectorView
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+                    
+                    // 搜索栏（展开时显示）
+                    if showingSearchBar {
+                        searchBarView
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+                    
+                    // 主内容
+                    if viewModel.isLoading {
+                        loadingView
+                    } else if viewModel.isEmpty {
+                        emptyStateView
+                    } else {
+                        remindersList
+                    }
                 }
             }
-            .navigationTitle(String(localized: "reminders.title"))
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle(String(localized: "Reminders"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddReminder = true }) {
+                    Button {
+                        showingAddReminder = true
+                    } label: {
                         Image(systemName: "plus")
-                            .foregroundColor(.primary)
+                            .foregroundColor(accentColor)
                     }
                 }
             }
             .sheet(isPresented: $showingAddReminder) {
                 AddEditReminderView()
+                    .onDisappear {
+                        viewModel.loadReminders(from: modelContext)
+                    }
             }
             .sheet(isPresented: $showingEditReminder) {
                 if let reminder = reminderToEdit {
                     AddEditReminderView(reminderToEdit: reminder)
+                        .onDisappear {
+                            reminderToEdit = nil
+                            viewModel.loadReminders(from: modelContext)
+                        }
                 }
             }
-            .alert(
-                String(localized: "reminder.completed_title"),
-                isPresented: $showingReminderToRecordAlert
-            ) {
-                Button(String(localized: "reminder.create_record")) {
+            .customChoiceAlert(
+                title: String(localized: "reminder.completed_title"),
+                message: String(localized: "reminder.create_record_message"),
+                isPresented: $showingReminderToRecordAlert,
+                primaryTitle: String(localized: "reminder.create_record"),
+                primaryAction: {
                     createRecordFromReminder()
-                }
-                Button(String(localized: "common.cancel"), role: .cancel) {
+                },
+                secondaryTitle: String(localized: "common.cancel"),
+                secondaryAction: {
                     selectedReminderForRecord = nil
                 }
-            } message: {
-                Text(String(localized: "reminder.create_record_message"))
+            )
+            .customConfirmAlert(
+                title: String(localized: "Delete Reminder"),
+                message: String(localized: "This action cannot be undone."),
+                isPresented: $showingDeleteAlert,
+                confirmTitle: String(localized: "Delete"),
+                cancelTitle: String(localized: "Cancel"),
+                confirmAction: {
+                    if let reminder = reminderToDelete {
+                        viewModel.deleteReminder(reminder, modelContext: modelContext)
+                        reminderToDelete = nil
+                    }
+                },
+                isDestructive: true
+            )
+            .onChange(of: searchText) { oldValue, newValue in
+                // 实现搜索功能
+                viewModel.searchText = newValue
+                viewModel.loadReminders(from: modelContext)
             }
             .onAppear {
                 viewModel.loadReminders(from: modelContext)
@@ -65,47 +129,225 @@ struct RemindersView: View {
         }
     }
     
-    // MARK: - 筛选器部分
-    private var filterSection: some View {
-        VStack(spacing: 12) {
-            // 状态筛选器
-            Picker(String(localized: "filter.status"), selection: $viewModel.selectedFilter) {
-                ForEach(RemindersViewModel.FilterType.allCases, id: \.self) { filter in
-                    Text(filter.localizedName)
-                        .tag(filter)
+    // MARK: - 子视图
+    
+    /// 筛选器和搜索栏视图 - 参考Record模块
+    private var filterAndSearchView: some View {
+        HStack(spacing: 8) {
+            // 宠物筛选按钮
+            Button {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showingPetSelector.toggle()
+                    if showingPetSelector {
+                        showingSearchBar = false
+                    }
                 }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
-            
-            // 宠物筛选器
-            if !allPets.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        // 全部宠物选项
-                        PetFilterChip(
-                            title: RemindersViewModel.PetFilter.all.displayName,
-                            isSelected: viewModel.selectedPetFilter.isAll
-                        ) {
-                            viewModel.setPetFilter(.all)
+            } label: {
+                HStack(spacing: 4) {
+                    if let currentPet = currentPet {
+                        // 显示当前选中宠物的头像
+                        if let avatarData = currentPet.avatar, let uiImage = UIImage(data: avatarData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 20, height: 20)
+                                .clipShape(Circle())
+                        } else {
+                            Image(currentPet.petType == .dog ? "dog" : "cat")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                                .padding(3)
+                                .background(
+                                    Circle()
+                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                )
                         }
+                        Text(currentPet.name)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                    } else {
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 12))
+                        Text(String(localized: "All"))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    
+                    Image(systemName: showingPetSelector ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(textColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
+            }
+            
+            // 状态筛选按钮
+            Button {
+                // 切换状态筛选
+                viewModel.selectedFilter = viewModel.selectedFilter == .upcoming ? .completed : .upcoming
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: viewModel.selectedFilter == .upcoming ? "clock" : "checkmark.circle")
+                        .font(.system(size: 12))
+                    Text(viewModel.selectedFilter == .upcoming ? String(localized: "Upcoming") : String(localized: "Completed"))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(textColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
+            }
+            
+            Spacer()
+            
+            // 搜索按钮
+            Button {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showingSearchBar.toggle()
+                    if showingSearchBar {
+                        showingPetSelector = false
+                    }
+                }
+            } label: {
+                Image(systemName: showingSearchBar ? "xmark" : "magnifyingglass")
+                    .font(.system(size: 14))
+                    .foregroundColor(showingSearchBar ? .white : textColor)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(showingSearchBar ? accentColor : Color.white)
+                            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    )
+            }
+        }
+    }
+    
+    /// 宠物选择器视图 - 参考Record模块
+    private var petSelectorView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                // "All Pets" 选项
+                Button {
+                    currentPet = nil
+                    viewModel.setPetFilter(.all)
+                    withAnimation {
+                        showingPetSelector = false
+                    }
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(currentPet == nil ? .white : accentColor)
+                            .frame(width: 40, height: 40)
+                            .background(
+                                Circle()
+                                    .fill(currentPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                            )
                         
-                        // 具体宠物选项
-                        ForEach(allPets, id: \.id) { pet in
-                            PetFilterChip(
-                                title: pet.name,
-                                isSelected: viewModel.selectedPetFilter.isSpecific(pet: pet)
-                            ) {
-                                viewModel.setPetFilter(.specific(pet))
+                        Text(String(localized: "All"))
+                            .font(.caption)
+                            .foregroundColor(currentPet == nil ? accentColor : textColor)
+                            .fontWeight(currentPet == nil ? .semibold : .regular)
+                    }
+                }
+                
+                // 各个宠物选项
+                ForEach(allPets) { pet in
+                    Button {
+                        currentPet = pet
+                        viewModel.setPetFilter(.specific(pet))
+                        withAnimation {
+                            showingPetSelector = false
+                        }
+                    } label: {
+                        VStack(spacing: 4) {
+                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 40, height: 40)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle()
+                                            .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                    )
+                            } else {
+                                Image(pet.petType == .dog ? "dog" : "cat")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 24, height: 24)
+                                    .padding(8)
+                                    .background(
+                                        Circle()
+                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            )
+                                    )
                             }
+                            
+                            Text(pet.name)
+                                .font(.caption)
+                                .foregroundColor(currentPet?.id == pet.id ? accentColor : textColor)
+                                .fontWeight(currentPet?.id == pet.id ? .semibold : .regular)
+                                .lineLimit(1)
                         }
                     }
-                    .padding(.horizontal)
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.8))
+                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+        )
+    }
+    
+    /// 搜索栏视图 - 参考Record模块
+    private var searchBarView: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(labelColor)
+            
+            TextField(String(localized: "Search reminders..."), text: $searchText)
+                .foregroundColor(textColor)
+                .onSubmit {
+                    withAnimation {
+                        showingSearchBar = false
+                    }
+                }
+            
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(labelColor)
                 }
             }
         }
-        .padding(.vertical, 8)
-        .background(Color(UIColor.systemGroupedBackground))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+        )
     }
     
     // MARK: - 加载视图
@@ -113,51 +355,71 @@ struct RemindersView: View {
         VStack {
             ProgressView()
             Text(String(localized: "common.loading"))
-                .foregroundColor(.secondary)
+                .foregroundColor(labelColor)
                 .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - 空状态视图
+    // MARK: - 空状态视图 - 参考Record模块
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
+            Spacer()
+            
             Image(systemName: viewModel.selectedFilter == .upcoming ? "bell" : "checkmark.circle")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
+                .font(.system(size: 70))
+                .foregroundColor(accentColor.opacity(0.7))
             
             Text(emptyStateTitle)
                 .font(.title2)
-                .fontWeight(.medium)
+                .fontWeight(.bold)
+                .foregroundColor(textColor)
             
             Text(emptyStateMessage)
                 .font(.body)
-                .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .foregroundColor(labelColor)
+                .padding(.horizontal, 40)
+            
+            if viewModel.selectedFilter == .upcoming {
+                Button {
+                    showingAddReminder = true
+                } label: {
+                    Text(String(localized: "Add Reminder"))
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(accentColor)
+                        )
+                }
+                .padding(.top, 10)
+            }
+            
+            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var emptyStateTitle: String {
         switch viewModel.selectedFilter {
         case .upcoming:
-            return String(localized: "reminders.empty.upcoming.title")
+            return String(localized: "No Upcoming Reminders")
         case .completed:
-            return String(localized: "reminders.empty.completed.title")
+            return String(localized: "No Completed Reminders")
         }
     }
     
     private var emptyStateMessage: String {
         switch viewModel.selectedFilter {
         case .upcoming:
-            return String(localized: "reminders.empty.upcoming.message")
+            return String(localized: "Create your first reminder to stay on top of your pet's care schedule.")
         case .completed:
-            return String(localized: "reminders.empty.completed.message")
+            return String(localized: "Completed reminders will appear here once you mark them as done.")
         }
     }
     
-    // MARK: - 提醒列表
+    // MARK: - 提醒列表 - 重新设计卡片样式
     private var remindersList: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
@@ -166,37 +428,28 @@ struct RemindersView: View {
                     todayRemindersSection
                 }
                 
-                // 其他提醒
-                ForEach(viewModel.displayReminders, id: \.id) { reminder in
-                    NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                        ReminderCard(
-                            reminder: reminder,
-                            isToday: viewModel.filteredTodayReminders.contains(where: { $0.id == reminder.id }),
-                            onComplete: { reminder in
-                                handleReminderCompletion(reminder)
-                            },
-                            onEdit: { reminder in
-                                editReminder(reminder)
-                            },
-                            onDelete: { reminder in
-                                viewModel.deleteReminder(reminder, modelContext: modelContext)
-                            }
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                // 未来提醒部分（仅在 upcoming 状态显示）
+                if viewModel.selectedFilter == .upcoming && !viewModel.filteredUpcomingReminders.isEmpty {
+                    upcomingRemindersSection
+                }
+                
+                // 已完成提醒（仅在 completed 状态显示）
+                if viewModel.selectedFilter == .completed && !viewModel.filteredCompletedReminders.isEmpty {
+                    completedRemindersSection
                 }
             }
-            .padding()
+            .padding(.bottom, 16)
         }
     }
     
-    // MARK: - 今日待办部分
+    // MARK: - 今日待办部分 - 重新设计
     private var todayRemindersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(String(localized: "reminders.today"))
+                Text(String(localized: "Today"))
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(textColor)
                 
                 Spacer()
                 
@@ -205,16 +458,21 @@ struct RemindersView: View {
                     .fontWeight(.medium)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.accentColor.opacity(0.1))
-                    .foregroundColor(.accentColor)
+                    .background(accentColor.opacity(0.1))
+                    .foregroundColor(accentColor)
                     .clipShape(Capsule())
             }
+            .padding(.horizontal)
             
-            ForEach(viewModel.filteredTodayReminders, id: \.id) { reminder in
+            // 今日提醒使用不同的ID前缀避免冲突
+            ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
                 NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                    ReminderCard(
+                    ReminderCardView(
                         reminder: reminder,
                         isToday: true,
+                        accentColor: accentColor,
+                        textColor: textColor,
+                        labelColor: labelColor,
                         onComplete: { reminder in
                             handleReminderCompletion(reminder)
                         },
@@ -222,9 +480,106 @@ struct RemindersView: View {
                             editReminder(reminder)
                         },
                         onDelete: { reminder in
-                            viewModel.deleteReminder(reminder, modelContext: modelContext)
+                            handleReminderDeletion(reminder)
                         }
                     )
+                    .padding(.horizontal)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
+    
+    // MARK: - 未来提醒部分 - 新增
+    private var upcomingRemindersSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(String(localized: "Upcoming"))
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(textColor)
+                
+                Spacer()
+                
+                Text("\(viewModel.filteredUpcomingReminders.count)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(labelColor.opacity(0.1))
+                    .foregroundColor(labelColor)
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal)
+            
+            // 未来提醒
+            ForEach(Array(viewModel.filteredUpcomingReminders.enumerated()), id: \.offset) { index, reminder in
+                NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
+                    ReminderCardView(
+                        reminder: reminder,
+                        isToday: false,
+                        accentColor: accentColor,
+                        textColor: textColor,
+                        labelColor: labelColor,
+                        onComplete: { reminder in
+                            handleReminderCompletion(reminder)
+                        },
+                        onEdit: { reminder in
+                            editReminder(reminder)
+                        },
+                        onDelete: { reminder in
+                            handleReminderDeletion(reminder)
+                        }
+                    )
+                    .padding(.horizontal)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
+    
+    // MARK: - 已完成提醒部分 - 新增
+    private var completedRemindersSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(String(localized: "Completed"))
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(textColor)
+                
+                Spacer()
+                
+                Text("\(viewModel.filteredCompletedReminders.count)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.1))
+                    .foregroundColor(Color.green)
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal)
+            
+            // 已完成提醒
+            ForEach(Array(viewModel.filteredCompletedReminders.enumerated()), id: \.offset) { index, reminder in
+                NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
+                    ReminderCardView(
+                        reminder: reminder,
+                        isToday: false,
+                        accentColor: accentColor,
+                        textColor: textColor,
+                        labelColor: labelColor,
+                        onComplete: { reminder in
+                            handleReminderCompletion(reminder)
+                        },
+                        onEdit: { reminder in
+                            editReminder(reminder)
+                        },
+                        onDelete: { reminder in
+                            handleReminderDeletion(reminder)
+                        }
+                    )
+                    .padding(.horizontal)
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -252,117 +607,153 @@ struct RemindersView: View {
         selectedReminderForRecord = nil
     }
     
-    // MARK: - 编辑提醒
-    @State private var reminderToEdit: Reminder?
-    @State private var showingEditReminder = false
+    // MARK: - 处理提醒删除
+    private func handleReminderDeletion(_ reminder: Reminder) {
+        reminderToDelete = reminder
+        showingDeleteAlert = true
+    }
     
+    // MARK: - 编辑提醒
     private func editReminder(_ reminder: Reminder) {
+        // 确保没有其他模态视图正在显示
+        guard !showingAddReminder && !showingReminderToRecordAlert else {
+            return
+        }
+        
         reminderToEdit = reminder
         showingEditReminder = true
     }
 }
 
-// MARK: - 宠物筛选芯片
-struct PetFilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .fontWeight(.medium)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    isSelected ? Color.accentColor : Color(UIColor.systemGray5)
-                )
-                .foregroundColor(
-                    isSelected ? .white : .primary
-                )
-                .clipShape(Capsule())
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - 提醒卡片
-struct ReminderCard: View {
+// MARK: - 提醒卡片 - 重新设计以匹配Record风格
+struct ReminderCardView: View {
     let reminder: Reminder
     let isToday: Bool
+    let accentColor: Color
+    let textColor: Color
+    let labelColor: Color
     let onComplete: (Reminder) -> Void
     let onEdit: (Reminder) -> Void
     let onDelete: (Reminder) -> Void
     
-    @State private var showingActionSheet = false
+    // 卡片颜色
+    private let cardColor = Color.white
     
     var body: some View {
-        HStack(spacing: 12) {
-            // 标签图标
-            Image(systemName: reminder.tag.iconName)
-                .font(.title2)
-                .foregroundColor(.accentColor)
-                .frame(width: 24, height: 24)
-            
-            // 内容
-            VStack(alignment: .leading, spacing: 4) {
-                Text(reminder.title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                if let notes = reminder.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
+        VStack(alignment: .leading, spacing: 12) {
+            // 标签和时间
+            HStack {
+                // 标签图标和名称
+                HStack(spacing: 6) {
+                    Image(systemName: reminder.tag.iconName)
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                        .frame(width: 30, height: 30)
+                        .background(
+                            Circle()
+                                .fill(accentColor)
+                        )
+                    
+                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                        .font(.headline)
+                        .foregroundColor(textColor)
                 }
                 
-                HStack {
-                    // 宠物信息
-                    if let pets = reminder.pets, !pets.isEmpty {
-                        Text(pets.map { $0.name }.joined(separator: ", "))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    // 重复规则
-                    if let repeatRule = reminder.repeatRuleText {
-                        Text(repeatRule)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                Spacer()
+                
+                // 完成按钮（今日提醒且未完成时显示）
+                if isToday && !reminder.isCompletedToday {
+                    Button {
+                        onComplete(reminder)
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.green)
                     }
                 }
             }
             
-            Spacer()
-            
-            // 操作按钮
-            if isToday && !reminder.isCompletedToday {
-                Button(action: { onComplete(reminder) }) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.green)
+            // 宠物头像（如果关联多只宠物）
+            if let pets = reminder.pets, !pets.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(pets) { pet in
+                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 30, height: 30)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(pet.petType == .dog ? "dog" : "cat")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                    .padding(5)
+                                    .background(
+                                        Circle()
+                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                    )
+                            }
+                        }
+                    }
                 }
-                .buttonStyle(PlainButtonStyle())
+            }
+            
+            // 备注
+            if let notes = reminder.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(.body)
+                    .foregroundColor(textColor)
+                    .lineLimit(3)
+            }
+            
+            // 重复规则和下次提醒时间
+            HStack {
+                if let repeatRule = reminder.repeatRuleText {
+                    Text(repeatRule)
+                        .font(.caption)
+                        .foregroundColor(labelColor)
+                }
+                
+                Spacer()
+                
+                Text(formattedDate)
+                    .font(.caption)
+                    .foregroundColor(labelColor)
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(cardColor)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
         .contextMenu {
-            Button(String(localized: "common.edit")) {
+            Button {
                 onEdit(reminder)
+            } label: {
+                Label(String(localized: "Edit"), systemImage: "pencil")
+                    .foregroundColor(accentColor)
             }
             
-            Button(String(localized: "common.delete"), role: .destructive) {
+            Button(role: .destructive) {
                 onDelete(reminder)
+            } label: {
+                Label(String(localized: "Delete"), systemImage: "trash")
             }
+        }
+    }
+    
+    // 格式化日期
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        if isToday {
+            formatter.timeStyle = .short
+            return formatter.string(from: reminder.startDate)
+        } else {
+            formatter.dateStyle = .medium
+            return formatter.string(from: reminder.startDate)
         }
     }
 }

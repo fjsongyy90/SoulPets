@@ -76,12 +76,24 @@ extension WeightGoal {
         let currentKg = latestWeight.weightInKg
         let targetKg = normalizedTargetWeight
         
+        // 数值验证：确保所有值都是有效的
+        guard initialKg.isFinite && initialKg > 0,
+              currentKg.isFinite && currentKg > 0,
+              targetKg.isFinite && targetKg > 0 else {
+            return nil
+        }
+        
         // 计算总体重差和已完成差
         let totalDifference = abs(targetKg - initialKg)
         let achievedDifference = abs(currentKg - initialKg)
         
-        // 避免除以零
-        if totalDifference == 0 { return 100.0 }
+        // 避免除以零或极小值
+        if totalDifference <= 0.001 { return 100.0 }
+        
+        // 数值验证：确保差值是有效的
+        guard totalDifference.isFinite && achievedDifference.isFinite else {
+            return nil
+        }
         
         // 如果目标是减肥且当前体重高于初始体重，或目标是增重且当前体重低于初始体重，进度为0
         if (isWeightLoss && currentKg > initialKg) || (!isWeightLoss && currentKg < initialKg) {
@@ -89,7 +101,14 @@ extension WeightGoal {
         }
         
         // 进度百分比，上限100%
-        let progress = min((achievedDifference / totalDifference) * 100, 100.0)
+        let rawProgress = (achievedDifference / totalDifference) * 100
+        
+        // 最终验证：确保结果是有效的数值
+        guard rawProgress.isFinite else {
+            return 0.0
+        }
+        
+        let progress = min(max(rawProgress, 0.0), 100.0)
         return progress
     }
     

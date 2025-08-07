@@ -25,12 +25,13 @@ struct SoulPetsApp: App {
             ReminderCompletion.self
         ])
         
-        // 暂时禁用 CloudKit 集成，使用本地存储
-        // 后续版本中将添加符合 CloudKit 要求的数据模型
+        // 配置数据迁移选项
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false
-            // cloudKitDatabase: .private("iCloud.com.yourapp.SoulPets") // 暂时注释掉
+            isStoredInMemoryOnly: false,
+            allowsSave: true,
+            groupContainer: .none,
+            cloudKitDatabase: .none
         )
         
         do {
@@ -39,13 +40,41 @@ struct SoulPetsApp: App {
             print("成功创建ModelContainer")
             return container
         } catch {
-            // 记录错误并尝试恢复
+            // 记录错误详细信息
             print("创建ModelContainer失败: \(error)")
             
-            // 如果常规方式失败，尝试使用内存模式创建临时容器
+            // 如果是数据迁移错误，尝试删除旧数据库并重新创建
+            if error.localizedDescription.contains("migration") || error.localizedDescription.contains("134110") {
+                print("检测到数据迁移错误，尝试重置数据库...")
+                
+                // 获取应用支持目录
+                if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                    let storeURL = appSupportURL.appendingPathComponent("default.store")
+                    
+                    // 删除旧的数据库文件
+                    try? FileManager.default.removeItem(at: storeURL)
+                    try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
+                    try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
+                    
+                    print("已删除旧数据库文件，尝试重新创建...")
+                    
+                    // 重新尝试创建容器
+                    do {
+                        let newContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+                        print("成功重新创建ModelContainer")
+                        return newContainer
+                    } catch {
+                        print("重新创建也失败: \(error)")
+                    }
+                }
+            }
+            
+            // 最后的回退方案：使用内存模式创建临时容器
             do {
                 let recoveryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-                return try ModelContainer(for: schema, configurations: [recoveryConfig])
+                let memoryContainer = try ModelContainer(for: schema, configurations: [recoveryConfig])
+                print("使用内存模式创建临时容器")
+                return memoryContainer
             } catch {
                 fatalError("无法创建ModelContainer，即使是内存模式也失败: \(error)")
             }

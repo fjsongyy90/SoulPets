@@ -75,6 +75,8 @@ struct RecordsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
+                        // 确保没有其他模态视图正在显示
+                        guard !showingDatePicker else { return }
                         showingAddRecordSheet = true
                     } label: {
                         Image(systemName: "plus")
@@ -90,6 +92,10 @@ struct RecordsView: View {
             }
             .sheet(isPresented: $showingDatePicker) {
                 datePickerSheet
+                    .onDisappear {
+                        // 确保在日期选择器关闭时清理状态
+                        selectedDate = nil
+                    }
             }
             .onChange(of: searchText) { oldValue, newValue in
                 viewModel.searchText = newValue
@@ -178,6 +184,8 @@ struct RecordsView: View {
             
             // 日期选择按钮
             Button {
+                // 确保没有其他模态视图正在显示
+                guard !showingAddRecordSheet else { return }
                 showingDatePicker = true
             } label: {
                 HStack(spacing: 4) {

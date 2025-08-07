@@ -7,8 +7,15 @@ struct AddEditReminderView: View {
     
     @State private var viewModel = AddEditReminderViewModel()
     @Query private var allPets: [Pet]
+    @Query private var allTags: [Tag]
     
     let reminderToEdit: Reminder?
+    
+    // 颜色定义 - 与Record模块保持一致
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     init(reminderToEdit: Reminder? = nil) {
         self.reminderToEdit = reminderToEdit
@@ -16,47 +23,57 @@ struct AddEditReminderView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                // 宠物选择部分
-                petSelectionSection
+            ZStack {
+                // 背景色
+                backgroundColor.ignoresSafeArea()
                 
-                // 标签选择部分
-                tagSelectionSection
-                
-                // 日期时间部分
-                dateTimeSection
-                
-                // 重复设置部分
-                repeatSection
-                
-                // 备注部分
-                notesSection
+                // 当前步骤内容
+                VStack {
+                    switch viewModel.currentStep {
+                    case .selectPetsAndEvent:
+                        selectPetsAndEventView
+                    case .reminderDetails:
+                        reminderDetailsView
+                    }
+                }
             }
-            .navigationTitle(viewModel.isEditing ? String(localized: "reminder.edit") : String(localized: "reminder.add"))
+            .navigationTitle(viewModel.currentStep == .selectPetsAndEvent ? 
+                             String(localized: "Select Pets & Event") : 
+                             String(localized: LocalizedStringResource(stringLiteral: viewModel.selectedTag?.name ?? "Reminder Details")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(String(localized: "common.cancel")) {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
+                    .foregroundColor(accentColor)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "common.save")) {
-                        Task {
-                            if await viewModel.saveReminder(modelContext: modelContext) {
-                                dismiss()
+                    if viewModel.currentStep == .selectPetsAndEvent {
+                        Button(String(localized: "Next")) {
+                            viewModel.moveToNextStep()
+                        }
+                        .disabled(!viewModel.isStepOneValid)
+                        .foregroundColor(viewModel.isStepOneValid ? accentColor : .gray)
+                    } else {
+                        Button(String(localized: viewModel.isEditing ? "Save" : "Add")) {
+                            Task {
+                                if await viewModel.saveReminder(modelContext: modelContext) {
+                                    dismiss()
+                                }
                             }
                         }
+                        .disabled(!viewModel.isFormValid || viewModel.isLoading)
+                        .foregroundColor(viewModel.isFormValid && !viewModel.isLoading ? accentColor : .gray)
                     }
-                    .disabled(!viewModel.isFormValid || viewModel.isLoading)
                 }
             }
             .alert(
-                String(localized: "error.title"),
+                String(localized: "Error"),
                 isPresented: .constant(viewModel.errorMessage != nil)
             ) {
-                Button(String(localized: "common.ok")) {
+                Button(String(localized: "OK")) {
                     viewModel.errorMessage = nil
                 }
             } message: {
@@ -73,274 +90,233 @@ struct AddEditReminderView: View {
         }
     }
     
-    // MARK: - 宠物选择部分
-    private var petSelectionSection: some View {
-        Section {
-            Button(action: { viewModel.showingPetSelection = true }) {
-                HStack {
-                    Text(String(localized: "reminder.select_pets"))
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    Text(viewModel.selectedPetsText)
-                        .foregroundColor(.secondary)
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-        } header: {
-            Text(String(localized: "reminder.pets"))
-        }
-        .sheet(isPresented: $viewModel.showingPetSelection) {
-            PetSelectionView(
-                selectedPets: $viewModel.selectedPets,
-                allPets: allPets
-            ) {
-                viewModel.loadAvailableTags(from: modelContext)
-            }
-        }
-    }
+    // MARK: - 子视图
     
-    // MARK: - 标签选择部分
-    private var tagSelectionSection: some View {
-        Section {
-            Button(action: { viewModel.showingTagSelection = true }) {
-                HStack {
-                    Text(String(localized: "reminder.select_tag"))
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    if let tag = viewModel.selectedTag {
-                        HStack(spacing: 8) {
-                            Image(systemName: tag.iconName)
-                                .foregroundColor(.accentColor)
-                            
-                            Text(tag.name)
-                                .foregroundColor(.secondary)
-                        }
-                    } else {
-                        Text(String(localized: "reminder.no_tag_selected"))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-            .disabled(viewModel.selectedPets.isEmpty)
-        } header: {
-            Text(String(localized: "reminder.event_type"))
-        } footer: {
-            if viewModel.selectedPets.isEmpty {
-                Text(String(localized: "reminder.select_pets_first"))
-                    .foregroundColor(.secondary)
-            }
-        }
-        .sheet(isPresented: $viewModel.showingTagSelection) {
-            TagSelectionView(
-                selectedTag: $viewModel.selectedTag,
-                availableTags: viewModel.availableTags
-            )
-        }
-    }
-    
-    // MARK: - 日期时间部分
-    private var dateTimeSection: some View {
-        Section {
-            DatePicker(
-                String(localized: "reminder.start_date"),
-                selection: $viewModel.startDate,
-                displayedComponents: [.date, .hourAndMinute]
-            )
-        } header: {
-            Text(String(localized: "reminder.timing"))
-        }
-    }
-    
-    // MARK: - 重复设置部分
-    private var repeatSection: some View {
-        Section {
-            Toggle(String(localized: "reminder.repeat"), isOn: $viewModel.isRepeating)
-            
-            if viewModel.isRepeating {
-                HStack {
-                    Text(String(localized: "reminder.every"))
-                    
-                    Spacer()
-                    
-                    Picker(String(localized: "reminder.interval"), selection: $viewModel.repeatInterval) {
-                        ForEach(1...30, id: \.self) { interval in
-                            Text("\(interval)").tag(interval)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                    
-                    Picker(String(localized: "reminder.unit"), selection: $viewModel.repeatUnit) {
-                        ForEach(RepeatUnit.allCases, id: \.self) { unit in
-                            Text(String(localized: "repeat_unit.\(unit.rawValue.lowercased())"))
-                                .tag(unit)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                }
-            }
-        } header: {
-            Text(String(localized: "reminder.repeat_settings"))
-        } footer: {
-            if viewModel.isRepeating {
-                Text(viewModel.repeatRuleText)
-                    .foregroundColor(.secondary)
-            }
-        }
-    }
-    
-    // MARK: - 备注部分
-    private var notesSection: some View {
-        Section {
-            TextField(
-                String(localized: "reminder.notes_placeholder"),
-                text: $viewModel.notes,
-                axis: .vertical
-            )
-            .lineLimit(3...6)
-        } header: {
-            Text(String(localized: "reminder.notes"))
-        }
-    }
-}
-
-// MARK: - 宠物选择视图
-struct PetSelectionView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var selectedPets: [Pet]
-    let allPets: [Pet]
-    let onSelectionChanged: () -> Void
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                ForEach(allPets, id: \.id) { pet in
-                    HStack {
-                        // 宠物头像
-                        if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 40, height: 40)
-                                .clipShape(Circle())
-                        } else {
-                            Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
-                                .font(.title2)
-                                .foregroundColor(.accentColor)
-                                .frame(width: 40, height: 40)
-                                .background(Color.accentColor.opacity(0.1))
-                                .clipShape(Circle())
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(pet.name)
-                                .font(.headline)
-                            
-                            Text(pet.breed)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        if selectedPets.contains(where: { $0.id == pet.id }) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.accentColor)
-                        } else {
-                            Image(systemName: "circle")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        togglePetSelection(pet)
-                    }
-                }
-            }
-            .navigationTitle(String(localized: "reminder.select_pets"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "common.done")) {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-    
-    private func togglePetSelection(_ pet: Pet) {
-        if selectedPets.contains(where: { $0.id == pet.id }) {
-            selectedPets.removeAll { $0.id == pet.id }
-        } else {
-            selectedPets.append(pet)
-        }
-        onSelectionChanged()
-    }
-}
-
-// MARK: - 标签选择视图
-struct TagSelectionView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var selectedTag: Tag?
-    let availableTags: [Tag]
-    
-    private var groupedTags: [TagCategory: [Tag]] {
-        Dictionary(grouping: availableTags) { $0.category }
-    }
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                ForEach(TagCategory.allCases, id: \.self) { category in
-                    if let tags = groupedTags[category], !tags.isEmpty {
-                        Section(header: Text(String(localized: "tag_category.\(category.rawValue.lowercased())"))) {
-                            ForEach(tags, id: \.id) { tag in
-                                HStack {
-                                    Image(systemName: tag.iconName)
-                                        .foregroundColor(.accentColor)
-                                        .frame(width: 24, height: 24)
-                                    
-                                    Text(tag.name)
-                                        .font(.body)
-                                    
-                                    Spacer()
-                                    
-                                    if selectedTag?.id == tag.id {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.accentColor)
-                                    }
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    selectedTag = tag
-                                    dismiss()
-                                }
+    /// 选择宠物和事件视图 - 参考Record模块
+    private var selectPetsAndEventView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // 宠物选择器
+                Text(String(localized: "Select Pets"))
+                    .font(.headline)
+                    .foregroundColor(textColor)
+                    .padding(.horizontal)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 15) {
+                        ForEach(allPets) { pet in
+                            PetAvatarView(
+                                pet: pet, 
+                                isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), 
+                                accentColor: accentColor, 
+                                textColor: textColor
+                            )
+                            .onTapGesture {
+                                viewModel.togglePetSelection(pet: pet)
                             }
                         }
                     }
+                    .padding(.horizontal)
                 }
-            }
-            .navigationTitle(String(localized: "reminder.select_tag"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "common.cancel")) {
-                        dismiss()
+                
+                // 验证提示
+                if viewModel.selectedPets.isEmpty {
+                    Text(String(localized: "Select at least one pet"))
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                }
+                
+                // 标签选择器
+                Text(String(localized: "Select Event Type"))
+                    .font(.headline)
+                    .foregroundColor(textColor)
+                    .padding(.horizontal)
+                    .padding(.top)
+                
+                // 按分类显示标签
+                ForEach(TagCategory.allCases, id: \.self) { category in
+                    let filteredTags = filterTags(for: category)
+                    if !filteredTags.isEmpty {
+                        VStack(alignment: .leading) {
+                            Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
+                                .font(.subheadline)
+                                .foregroundColor(labelColor)
+                                .padding(.horizontal)
+                            
+                            tagGridView(tags: filteredTags)
+                        }
+                        .padding(.top, 10)
                     }
                 }
+            }
+            .padding(.vertical)
+        }
+    }
+    
+    /// 提醒详情视图 - 参考Record模块
+    private var reminderDetailsView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // 日期和时间选择器
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(String(localized: "Date & Time"))
+                        .font(.headline)
+                        .foregroundColor(textColor)
+                    
+                    DatePicker("", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
+                        .labelsHidden()
+                        .datePickerStyle(.compact)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white)
+                                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                        )
+                        .accentColor(accentColor)
+                }
+                .padding(.horizontal)
+                
+                // 重复设置
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(String(localized: "Repeat Settings"))
+                        .font(.headline)
+                        .foregroundColor(textColor)
+                    
+                    VStack(spacing: 16) {
+                        // 重复开关
+                        HStack {
+                            Text(String(localized: "Repeat"))
+                                .foregroundColor(textColor)
+                            Spacer()
+                            Toggle("", isOn: $viewModel.isRepeating)
+                                .tint(accentColor)
+                        }
+                        
+                        // 重复间隔设置
+                        if viewModel.isRepeating {
+                            HStack {
+                                Text(String(localized: "Every"))
+                                    .foregroundColor(textColor)
+                                
+                                Spacer()
+                                
+                                Picker("Interval", selection: $viewModel.repeatInterval) {
+                                    ForEach(1...30, id: \.self) { interval in
+                                        Text("\(interval)")
+                                            .tag(interval)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .accentColor(accentColor)
+                                
+                                Picker("Unit", selection: $viewModel.repeatUnit) {
+                                    ForEach(RepeatUnit.allCases, id: \.self) { unit in
+                                        Text(String(localized: "repeat_unit.\(unit.rawValue.lowercased())"))
+                                            .tag(unit)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .accentColor(accentColor)
+                            }
+                            
+                            // 重复规则预览
+                            if !viewModel.repeatRuleText.isEmpty {
+                                Text(viewModel.repeatRuleText)
+                                    .font(.caption)
+                                    .foregroundColor(labelColor)
+                                    .padding(.top, 4)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    )
+                }
+                .padding(.horizontal)
+                
+                // 备注输入框
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(String(localized: "Notes"))
+                        .font(.headline)
+                        .foregroundColor(textColor)
+                    
+                    TextEditor(text: $viewModel.notes)
+                        .foregroundColor(textColor)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white)
+                                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                        )
+                        .overlay(
+                            Group {
+                                if viewModel.notes.isEmpty {
+                                    Text(String(localized: "Add some notes about this reminder (optional)"))
+                                        .foregroundColor(labelColor)
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 16)
+                                        .allowsHitTesting(false)
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                                }
+                            }
+                        )
+                }
+                .padding(.horizontal)
+            }
+            .padding(.vertical)
+        }
+    }
+    
+    // MARK: - 辅助方法
+    
+    /// 标签网格视图 - 复用Record模块的设计
+    private func tagGridView(tags: [Tag]) -> some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible(), spacing: 8),
+            GridItem(.flexible(), spacing: 8)
+        ], spacing: 12) {
+            ForEach(tags) { tag in
+                TagItemView(
+                    tag: tag, 
+                    isSelected: viewModel.selectedTag?.id == tag.id, 
+                    accentColor: accentColor, 
+                    textColor: textColor
+                )
+                .onTapGesture {
+                    viewModel.selectTag(tag)
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+    
+    /// 根据宠物类型和分类筛选标签 - 与Record模块保持一致
+    private func filterTags(for category: TagCategory) -> [Tag] {
+        // 如果没有选择宠物，返回空数组
+        guard !viewModel.selectedPets.isEmpty else { return [] }
+        
+        // 获取所有选中宠物的类型
+        let selectedPetTypes = viewModel.selectedPets.map { $0.petType }
+        
+        // 筛选同时适用于所有选中宠物类型的标签，并排除隐藏的标签，只显示可用于提醒的标签
+        return allTags.filter { tag in
+            // 检查标签是否属于当前分类
+            guard tag.category == category else { return false }
+            
+            // 排除隐藏的标签
+            guard !tag.isHidden else { return false }
+            
+            // 只显示可用于提醒的标签
+            guard tag.defaultIsReminder else { return false }
+            
+            // 检查标签是否适用于所有选中的宠物类型
+            return selectedPetTypes.allSatisfy { petType in
+                tag.isApplicableTo(petType: petType)
             }
         }
     }

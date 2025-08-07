@@ -2,9 +2,18 @@ import Foundation
 import SwiftData
 import OSLog
 
+// MARK: - 步骤枚举
+enum ReminderCreationStep: CaseIterable {
+    case selectPetsAndEvent
+    case reminderDetails
+}
+
 @Observable
 class AddEditReminderViewModel {
     private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "AddEditReminderViewModel")
+    
+    // MARK: - 步骤管理
+    var currentStep: ReminderCreationStep = .selectPetsAndEvent
     
     // MARK: - 编辑状态
     var isEditing: Bool = false
@@ -31,6 +40,10 @@ class AddEditReminderViewModel {
         !selectedPets.isEmpty && selectedTag != nil
     }
     
+    var isStepOneValid: Bool {
+        !selectedPets.isEmpty && selectedTag != nil
+    }
+    
     // MARK: - 初始化
     init() {}
     
@@ -38,10 +51,32 @@ class AddEditReminderViewModel {
         setupForEditing(reminder)
     }
     
+    // MARK: - 步骤导航
+    func moveToNextStep() {
+        guard isStepOneValid else { return }
+        
+        switch currentStep {
+        case .selectPetsAndEvent:
+            currentStep = .reminderDetails
+        case .reminderDetails:
+            break // 已经是最后一步
+        }
+    }
+    
+    func moveToPreviousStep() {
+        switch currentStep {
+        case .selectPetsAndEvent:
+            break // 已经是第一步
+        case .reminderDetails:
+            currentStep = .selectPetsAndEvent
+        }
+    }
+    
     // MARK: - 设置编辑模式
     func setupForEditing(_ reminder: Reminder) {
         isEditing = true
         reminderToEdit = reminder
+        currentStep = .reminderDetails // 编辑模式直接跳到详情步骤
         
         selectedPets = reminder.pets ?? []
         selectedTag = reminder.tag
@@ -89,11 +124,17 @@ class AddEditReminderViewModel {
     }
     
     // MARK: - 宠物选择
-    func togglePetSelection(_ pet: Pet) {
+    func togglePetSelection(pet: Pet) {
         if selectedPets.contains(where: { $0.id == pet.id }) {
             selectedPets.removeAll { $0.id == pet.id }
         } else {
             selectedPets.append(pet)
+        }
+        
+        // 当宠物选择改变时，重新加载可用标签
+        if !selectedPets.isEmpty {
+            // 这里应该触发标签的重新筛选，但由于这是同步方法，
+            // 我们需要在调用处处理这个逻辑
         }
     }
     
@@ -123,67 +164,81 @@ class AddEditReminderViewModel {
     // MARK: - 保存提醒
     func saveReminder(modelContext: ModelContext) async -> Bool {
         guard isFormValid else {
-            errorMessage = String(localized: "error.invalid_form")
+            await MainActor.run {
+                errorMessage = String(localized: "error.invalid_form")
+            }
             return false
         }
         
         guard let tag = selectedTag else {
-            errorMessage = String(localized: "error.no_tag_selected")
+            await MainActor.run {
+                errorMessage = String(localized: "error.no_tag_selected")
+            }
             return false
         }
         
-        isLoading = true
-        errorMessage = nil
+        await MainActor.run {
+            isLoading = true
+            errorMessage = nil
+        }
         
         do {
-            if isEditing, let existingReminder = reminderToEdit {
-                // 更新现有提醒
-                existingReminder.pets = selectedPets
-                existingReminder.tag = tag
-                existingReminder.startDate = startDate
-                existingReminder.notes = notes.isEmpty ? nil : notes
-                existingReminder.repeatInterval = isRepeating ? repeatInterval : nil
-                existingReminder.repeatUnit = isRepeating ? repeatUnit : nil
-                existingReminder.updatedAt = Date()
+            try await MainActor.run {
+                if isEditing, let existingReminder = reminderToEdit {
+                    // 更新现有提醒
+                    existingReminder.pets = selectedPets
+                    existingReminder.tag = tag
+                    existingReminder.startDate = startDate
+                    existingReminder.notes = notes.isEmpty ? nil : notes
+                    existingReminder.repeatInterval = isRepeating ? repeatInterval : nil
+                    existingReminder.repeatUnit = isRepeating ? repeatUnit : nil
+                    existingReminder.updatedAt = Date()
+                    
+                    // 更新通知
+                    NotificationService.removeNotificationsForReminder(reminderId: existingReminder.id)
+                    ReminderService.setupNotificationsForReminder(reminder: existingReminder)
+                    
+                    logger.info("更新提醒: \(existingReminder.title)")
+                } else {
+                    // 创建新提醒
+                    let newReminder = Reminder(
+                        startDate: startDate,
+                        notes: notes.isEmpty ? nil : notes,
+                        repeatInterval: isRepeating ? repeatInterval : nil,
+                        repeatUnit: isRepeating ? repeatUnit : nil,
+                        tag: tag,
+                        pets: selectedPets
+                    )
+                    
+                    modelContext.insert(newReminder)
+                    
+                    // 设置通知
+                    ReminderService.setupNotificationsForReminder(reminder: newReminder)
+                    
+                    logger.info("创建新提醒: \(newReminder.title)")
+                }
                 
-                // 更新通知
-                NotificationService.removeNotificationsForReminder(reminderId: existingReminder.id)
-                ReminderService.setupNotificationsForReminder(reminder: existingReminder)
-                
-                logger.info("更新提醒: \(existingReminder.title)")
-            } else {
-                // 创建新提醒
-                let newReminder = Reminder(
-                    startDate: startDate,
-                    notes: notes.isEmpty ? nil : notes,
-                    repeatInterval: isRepeating ? repeatInterval : nil,
-                    repeatUnit: isRepeating ? repeatUnit : nil,
-                    tag: tag,
-                    pets: selectedPets
-                )
-                
-                modelContext.insert(newReminder)
-                
-                // 设置通知
-                ReminderService.setupNotificationsForReminder(reminder: newReminder)
-                
-                logger.info("创建新提醒: \(newReminder.title)")
+                try modelContext.save()
             }
             
-            try modelContext.save()
-            isLoading = false
+            await MainActor.run {
+                isLoading = false
+            }
             return true
             
         } catch {
-            logger.error("保存提醒失败: \(error.localizedDescription)")
-            errorMessage = error.localizedDescription
-            isLoading = false
+            await MainActor.run {
+                logger.error("保存提醒失败: \(error.localizedDescription)")
+                errorMessage = error.localizedDescription
+                isLoading = false
+            }
             return false
         }
     }
     
     // MARK: - 重置表单
     func resetForm() {
+        currentStep = .selectPetsAndEvent
         selectedPets.removeAll()
         selectedTag = nil
         startDate = Date()
@@ -214,14 +269,31 @@ class AddEditReminderViewModel {
     
     var repeatRuleText: String {
         if !isRepeating {
-            return String(localized: "reminder.no_repeat")
+            return ""
         }
         
         if repeatInterval == 1 {
-            return String(localized: "reminder.repeat_every_\(repeatUnit.rawValue.lowercased())")
+            switch repeatUnit {
+            case .daily:
+                return String(localized: "Every day")
+            case .weekly:
+                return String(localized: "Every week")
+            case .monthly:
+                return String(localized: "Every month")
+            case .yearly:
+                return String(localized: "Every year")
+            }
         } else {
-            return String(localized: "reminder.repeat_every_x_\(repeatUnit.rawValue.lowercased())")
-                .replacingOccurrences(of: "%d", with: "\(repeatInterval)")
+            switch repeatUnit {
+            case .daily:
+                return String(localized: "Every \(repeatInterval) days")
+            case .weekly:
+                return String(localized: "Every \(repeatInterval) weeks")
+            case .monthly:
+                return String(localized: "Every \(repeatInterval) months")
+            case .yearly:
+                return String(localized: "Every \(repeatInterval) years")
+            }
         }
     }
 } 

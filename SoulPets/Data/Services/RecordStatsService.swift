@@ -174,7 +174,14 @@ class RecordStatsService {
                 }
             }
             
-            let averagePhotosPerRecord = recordsWithPhotos > 0 ? Double(totalPhotos) / Double(recordsWithPhotos) : 0.0
+            // 安全的除法计算，避免NaN
+            let averagePhotosPerRecord: Double
+            if recordsWithPhotos > 0 && totalPhotos >= 0 {
+                let rawAverage = Double(totalPhotos) / Double(recordsWithPhotos)
+                averagePhotosPerRecord = rawAverage.isFinite ? rawAverage : 0.0
+            } else {
+                averagePhotosPerRecord = 0.0
+            }
             
             return (totalPhotos: totalPhotos, recordsWithPhotos: recordsWithPhotos, averagePhotosPerRecord: averagePhotosPerRecord)
             
@@ -224,7 +231,8 @@ class RecordStatsService {
         // 计算变化百分比
         let changePercentage: Double
         if previousCount > 0 {
-            changePercentage = Double(currentCount - previousCount) / Double(previousCount) * 100
+            let rawPercentage = Double(currentCount - previousCount) / Double(previousCount) * 100
+            changePercentage = rawPercentage.isFinite ? rawPercentage : 0.0
         } else {
             changePercentage = currentCount > 0 ? 100.0 : 0.0
         }

@@ -14,6 +14,7 @@ class RemindersViewModel {
     var showingCompletedReminders = false
     var isLoading = false
     var errorMessage: String?
+    var searchText: String = ""
     
     // MARK: - 筛选状态
     enum FilterType: String, CaseIterable {
@@ -97,15 +98,38 @@ class RemindersViewModel {
     }
     
     private func filterReminders(_ reminders: [Reminder]) -> [Reminder] {
+        var filtered = reminders
+        
+        // 按宠物筛选
         switch selectedPetFilter {
         case .all:
-            return reminders
+            break // 不过滤
         case .specific(let pet):
-            return reminders.filter { reminder in
+            filtered = filtered.filter { reminder in
                 guard let pets = reminder.pets else { return false }
                 return pets.contains(where: { $0.id == pet.id })
             }
         }
+        
+        // 按搜索文本筛选
+        if !searchText.isEmpty {
+            filtered = filtered.filter { reminder in
+                // 搜索标签名称
+                let tagMatches = reminder.tag.name.localizedCaseInsensitiveContains(searchText)
+                
+                // 搜索备注
+                let notesMatches = reminder.notes?.localizedCaseInsensitiveContains(searchText) ?? false
+                
+                // 搜索宠物名称
+                let petMatches = reminder.pets?.contains { pet in
+                    pet.name.localizedCaseInsensitiveContains(searchText)
+                } ?? false
+                
+                return tagMatches || notesMatches || petMatches
+            }
+        }
+        
+        return filtered
     }
     
     // MARK: - 提醒操作
@@ -154,16 +178,6 @@ class RemindersViewModel {
     // MARK: - 提醒完成后创建记录
     func showCreateRecordFromReminder(_ reminder: Reminder, modelContext: ModelContext) -> Record? {
         return ReminderService.createRecordFromReminder(reminder: reminder, modelContext: modelContext)
-    }
-    
-    // MARK: - 获取显示用的提醒列表
-    var displayReminders: [Reminder] {
-        switch selectedFilter {
-        case .upcoming:
-            return filteredTodayReminders + filteredUpcomingReminders
-        case .completed:
-            return filteredCompletedReminders
-        }
     }
     
     // MARK: - 空状态检查

@@ -154,9 +154,27 @@ extension Reminder {
         }
         
         if interval == 1 {
-            return "每\(unit.rawValue.lowercased())"
+            switch unit {
+            case .daily:
+                return String(localized: "Every day")
+            case .weekly:
+                return String(localized: "Every week")
+            case .monthly:
+                return String(localized: "Every month")
+            case .yearly:
+                return String(localized: "Every year")
+            }
         } else {
-            return "每\(interval)个\(unit.rawValue.lowercased())"
+            switch unit {
+            case .daily:
+                return String(localized: "Every \(interval) days")
+            case .weekly:
+                return String(localized: "Every \(interval) weeks")
+            case .monthly:
+                return String(localized: "Every \(interval) months")
+            case .yearly:
+                return String(localized: "Every \(interval) years")
+            }
         }
     }
 } 
