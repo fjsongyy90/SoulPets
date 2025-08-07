@@ -16,13 +16,10 @@ extension View {
             Button(confirmTitle, role: isDestructive ? .destructive : nil) {
                 confirmAction()
             }
-            .foregroundColor(isDestructive ? .red : Color(red: 0.60, green: 0.35, blue: 0.15))
             
             Button(cancelTitle, role: .cancel) {}
-                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
         } message: {
             Text(message)
-                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
         }
     }
     
@@ -40,15 +37,12 @@ extension View {
             Button(primaryTitle) {
                 primaryAction()
             }
-            .foregroundColor(Color(red: 0.60, green: 0.35, blue: 0.15))
             
             Button(secondaryTitle, role: .cancel) {
                 secondaryAction()
             }
-            .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
         } message: {
             Text(message)
-                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
         }
     }
 } 

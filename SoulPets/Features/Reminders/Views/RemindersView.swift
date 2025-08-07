@@ -88,33 +88,39 @@ struct RemindersView: View {
                         }
                 }
             }
-            .customChoiceAlert(
-                title: String(localized: "reminder.completed_title"),
-                message: String(localized: "reminder.create_record_message"),
+            .confirmationDialog(
+                String(localized: "reminder.completed_title"),
                 isPresented: $showingReminderToRecordAlert,
-                primaryTitle: String(localized: "reminder.create_record"),
-                primaryAction: {
+                titleVisibility: .visible
+            ) {
+                Button(String(localized: "reminder.create_record")) {
                     createRecordFromReminder()
-                },
-                secondaryTitle: String(localized: "common.cancel"),
-                secondaryAction: {
+                }
+                
+                Button(String(localized: "common.cancel"), role: .cancel) {
                     selectedReminderForRecord = nil
                 }
-            )
-            .customConfirmAlert(
-                title: String(localized: "Delete Reminder"),
-                message: String(localized: "This action cannot be undone."),
+            } message: {
+                Text(String(localized: "reminder.create_record_message"))
+            }
+            .confirmationDialog(
+                String(localized: "Delete Reminder"),
                 isPresented: $showingDeleteAlert,
-                confirmTitle: String(localized: "Delete"),
-                cancelTitle: String(localized: "Cancel"),
-                confirmAction: {
+                titleVisibility: .visible
+            ) {
+                Button(String(localized: "Delete"), role: .destructive) {
                     if let reminder = reminderToDelete {
                         viewModel.deleteReminder(reminder, modelContext: modelContext)
                         reminderToDelete = nil
                     }
-                },
-                isDestructive: true
-            )
+                }
+                
+                Button(String(localized: "Cancel"), role: .cancel) {
+                    reminderToDelete = nil
+                }
+            } message: {
+                Text(String(localized: "This action cannot be undone."))
+            }
             .onChange(of: searchText) { oldValue, newValue in
                 // 实现搜索功能
                 viewModel.searchText = newValue

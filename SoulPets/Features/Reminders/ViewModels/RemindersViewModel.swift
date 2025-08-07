@@ -66,12 +66,29 @@ class RemindersViewModel {
             do {
                 // 获取今日待办提醒
                 self.todayReminders = ReminderService.getTodayReminders(modelContext: context)
+                logger.info("📅 Today Reminders: \(self.todayReminders.count)")
+                for reminder in self.todayReminders {
+                    logger.info("  - Today: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
+                }
                 
                 // 获取未来提醒
                 self.upcomingReminders = ReminderService.getUpcomingReminders(modelContext: context)
+                logger.info("🔮 Upcoming Reminders: \(self.upcomingReminders.count)")
+                for reminder in self.upcomingReminders {
+                    logger.info("  - Upcoming: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
+                }
                 
                 // 获取已完成提醒
                 self.completedReminders = ReminderService.getReminders(isCompleted: true, modelContext: context)
+                logger.info("✅ Completed Reminders: \(self.completedReminders.count)")
+                
+                // 检查重复ID
+                let todayIds = Set(self.todayReminders.map { $0.id })
+                let upcomingIds = Set(self.upcomingReminders.map { $0.id })
+                let intersection = todayIds.intersection(upcomingIds)
+                if !intersection.isEmpty {
+                    logger.error("🚨 发现重复ID: \(intersection)")
+                }
                 
                 logger.info("成功加载提醒数据 - 今日: \(self.todayReminders.count), 未来: \(self.upcomingReminders.count), 已完成: \(self.completedReminders.count)")
                 

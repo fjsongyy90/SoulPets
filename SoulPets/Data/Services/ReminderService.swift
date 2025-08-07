@@ -36,16 +36,22 @@ class ReminderService {
         do {
             // 获取所有提醒模板
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            
+            // 先获取今日的提醒ID，避免重复
+            let todayReminderIds = Set(getTodayReminders(modelContext: modelContext).map { $0.id })
+            
             var upcomingReminders: [Reminder] = []
             
-            // 检查未来7天的每一天
+            // 检查未来7天的每一天（从明天开始）
             for dayOffset in 1...daysAhead {
                 guard let futureDate = calendar.date(byAdding: .day, value: dayOffset, to: today) else {
                     continue
                 }
                 
-                // 筛选出在该日期需要提醒的模板
+                // 筛选出在该日期需要提醒的模板，但排除今日已有的提醒
                 let remindersForDay = allReminders.filter { reminder in
+                    // 排除今日已有的提醒
+                    !todayReminderIds.contains(reminder.id) && 
                     reminder.needsReminderOn(date: futureDate)
                 }
                 
@@ -53,7 +59,11 @@ class ReminderService {
             }
             
             // 去重，一个模板可能在多个未来日期都有提醒
-            return Array(Set(upcomingReminders))
+            let uniqueUpcoming = Array(Set(upcomingReminders))
+            
+            logger.info("📈 获取未来提醒: 排除今日提醒后剩余 \(uniqueUpcoming.count) 条")
+            return uniqueUpcoming
+            
         } catch {
             logger.error("获取未来提醒失败: \(error.localizedDescription)")
             return []
