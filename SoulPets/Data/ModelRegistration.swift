@@ -14,6 +14,7 @@ struct ModelRegistration {
             RecordPhoto.self,
             Tag.self,
             Weight.self,
+            WeightGoal.self,
             Reminder.self,
             ReminderCompletion.self
             // 未来可能添加的其他模型

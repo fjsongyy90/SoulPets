@@ -143,3 +143,99 @@ SoulPets/
 ```
 
 这种结构遵循了功能模块化的设计原则，使代码组织更加清晰，便于维护和扩展。每个功能模块都有自己的目录，包含相关的视图、视图模型和辅助组件。
+
+---
+
+## 可复用组件 (Reusable Components)
+
+为了提高代码复用性和保持设计一致性，SoulPets 创建了一系列通用组件，这些组件在多个功能模块中被广泛使用。
+
+### UI 组件 (UI Components)
+
+#### PetAvatarView
+**位置**: `SoulPets/Common/Components/PetAvatarView.swift`  
+**功能**: 统一的宠物头像显示组件
+- 支持自定义头像图片或默认图标
+- 提供选中/未选中状态的视觉反馈
+- 可配置尺寸、颜色和选中状态
+- **使用场景**: 宠物选择器、提醒列表、记录列表等
+
+```swift
+PetAvatarView(
+    pet: pet,
+    isSelected: selectedPet?.id == pet.id,
+    accentColor: accentColor,
+    textColor: textColor,
+    size: 60
+)
+```
+
+#### TagItemView
+**位置**: `SoulPets/Common/Components/TagItemView.swift`  
+**功能**: 统一的标签项显示组件
+- 显示标签图标和名称
+- 支持选中/未选中状态
+- 一致的卡片样式和颜色主题
+- **使用场景**: 添加记录页面、添加提醒页面的标签选择
+
+```swift
+TagItemView(
+    tag: tag,
+    isSelected: selectedTag?.id == tag.id,
+    accentColor: accentColor,
+    textColor: textColor
+)
+```
+
+### 扩展组件 (Extensions)
+
+#### View+Alert
+**位置**: `SoulPets/Common/Extensions/View+Alert.swift`  
+**功能**: 统一的确认对话框样式扩展
+- `customConfirmAlert`: 用于删除等破坏性操作的确认
+- `customChoiceAlert`: 用于用户选择的对话框
+- 确保整个应用的对话框样式一致性，解决按钮文字可见性问题
+
+```swift
+.customConfirmAlert(
+    title: "Delete Reminder",
+    message: "This action cannot be undone.",
+    isPresented: $showingDeleteAlert,
+    confirmTitle: "Delete",
+    confirmAction: { deleteAction() },
+    isDestructive: true
+)
+```
+
+### 设计原则与优势
+
+#### 🎯 一致性保证
+- **统一的配色方案**: 所有组件使用相同的颜色变量 (`accentColor`, `textColor`, `labelColor`)
+- **统一的交互反馈**: 选中状态、按压效果等保持一致
+- **统一的圆角和阴影**: 所有卡片组件使用相同的视觉样式
+
+#### 🔄 高度复用
+- **跨模块使用**: `PetAvatarView` 在 Records、Reminders 模块中都有使用
+- **参数化配置**: 通过参数控制组件的外观和行为，无需重复代码
+- **易于维护**: 样式修改只需在一个地方进行
+
+#### 🚀 开发效率
+- **快速原型**: 新功能开发时可以直接使用现有组件
+- **减少错误**: 避免在多处重复实现相同逻辑导致的不一致
+- **易于测试**: 独立的组件更容易进行单元测试
+
+### 组件使用指南
+
+#### 在新功能中使用组件
+1. **导入组件**: 确保在 SwiftUI 视图中正确导入
+2. **配色一致**: 使用项目定义的标准颜色变量
+3. **参数传递**: 根据具体场景传递合适的参数
+4. **状态管理**: 正确处理组件的选中状态和回调
+
+#### 扩展现有组件
+当需要扩展现有组件功能时：
+1. **向后兼容**: 确保新参数有默认值，不影响现有使用
+2. **文档更新**: 在本文档中更新组件说明
+3. **测试验证**: 确保所有使用该组件的地方都正常工作
+
+---

@@ -66,17 +66,16 @@ struct ContentView: View {
                             Label(LocalizedStringKey("Records"), systemImage: "list.bullet.clipboard")
                         }
                     
+                    // 体重标签
+                    WeightView()
+                        .tabItem {
+                            Label(LocalizedStringKey("Weight"), systemImage: "scalemass")
+                        }
+                    
                     // 提醒标签
                     RemindersView()
                         .tabItem {
                             Label(LocalizedStringKey("Reminders"), systemImage: "bell")
-                        }
-                    
-                    // 体重标签 (未来实现)
-                    Text(LocalizedStringKey("Weight Coming Soon"))
-                        .foregroundColor(textColor)
-                        .tabItem {
-                            Label(LocalizedStringKey("Weight"), systemImage: "scalemass")
                         }
                 }
                 .accentColor(accentColor)
