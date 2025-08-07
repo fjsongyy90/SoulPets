@@ -11,84 +11,76 @@ struct PetsHomeView: View {
     @State private var selectedPet: Pet?
     
     // 背景和强调色
-    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94) // 更浅的背景色
-    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)     // 更深的棕色，增加对比度
-    private let peachColor = Color(red: 0.97, green: 0.63, blue: 0.46)
-    private let mintColor = Color(red: 0.85, green: 0.95, blue: 0.9)
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
+    private let cardBackground = Color.white
     
     var body: some View {
-        ZStack {
-            // 背景色
-            backgroundColor.ignoresSafeArea()
-            
-            VStack(spacing: 10) {
-                // 右上角添加按钮
-                HStack {
-                    Spacer()
-                    
-                    Button(action: {
-                        showingAddPetSheet = true
-                    }) {
-                        HStack {
-                            Text("+ ID file")
+        NavigationStack {
+            ZStack {
+                // 背景色
+                backgroundColor.ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    if !pets.isEmpty {
+                        // 宠物卡片滑动区域
+                        TabView(selection: $selectedPetIndex) {
+                            ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
+                                petCard(pet: pet)
+                                    .tag(index)
+                            }
                         }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(accentColor)
-                        )
+                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                        .frame(height: 480)
+                        .padding(.top, 10)
+                        
+                        // 页面指示器
+                        if pets.count > 1 {
+                            HStack(spacing: 8) {
+                                ForEach(0..<pets.count, id: \.self) { index in
+                                    Circle()
+                                        .fill(selectedPetIndex == index ? accentColor : Color.gray.opacity(0.3))
+                                        .frame(width: 8, height: 8)
+                                        .animation(.easeInOut(duration: 0.2), value: selectedPetIndex)
+                                }
+                            }
+                            .padding(.top, 16)
+                        }
+                        
+                        Spacer()
+                        
+                        // 底部隐私承诺文案
+                        Text("The digital heartbeat of your bond with pets.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .padding(.bottom, 20)
+                        
+                    } else {
+                        // 无宠物时的提示
+                        noPetsView
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 5)
-                
-                if !pets.isEmpty {
-                    // 宠物卡片滑动区域
-                    TabView(selection: $selectedPetIndex) {
-                        ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
-                            petIdentityCard(pet: pet)
-                                .tag(index)
-                        }
+            }
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingAddPetSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .foregroundColor(accentColor)
                     }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-                    .frame(height: 520)
-                    .padding(.top, -10)
-                    
-                    // 页面指示器
-                    HStack(spacing: 8) {
-                        ForEach(0..<pets.count, id: \.self) { index in
-                            Circle()
-                                .fill(selectedPetIndex == index ? accentColor : Color.gray.opacity(0.3))
-                                .frame(width: 8, height: 8)
-                        }
-                    }
-                    .padding(.top, -8)
-                    
-                    // 底部文案
-                    Text("The digital heartbeat of your bond with pets.")
-                        .font(.system(size: 16))
-                        .italic()
-                        .foregroundColor(accentColor)
-                        .padding(.top, 10)
-                        .padding(.bottom, 20)
-                    
-                    Spacer()
-                } else {
-                    // 无宠物时的提示
-                    noPetsView
                 }
             }
             .onChange(of: pets) { _, newPets in
-                // 如果没有选择宠物但有宠物列表，选择第一个
                 if !newPets.isEmpty && selectedPetIndex >= newPets.count {
                     selectedPetIndex = 0
                 }
             }
             .onAppear {
-                // 首次加载时，如果有宠物，选择第一个
                 if !pets.isEmpty && selectedPetIndex >= pets.count {
                     selectedPetIndex = 0
                 }
@@ -104,33 +96,13 @@ struct PetsHomeView: View {
         }
     }
     
-    // 宠物身份卡片 - 参考图中的身份证样式
-    private func petIdentityCard(pet: Pet) -> some View {
+    // 优化的宠物卡片设计
+    private func petCard(pet: Pet) -> some View {
         VStack(spacing: 0) {
-            // 身份证头部
-            HStack {
-                Text("IDENTITY CARD")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Text("\(pet.breed) • \(pet.gender == .female ? "Female" : "Male")")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-            }
-            .padding()
-            .background(
-                Rectangle()
-                    .fill(accentColor)
-                    .cornerRadius(20, corners: [.topLeft, .topRight])
-            )
-            
-            // 身份证内容
-            VStack(spacing: 20) {
-                // 头像和名称
-                HStack(spacing: 30) {
+            // 卡片主体
+            VStack(spacing: 24) {
+                // 头像和基本信息
+                VStack(spacing: 16) {
                     // 宠物头像
                     if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
                         Image(uiImage: uiImage)
@@ -138,260 +110,229 @@ struct PetsHomeView: View {
                             .scaledToFill()
                             .frame(width: 100, height: 100)
                             .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white, lineWidth: 3)
+                            )
+                            .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
                     } else {
-                        Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80)
-                            .foregroundColor(.gray)
-                            .padding()
-                            .background(Circle().fill(Color(.systemGray6)))
-                    }
-                    
-                    // 名称区域
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Name")
-                            .font(.title3)
-                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                        
-                        Text(pet.name)
-                            .font(.system(size: 40))
-                            .fontWeight(.bold)
-                            .foregroundColor(accentColor)
-                    }
-                }
-                .padding(.top, 20)
-                
-                // 年龄
-                HStack {
-                    Text("🍎")
-                        .font(.title2)
-                    
-                    Text("Age")
-                        .font(.headline)
-                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                    
-                    Spacer()
-                    
-                    Text("\(pet.age.years) years\(pet.age.months) months\(pet.age.days) days")
-                        .font(.headline)
-                        .foregroundColor(accentColor)
-                }
-                .padding(.horizontal)
-                
-                // 生日
-                HStack {
-                    Text("🥜")
-                        .font(.title2)
-                    
-                    Text("Birthday")
-                        .font(.headline)
-                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                    
-                    Spacer()
-                    
-                    let birthdayString = formatDate(pet.birthday)
-                    let zodiacSign = getZodiacSign(pet.birthday)
-                    let daysUntilBirthday = pet.daysToNextBirthday
-                    
-                    Text("\(birthdayString) • \(zodiacSign) • Countdown \(daysUntilBirthday) days")
-                        .font(.headline)
-                        .foregroundColor(accentColor)
-                }
-                .padding(.horizontal)
-                
-                // 相识天数
-                HStack {
-                    Text("🤎")
-                        .font(.title2)
-                    
-                    Text("We already know each other")
-                        .font(.headline)
-                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                    
-                    Spacer()
-                    
-                    if let days = pet.daysWithOwner {
-                        Text("\(days) days")
-                            .font(.headline)
-                            .foregroundColor(accentColor)
-                    } else {
-                        Text("--")
-                            .font(.headline)
-                            .foregroundColor(accentColor)
-                    }
-                }
-                .padding(.horizontal)
-
-                // 芯片ID
-                HStack {
-                    Text("💉")
-                        .font(.title2)
-                    
-                    Text("Microchip ID")
-                        .font(.headline)
-                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                    
-                    Spacer()
-                    
-                    Text(pet.microchipID.isEmpty ? "Secret" : pet.microchipID)
-                        .font(.headline)
-                        .foregroundColor(accentColor)
-                }
-                .padding(.horizontal)
-                .padding(.bottom)
-                
-                Divider()
-                    .padding(.horizontal)
-                
-                // 最新信息
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Latest net worth")
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                        
-                        Text("Secret")
-                            .font(.headline)
-                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Latest weight")
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4)) // 更深的灰色
-                        
-                        if let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first {
-                            Text("\(String(format: "%.1f", latestWeight.weightInKg)) kg")
-                                .font(.headline)
-                                .foregroundColor(accentColor)
-                        } else {
-                            Text("8 kg")
-                                .font(.headline)
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [accentColor.opacity(0.2), accentColor.opacity(0.1)]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 100, height: 100)
+                            
+                            Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
+                                .font(.system(size: 40))
                                 .foregroundColor(accentColor)
                         }
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 3)
+                        )
+                        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
                     }
                     
-                    Spacer()
-                    
-                    Button(action: {
-                        selectedPet = pet
-                        showingEditPetSheet = true
-                    }) {
-                        Text("Enter ID file→")
-                            .font(.caption)
-                            .foregroundColor(accentColor)
+                    // 宠物名字和基本信息
+                    VStack(spacing: 8) {
+                        Text(pet.name)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(textColor)
+                        
+                        HStack(spacing: 4) {
+                            Text(pet.breed)
+                                .font(.subheadline)
+                                .foregroundColor(labelColor)
+                            
+                            Text("•")
+                                .font(.caption)
+                                .foregroundColor(labelColor)
+                            
+                            Text(pet.gender.rawValue)
+                                .font(.subheadline)
+                                .foregroundColor(labelColor)
+                        }
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom)
+                .padding(.top, 24)
+                
+                // 信息卡片区域
+                VStack(spacing: 12) {
+                    // 年龄信息
+                    infoRow(
+                        icon: "birthday.cake.fill",
+                        title: String(localized: "Age"),
+                        value: "\(pet.age.years)y \(pet.age.months)m \(pet.age.days)d"
+                    )
+                    
+                    // 生日信息
+                    infoRow(
+                        icon: "calendar.badge.clock",
+                        title: String(localized: "Next Birthday"),
+                        value: "In \(pet.daysToNextBirthday) days"
+                    )
+                    
+                    // 相伴天数
+                    if let days = pet.daysWithOwner {
+                        infoRow(
+                            icon: "heart.fill",
+                            title: String(localized: "Together for"),
+                            value: "\(days) days"
+                        )
+                    }
+                    
+                    // 最新体重
+                    infoRow(
+                        icon: "scalemass.fill",
+                        title: String(localized: "Latest Weight"),
+                        value: latestWeightText(for: pet)
+                    )
+                }
+                .padding(.horizontal, 20)
+                
+                // 查看详情按钮
+                Button(action: {
+                    selectedPet = pet
+                    showingEditPetSheet = true
+                }) {
+                    HStack(spacing: 8) {
+                        Text(String(localized: "View Profile"))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [accentColor, accentColor.opacity(0.8)]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+                    .shadow(color: accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
             }
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white)
+                    .fill(cardBackground)
+                    .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 8)
             )
         }
-        .padding(.horizontal)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .onTapGesture {
-            selectedPet = pet
-            showingEditPetSheet = true
+        .padding(.horizontal, 16)
+    }
+    
+    // 信息行组件
+    private func infoRow(icon: String, title: String, value: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(accentColor)
+                .frame(width: 20)
+            
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(labelColor)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text(value)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(textColor)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(backgroundColor)
+        )
+    }
+    
+    // 获取最新体重文本
+    private func latestWeightText(for pet: Pet) -> String {
+        if let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first {
+            let unit = pet.weightUnitPreference == .kg ? "kg" : "lbs"
+            let weight = pet.weightUnitPreference == .kg ? 
+                latestWeight.weightInKg : 
+                latestWeight.weightInKg * 2.20462
+            return String(format: "%.1f %@", weight, unit)
+        } else {
+            return "--"
         }
     }
     
     // 无宠物时的视图
     private var noPetsView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 30) {
             Spacer()
             
+            // 插画图标
             ZStack {
                 Circle()
-                    .fill(Color(.systemGray5))
-                    .frame(width: 120, height: 120)
+                    .fill(accentColor.opacity(0.1))
+                    .frame(width: 140, height: 140)
                 
-                Image(systemName: "pawprint.circle")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 60)
-                    .foregroundColor(Color(.systemGray2))
+                Image(systemName: "pawprint.2.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(accentColor)
             }
             
-            Text(LocalizedStringKey("Add Pet"))
-                .font(.title2)
-                .fontWeight(.bold)
+            VStack(spacing: 12) {
+                Text(String(localized: "Welcome to SoulPets"))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(textColor)
+                
+                Text(String(localized: "Start by adding your first pet to create their digital profile"))
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(labelColor)
+                    .padding(.horizontal, 40)
+            }
             
             Button(action: {
                 showingAddPetSheet = true
             }) {
-                Text(LocalizedStringKey("Add Your First Pet"))
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(peachColor)
-                    )
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Text(String(localized: "Add Your First Pet"))
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .padding(.vertical, 16)
+                .padding(.horizontal, 32)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(accentColor)
+                )
             }
-            .padding(.horizontal, 40)
             
             Spacer()
             
-            // 底部文案
+            // 底部隐私承诺文案
             Text("The digital heartbeat of your bond with pets.")
-                .font(.system(size: 16))
-                .italic()
-                .foregroundColor(accentColor)
-                .padding(.top, 10)
+                .font(.caption)
+                .foregroundColor(.gray)
                 .padding(.bottom, 20)
         }
         .padding()
-    }
-    
-    // 格式化日期
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd,MMM"
-        return formatter.string(from: date)
-    }
-    
-    // 获取星座
-    private func getZodiacSign(_ date: Date) -> String {
-        // 简化版，实际应用中需要更精确的计算
-        let calendar = Calendar.current
-        let month = calendar.component(.month, from: date)
-        let day = calendar.component(.day, from: date)
-        
-        switch (month, day) {
-        case (1, 1...19): return "Capricorn"
-        case (1, 20...31): return "Aquarius"
-        case (2, 1...18): return "Aquarius"
-        case (2, 19...29): return "Pisces"
-        case (3, 1...20): return "Pisces"
-        case (3, 21...31): return "Aries"
-        case (4, 1...19): return "Aries"
-        case (4, 20...30): return "Taurus"
-        case (5, 1...20): return "Taurus"
-        case (5, 21...31): return "Gemini"
-        case (6, 1...21): return "Gemini"
-        case (6, 22...30): return "Cancer"
-        case (7, 1...22): return "Cancer"
-        case (7, 23...31): return "Leo"
-        case (8, 1...22): return "Leo"
-        case (8, 23...31): return "Virgo"
-        case (9, 1...22): return "Virgo"
-        case (9, 23...30): return "Libra"
-        case (10, 1...23): return "Libra"
-        case (10, 24...31): return "Scorpio"
-        case (11, 1...22): return "Scorpio"
-        case (11, 23...30): return "Sagittarius"
-        case (12, 1...21): return "Sagittarius"
-        case (12, 22...31): return "Capricorn"
-        default: return "Unknown"
-        }
     }
 }
 

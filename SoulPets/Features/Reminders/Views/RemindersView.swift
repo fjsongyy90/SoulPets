@@ -159,7 +159,7 @@ struct RemindersView: View {
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(currentPet.petType == .dog ? "dog" : "cat")
+                            Image(systemName: currentPet.petType == .dog ? "dog.fill" : "cat.fill")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
@@ -290,7 +290,7 @@ struct RemindersView: View {
                                             .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
-                                Image(pet.petType == .dog ? "dog" : "cat")
+                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 24, height: 24)
@@ -691,7 +691,7 @@ struct ReminderCardView: View {
                                     .frame(width: 30, height: 30)
                                     .clipShape(Circle())
                             } else {
-                                Image(pet.petType == .dog ? "dog" : "cat")
+                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 20, height: 20)

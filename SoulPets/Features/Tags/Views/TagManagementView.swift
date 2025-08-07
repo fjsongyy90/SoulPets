@@ -105,7 +105,7 @@ struct TagManagementView: View {
             viewModel.selectPetType(petType)
         }) {
             HStack {
-                Image(systemName: petType == .cat ? "cat" : "dog")
+                Image(systemName: petType == .cat ? "cat.fill" : "dog.fill")
                     .font(.title2)
                 Text(petType.rawValue)
                     .font(.body)

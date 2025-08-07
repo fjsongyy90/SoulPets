@@ -48,10 +48,9 @@ struct PetBasicInfoView: View {
                                     .frame(width: 100, height: 100)
                                     .clipShape(Circle())
                             } else {
-                                Image(viewModel.petType == .dog ? "dog" : "cat")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 70)
+                                Image(systemName: viewModel.petType == .dog ? "dog.fill" : "cat.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(accentColor)
                             }
                             
                             // 加号按钮
@@ -190,7 +189,15 @@ struct PetBasicInfoView: View {
                         }
                         .padding(.horizontal)
                         
-                        Spacer(minLength: 100) // 增加底部空间，防止键盘遮挡
+                        Spacer(minLength: 60) // 减少底部空间
+                        
+                        // 隐私承诺文案
+                        Text("Your pet's data never leaves your device.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                            .padding(.bottom, 40) // 增加底部间距，避免太靠近边缘
                     }
                     .padding(.bottom, keyboardHeight > 0 ? keyboardHeight : 0)
                 }

@@ -22,98 +22,38 @@ struct EditPetView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                // 基本信息
-                Section(header: Text(LocalizedStringKey("Basic Information"))) {
-                    // 头像选择器
-                    HStack {
-                        Spacer()
-                        CircleImagePicker(image: $viewModel.avatar, size: 120)
-                        Spacer()
-                    }
-                    .listRowInsets(EdgeInsets())
-                    .padding(.vertical)
-                    
-                    // 名字
-                    TextField(LocalizedStringKey("Name"), text: $viewModel.name)
-                        .onChange(of: viewModel.name) { _, _ in
-                            viewModel.validateForm()
-                        }
-                    
-                    if let error = viewModel.nameError {
-                        Text(LocalizedStringKey(error))
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
-                    
-                    // 宠物类型
-                    Picker(LocalizedStringKey("Pet Type"), selection: $viewModel.petType) {
-                        ForEach(PetType.allCases, id: \.self) { type in
-                            Text(LocalizedStringKey(type.rawValue)).tag(type)
-                        }
-                    }
-                    
-                    // 品种/花色
-                    TextField(LocalizedStringKey("Breed / Color"), text: $viewModel.breed)
-                    
-                    // 性别
-                    Picker(LocalizedStringKey("Gender"), selection: $viewModel.gender) {
-                        ForEach(Gender.allCases, id: \.self) { gender in
-                            Text(LocalizedStringKey(gender.rawValue)).tag(gender)
-                        }
-                    }
-                    
-                    // 绝育状态
-                    Toggle(LocalizedStringKey("Neutered / Spayed"), isOn: $viewModel.isNeutered)
-                }
+            ZStack {
+                // 背景色
+                Color(red: 0.98, green: 0.97, blue: 0.94).ignoresSafeArea()
                 
-                // 重要日期
-                Section(header: Text(LocalizedStringKey("Important Dates"))) {
-                    // 生日
-                    DatePicker(
-                        LocalizedStringKey("Birthday"),
-                        selection: $viewModel.birthday,
-                        displayedComponents: .date
-                    )
-                    
-                    // 领养日
-                    DatePicker(
-                        LocalizedStringKey("Adoption / Gotcha Day"),
-                        selection: $viewModel.adoptionDay,
-                        displayedComponents: .date
-                    )
-                }
-                
-                // 健康信息
-                Section(header: Text(LocalizedStringKey("Health Information"))) {
-                    // 体重单位
-                    Picker(LocalizedStringKey("Weight Unit"), selection: $viewModel.weightUnitPreference) {
-                        ForEach(WeightUnit.allCases, id: \.self) { unit in
-                            Text(LocalizedStringKey(unit.rawValue)).tag(unit)
-                        }
+                ScrollView {
+                    VStack(spacing: 24) {
+                        avatarSection
+                        basicInfoCard
+                        importantDatesCard  
+                        healthInfoCard
+                        privacyText
                     }
-                    
-                    // 芯片ID
-                    TextField(LocalizedStringKey("Microchip ID (Optional)"), text: $viewModel.microchipID)
-                    
-                    // 保险单号
-                    TextField(LocalizedStringKey("Insurance Policy No. (Optional)"), text: $viewModel.insurancePolicyNo)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
                 }
             }
-            .navigationTitle(LocalizedStringKey("Edit Pet"))
+            .navigationTitle(String(localized: "Edit Pet"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("Cancel")) {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
+                    .foregroundColor(Color(red: 0.60, green: 0.35, blue: 0.15))
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(LocalizedStringKey("Save")) {
+                    Button(String(localized: "Save")) {
                         saveChanges()
                     }
                     .disabled(!viewModel.formIsValid)
+                    .foregroundColor(viewModel.formIsValid ? Color(red: 0.60, green: 0.35, blue: 0.15) : .gray)
                 }
             }
             .onAppear {
@@ -123,6 +63,234 @@ struct EditPetView: View {
                 viewModel.loadPet(pet)
             }
         }
+    }
+    
+    // MARK: - 子视图组件
+    
+    private var avatarSection: some View {
+        VStack(spacing: 16) {
+            Text(String(localized: "Pet Avatar"))
+                .font(.headline)
+                .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.3))
+            
+            CircleImagePicker(image: $viewModel.avatar, size: 120)
+        }
+        .padding(.vertical, 20)
+    }
+    
+    private var basicInfoCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(String(localized: "Basic Information"))
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+            
+            nameField
+            petTypeField
+            breedField
+            genderField
+            neuteredField
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+    }
+    
+    private var nameField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Name"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            TextField(String(localized: "Name"), text: $viewModel.name)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .onChange(of: viewModel.name) { _, _ in
+                    viewModel.validateForm()
+                }
+            
+            if let error = viewModel.nameError {
+                Text(LocalizedStringKey(error))
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
+        }
+    }
+    
+    private var petTypeField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Pet Type"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            Picker(String(localized: "Pet Type"), selection: $viewModel.petType) {
+                ForEach(PetType.allCases, id: \.self) { type in
+                    Text(LocalizedStringKey(type.rawValue)).tag(type)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+        }
+    }
+    
+    private var breedField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Breed / Color"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            TextField(String(localized: "Breed / Color"), text: $viewModel.breed)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
+    }
+    
+    private var genderField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Gender"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            Picker(String(localized: "Gender"), selection: $viewModel.gender) {
+                ForEach(Gender.allCases, id: \.self) { gender in
+                    Text(LocalizedStringKey(gender.rawValue)).tag(gender)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+        }
+    }
+    
+    private var neuteredField: some View {
+        HStack {
+            Text(String(localized: "Neutered / Spayed"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            Spacer()
+            
+            Toggle("", isOn: $viewModel.isNeutered)
+                .labelsHidden()
+                .tint(Color(red: 0.60, green: 0.35, blue: 0.15))
+        }
+    }
+    
+    private var importantDatesCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(String(localized: "Important Dates"))
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+            
+            birthdayField
+            adoptionDayField
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+    }
+    
+    private var birthdayField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Birthday"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            DatePicker(
+                String(localized: "Birthday"),
+                selection: $viewModel.birthday,
+                displayedComponents: .date
+            )
+            .datePickerStyle(CompactDatePickerStyle())
+            .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+        }
+    }
+    
+    private var adoptionDayField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Adoption / Gotcha Day"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            DatePicker(
+                String(localized: "Adoption / Gotcha Day"),
+                selection: $viewModel.adoptionDay,
+                displayedComponents: .date
+            )
+            .datePickerStyle(CompactDatePickerStyle())
+            .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+        }
+    }
+    
+    private var healthInfoCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(String(localized: "Health Information"))
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+            
+            weightUnitField
+            microchipField
+            insuranceField
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+    }
+    
+    private var weightUnitField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Weight Unit"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            Picker(String(localized: "Weight Unit"), selection: $viewModel.weightUnitPreference) {
+                ForEach(WeightUnit.allCases, id: \.self) { unit in
+                    Text(LocalizedStringKey(unit.rawValue)).tag(unit)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+        }
+    }
+    
+    private var microchipField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Microchip ID (Optional)"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            TextField(String(localized: "Microchip ID (Optional)"), text: $viewModel.microchipID)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
+    }
+    
+    private var insuranceField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Insurance Policy No. (Optional)"))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            TextField(String(localized: "Insurance Policy No. (Optional)"), text: $viewModel.insurancePolicyNo)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
+    }
+    
+    private var privacyText: some View {
+        Text("Your pet's data never leaves your device.")
+            .font(.caption)
+            .foregroundColor(.gray)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+            .padding(.bottom, 20)
     }
     
     // 保存更改

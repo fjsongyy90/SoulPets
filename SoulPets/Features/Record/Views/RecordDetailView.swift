@@ -201,7 +201,7 @@ struct RecordDetailView: View {
                                 .frame(width: 50, height: 50)
                                 .clipShape(Circle())
                         } else {
-                            Image(pet.petType == .dog ? "dog" : "cat")
+                            Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 30, height: 30)

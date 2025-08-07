@@ -155,20 +155,11 @@ struct PetImportantDatesView: View {
             // 监听键盘通知
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
                 if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                    keyboardHeight = keyboardFrame.height - 40 // 减去工具栏高度
+                    keyboardHeight = keyboardFrame.height
                 }
             }
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
                 keyboardHeight = 0
-            }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("完成") {
-                    isWeightFocused = false
-                }
-                .foregroundColor(accentColor)
             }
         }
     }
