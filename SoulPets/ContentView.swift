@@ -57,7 +57,7 @@ struct ContentView: View {
                     // 主页标签
                     PetsHomeView()
                         .tabItem {
-                            Label(LocalizedStringKey("Home"), systemImage: "house")
+                            Label(LocalizedStringKey("Home"), systemImage: "pawprint.fill")
                         }
                     // 提醒标签
                     RemindersView()

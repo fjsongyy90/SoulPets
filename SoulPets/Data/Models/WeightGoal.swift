@@ -120,7 +120,7 @@ extension WeightGoal {
         
         let formattedWeight = formatter.string(from: NSNumber(value: targetWeight)) ?? "\(targetWeight)"
         
-        let type = isWeightLoss ? "减至" : "增至"
+        let type = isWeightLoss ? String(localized: "Lose to") : String(localized: "Gain to")
         return "\(type) \(formattedWeight) \(unit.rawValue)"
     }
     

@@ -147,16 +147,35 @@ class WeightService {
     
     /// 获取宠物的活跃体重目标
     static func getActiveWeightGoal(for pet: Pet, modelContext: ModelContext) -> WeightGoal? {
+        logger.info("🔍 开始查找宠物 \(pet.name) 的活跃体重目标")
+        
         // 获取所有体重目标
         let descriptor = FetchDescriptor<WeightGoal>()
         
         do {
             let allGoals = try modelContext.fetch(descriptor)
+            logger.info("📊 数据库中总共有 \(allGoals.count) 个体重目标")
+            
+            // 打印所有目标的详细信息
+            for (index, goal) in allGoals.enumerated() {
+                logger.info("目标 \(index + 1): 宠物ID=\(goal.pet.id), 宠物名=\(goal.pet.name), 目标体重=\(goal.targetWeight), 单位=\(goal.unit.rawValue), 是否活跃=\(goal.isActive), 目标日期=\(goal.targetDate)")
+            }
             
             // 在内存中过滤特定宠物的活跃目标
-            return allGoals.first { goal in
-                goal.pet.id == pet.id && goal.isActive == true
+            let activeGoal = allGoals.first { goal in
+                let isPetMatch = goal.pet.id == pet.id
+                let isActive = goal.isActive == true
+                logger.debug("检查目标: 宠物匹配=\(isPetMatch), 活跃状态=\(isActive)")
+                return isPetMatch && isActive
             }
+            
+            if let goal = activeGoal {
+                logger.info("✅ 找到活跃体重目标: 目标体重=\(goal.targetWeight) \(goal.unit.rawValue), 目标日期=\(goal.targetDate)")
+            } else {
+                logger.info("❌ 未找到宠物 \(pet.name) 的活跃体重目标")
+            }
+            
+            return activeGoal
         } catch {
             logger.error("获取体重目标时出错: \(error.localizedDescription)")
             return nil
@@ -165,6 +184,9 @@ class WeightService {
     
     /// 创建新的体重目标
     static func createWeightGoal(pet: Pet, targetWeight: Double, unit: WeightUnit, targetDate: Date, modelContext: ModelContext) {
+        logger.info("🎯 开始为宠物 \(pet.name) 创建体重目标")
+        logger.info("📝 目标详情: 体重=\(targetWeight) \(unit.rawValue), 目标日期=\(targetDate)")
+        
         // 先将之前的活跃目标设为非活跃
         deactivateCurrentWeightGoals(pet: pet, modelContext: modelContext)
         
@@ -177,18 +199,29 @@ class WeightService {
             pet: pet
         )
         
+        logger.info("💾 插入新的体重目标到数据库")
         modelContext.insert(newGoal)
         
         do {
             try modelContext.save()
-            logger.info("成功为\(pet.name)创建体重目标: \(targetWeight) \(unit.rawValue)")
+            logger.info("✅ 成功为\(pet.name)创建体重目标: \(targetWeight) \(unit.rawValue)")
+            
+            // 验证保存结果
+            let verifyGoal = getActiveWeightGoal(for: pet, modelContext: modelContext)
+            if verifyGoal != nil {
+                logger.info("✅ 验证成功: 新目标已正确保存并可查询")
+            } else {
+                logger.error("❌ 验证失败: 新目标保存后无法查询到")
+            }
         } catch {
-            logger.error("创建体重目标时出错: \(error.localizedDescription)")
+            logger.error("❌ 创建体重目标时出错: \(error.localizedDescription)")
         }
     }
     
     /// 将宠物当前的所有体重目标设为非活跃
     private static func deactivateCurrentWeightGoals(pet: Pet, modelContext: ModelContext) {
+        logger.info("🔄 开始将宠物 \(pet.name) 的现有活跃目标设为非活跃")
+        
         // 获取所有体重目标
         let descriptor = FetchDescriptor<WeightGoal>()
         
@@ -200,15 +233,18 @@ class WeightService {
                 goal.pet.id == pet.id && goal.isActive == true
             }
         
+            logger.info("📊 找到 \(activeGoals.count) 个需要设为非活跃的目标")
+            
             for goal in activeGoals {
+                logger.info("🔄 将目标设为非活跃: 目标体重=\(goal.targetWeight) \(goal.unit.rawValue)")
                 goal.isActive = false
                 goal.updatedAt = Date()
             }
             
             try modelContext.save()
-            logger.info("已将\(pet.name)的\(activeGoals.count)个活跃体重目标设为非活跃")
+            logger.info("✅ 已将\(pet.name)的\(activeGoals.count)个活跃体重目标设为非活跃")
         } catch {
-            logger.error("更新体重目标状态时出错: \(error.localizedDescription)")
+            logger.error("❌ 更新体重目标状态时出错: \(error.localizedDescription)")
         }
     }
     

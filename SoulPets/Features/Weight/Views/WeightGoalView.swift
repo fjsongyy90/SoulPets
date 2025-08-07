@@ -1,10 +1,13 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 /// 体重目标设置视图
 struct WeightGoalView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    
+    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "WeightGoalView")
     
     let pet: Pet?
     
@@ -322,44 +325,64 @@ struct WeightGoalView: View {
     
     /// 设置初始值
     private func setupInitialValues() {
-        guard let pet = pet else { return }
+        logger.info("🔧 设置体重目标页面初始值")
+        guard let pet = pet else { 
+            logger.error("❌ 宠物为空，无法设置初始值")
+            return 
+        }
+        
+        logger.info("🐾 为宠物 \(pet.name) 设置初始值")
         
         // 设置单位偏好
         selectedUnit = pet.weightUnitPreference
+        logger.info("📏 设置单位偏好: \(selectedUnit.rawValue)")
         
         // 查找现有的活跃目标
         existingGoal = WeightService.getActiveWeightGoal(for: pet, modelContext: modelContext)
         
         if let goal = existingGoal {
             // 编辑模式：使用现有目标数据
+            logger.info("✏️ 编辑模式: 找到现有目标")
             targetWeight = String(format: "%.1f", goal.targetWeight)
             selectedUnit = goal.unit
             targetDate = goal.targetDate
+            logger.info("📝 加载现有目标数据: 体重=\(targetWeight), 单位=\(selectedUnit.rawValue), 日期=\(targetDate)")
         } else {
             // 新建模式：使用默认值
+            logger.info("➕ 新建模式: 使用默认值")
             targetWeight = ""
             targetDate = Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
+            logger.info("📝 设置默认值: 空体重, 日期=\(targetDate)")
         }
     }
     
     /// 保存目标
     private func saveGoal() {
+        logger.info("💾 开始保存体重目标")
+        
         guard let pet = pet else {
+            logger.error("❌ 宠物信息缺失")
             showError(String(localized: "Pet information is missing"))
             return
         }
         
+        logger.info("🐾 为宠物 \(pet.name) 保存目标")
+        
         guard let targetWeightDouble = Double(targetWeight),
               targetWeightDouble > 0,
               targetWeightDouble < 1000 else {
+            logger.error("❌ 无效的目标体重: \(targetWeight)")
             showError(String(localized: "Please enter a valid target weight"))
             return
         }
         
         guard targetDate > Date() else {
+            logger.error("❌ 无效的目标日期: \(targetDate)")
             showError(String(localized: "Target date must be in the future"))
             return
         }
+        
+        logger.info("✅ 验证通过，准备保存: 体重=\(targetWeightDouble) \(selectedUnit.rawValue), 日期=\(targetDate)")
         
         // 创建新目标（会自动取消现有目标）
         WeightService.createWeightGoal(
@@ -373,11 +396,14 @@ struct WeightGoalView: View {
         // 确保数据保存
         do {
             try modelContext.save()
+            logger.info("✅ 模型上下文保存成功")
         } catch {
+            logger.error("❌ 模型上下文保存失败: \(error.localizedDescription)")
             showError(String(localized: "Failed to save goal: ") + error.localizedDescription)
             return
         }
         
+        logger.info("🎉 体重目标保存完成，即将关闭页面")
         dismiss()
     }
     

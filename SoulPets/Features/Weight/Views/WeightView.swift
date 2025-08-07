@@ -1,12 +1,15 @@
 import SwiftUI
 import SwiftData
 import Charts
+import OSLog
 
 /// 体重追踪主页面
 struct WeightView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = WeightViewModel()
     @Query private var allPets: [Pet]
+    
+    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "WeightView")
     
     @State private var showingAddWeight = false
     @State private var showingWeightGoal = false
@@ -67,6 +70,7 @@ struct WeightView: View {
             .sheet(isPresented: $showingWeightGoal) {
                 WeightGoalView(pet: viewModel.selectedPet)
                     .onDisappear {
+                        logger.info("🔄 体重目标页面关闭，刷新数据")
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
@@ -227,9 +231,16 @@ struct WeightView: View {
     /// 体重图表视图
     private var weightChartView: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(String(localized: "Weight Trend"))
-                .font(.headline)
-                .foregroundColor(textColor)
+            HStack {
+                Text(String(localized: "Weight Trend"))
+                    .font(.headline)
+                    .foregroundColor(textColor)
+                
+                Spacer()
+            }
+            
+            // 时间范围选择器
+            timeRangeSelector
             
             if viewModel.chartData.isEmpty {
                 Text(String(localized: "Not enough data for chart"))
@@ -267,6 +278,30 @@ struct WeightView: View {
                 .cornerRadius(12)
                 .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
             }
+        }
+    }
+    
+    /// 时间范围选择器
+    private var timeRangeSelector: some View {
+        HStack(spacing: 8) {
+            ForEach(WeightChartTimeRange.allCases, id: \.self) { range in
+                Button {
+                    viewModel.selectedTimeRange = range
+                } label: {
+                    Text(range.localizedString)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(viewModel.selectedTimeRange == range ? .white : textColor)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(viewModel.selectedTimeRange == range ? accentColor : Color.gray.opacity(0.1))
+                        )
+                }
+            }
+            
+            Spacer()
         }
     }
     
@@ -347,6 +382,7 @@ struct WeightView: View {
                 Spacer()
                 
                 Button {
+                    logger.info("🎯 点击体重目标按钮")
                     showingWeightGoal = true
                 } label: {
                     Text(viewModel.activeWeightGoal == nil ? 
@@ -378,15 +414,24 @@ struct WeightView: View {
                     ProgressView(value: viewModel.getGoalProgress(), total: 100)
                         .tint(accentColor)
                 }
+                .onAppear {
+                    logger.debug("🎯 显示活跃体重目标: \(goal.targetWeight) \(goal.unit.rawValue)")
+                }
             } else {
                 Text(String(localized: "Set a weight goal to track progress"))
                     .foregroundColor(labelColor)
+                    .onAppear {
+                        logger.debug("❌ 无活跃体重目标，显示设置提示")
+                    }
             }
         }
         .padding()
         .background(cardColor)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .onAppear {
+            logger.info("🎯 体重目标卡片显示，当前目标状态: \(viewModel.activeWeightGoal == nil ? "无目标" : "有目标")")
+        }
     }
     
     /// 体重历史记录列表

@@ -21,6 +21,7 @@ struct SoulPetsApp: App {
             RecordPhoto.self,
             Tag.self,
             Weight.self,
+            WeightGoal.self,
             Reminder.self,
             ReminderCompletion.self
         ])

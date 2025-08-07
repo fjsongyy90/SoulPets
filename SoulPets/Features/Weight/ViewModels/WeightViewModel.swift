@@ -2,6 +2,32 @@ import Foundation
 import SwiftData
 import OSLog
 
+/// 体重图表时间范围枚举
+enum WeightChartTimeRange: String, CaseIterable {
+    case threeMonths = "3 Months"
+    case sixMonths = "6 Months"
+    case oneYear = "1 Year"
+    case all = "All"
+    
+    var days: Int? {
+        switch self {
+        case .threeMonths: return 90
+        case .sixMonths: return 180
+        case .oneYear: return 365
+        case .all: return nil
+        }
+    }
+    
+    var localizedString: String {
+        switch self {
+        case .threeMonths: return String(localized: "3 Months")
+        case .sixMonths: return String(localized: "6 Months")
+        case .oneYear: return String(localized: "1 Year")
+        case .all: return String(localized: "All")
+        }
+    }
+}
+
 /// 体重管理视图模型
 @MainActor
 class WeightViewModel: ObservableObject {
@@ -13,6 +39,7 @@ class WeightViewModel: ObservableObject {
     @Published var activeWeightGoal: WeightGoal?
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var selectedTimeRange: WeightChartTimeRange = .sixMonths
     
     // MARK: - 计算属性
     
@@ -54,11 +81,26 @@ class WeightViewModel: ObservableObject {
         return "--"
     }
     
-    /// 图表数据（显示所有记录，按时间升序）
+    /// 图表数据（根据选择的时间范围显示）
     var chartData: [Weight] {
+        let filteredEntries: [Weight]
+        
+        if let days = self.selectedTimeRange.days {
+            // 根据时间范围过滤
+            let calendar = Calendar.current
+            if let startDate = calendar.date(byAdding: .day, value: -days, to: Date()) {
+                filteredEntries = self.weightEntries.filter { $0.date >= startDate }
+            } else {
+                filteredEntries = self.weightEntries
+            }
+        } else {
+            // 显示全部数据
+            filteredEntries = self.weightEntries
+        }
+        
         // 按日期升序排列，用于图表显示
-        let sortedEntries = self.weightEntries.sorted { $0.date < $1.date }
-        logger.debug("图表数据：总共\(self.weightEntries.count)条记录，排序后\(sortedEntries.count)条")
+        let sortedEntries = filteredEntries.sorted { $0.date < $1.date }
+        logger.debug("图表数据：时间范围\(self.selectedTimeRange.rawValue)，总共\(self.weightEntries.count)条记录，筛选后\(filteredEntries.count)条，排序后\(sortedEntries.count)条")
         return sortedEntries
     }
     
@@ -69,7 +111,7 @@ class WeightViewModel: ObservableObject {
     
     /// 加载指定宠物的体重数据
     func loadWeightData(for pet: Pet, modelContext: ModelContext) {
-        logger.info("开始加载宠物体重数据: \(pet.name)")
+        logger.info("🐾 开始加载宠物体重数据: \(pet.name)")
         isLoading = true
         errorMessage = nil
         
@@ -86,11 +128,12 @@ class WeightViewModel: ObservableObject {
                 self.activeWeightGoal = goal
                 self.isLoading = false
                 
-                logger.info("成功加载体重数据: \(weights.count)条记录")
+                logger.info("✅ 成功加载体重数据: \(weights.count)条记录")
                 if let goal = goal {
-                    logger.info("找到活跃体重目标: 目标\(goal.targetWeight)kg，到期日期\(goal.targetDate)")
+                    logger.info("🎯 找到活跃体重目标: 目标\(goal.targetWeight)\(goal.unit.rawValue)，到期日期\(goal.targetDate)")
+                    logger.info("📊 目标进度: \(String(format: "%.1f", goal.calculateProgress() ?? 0.0))%")
                 } else {
-                    logger.info("未找到活跃体重目标")
+                    logger.info("❌ 未找到活跃体重目标")
                 }
             }
         }
@@ -98,7 +141,11 @@ class WeightViewModel: ObservableObject {
     
     /// 刷新当前宠物的体重数据
     func refreshData(modelContext: ModelContext) {
-        guard let pet = selectedPet else { return }
+        logger.info("🔄 刷新体重数据")
+        guard let pet = selectedPet else { 
+            logger.warning("⚠️ 刷新数据时宠物为空")
+            return 
+        }
         loadWeightData(for: pet, modelContext: modelContext)
     }
     
