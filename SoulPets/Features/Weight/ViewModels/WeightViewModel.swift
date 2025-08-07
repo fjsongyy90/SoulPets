@@ -54,10 +54,12 @@ class WeightViewModel: ObservableObject {
         return "--"
     }
     
-    /// 图表数据（最近6个月）
+    /// 图表数据（显示所有记录，按时间升序）
     var chartData: [Weight] {
-        let sixMonthsAgo = Calendar.current.date(byAdding: .month, value: -6, to: Date()) ?? Date()
-        return weightEntries.filter { $0.date >= sixMonthsAgo }.reversed()
+        // 按日期升序排列，用于图表显示
+        let sortedEntries = self.weightEntries.sorted { $0.date < $1.date }
+        logger.debug("图表数据：总共\(self.weightEntries.count)条记录，排序后\(sortedEntries.count)条")
+        return sortedEntries
     }
     
     // MARK: - 初始化
@@ -72,26 +74,23 @@ class WeightViewModel: ObservableObject {
         errorMessage = nil
         
         Task {
-            do {
-                // 加载体重记录
-                let weights = WeightService.getWeightEntries(for: pet, modelContext: modelContext)
+            // 加载体重记录
+            let weights = WeightService.getWeightEntries(for: pet, modelContext: modelContext)
+            
+            // 加载活跃的体重目标
+            let goal = WeightService.getActiveWeightGoal(for: pet, modelContext: modelContext)
+            
+            await MainActor.run {
+                self.selectedPet = pet
+                self.weightEntries = weights
+                self.activeWeightGoal = goal
+                self.isLoading = false
                 
-                // 加载活跃的体重目标
-                let goal = WeightService.getActiveWeightGoal(for: pet, modelContext: modelContext)
-                
-                await MainActor.run {
-                    self.selectedPet = pet
-                    self.weightEntries = weights
-                    self.activeWeightGoal = goal
-                    self.isLoading = false
-                    
-                    logger.info("成功加载体重数据: \(weights.count)条记录")
-                }
-            } catch {
-                await MainActor.run {
-                    self.isLoading = false
-                    self.errorMessage = error.localizedDescription
-                    logger.error("加载体重数据失败: \(error.localizedDescription)")
+                logger.info("成功加载体重数据: \(weights.count)条记录")
+                if let goal = goal {
+                    logger.info("找到活跃体重目标: 目标\(goal.targetWeight)kg，到期日期\(goal.targetDate)")
+                } else {
+                    logger.info("未找到活跃体重目标")
                 }
             }
         }
@@ -198,7 +197,7 @@ class WeightViewModel: ObservableObject {
     
     /// 格式化体重目标进度文本
     func formattedGoalProgress() -> String {
-        guard let goal = activeWeightGoal else { return "无目标" }
+        guard activeWeightGoal != nil else { return "无目标" }
         let progress = getGoalProgress()
         return String(format: "%.0f%%", progress)
     }

@@ -36,9 +36,9 @@ iCloud 同步	单用户多设备同步 (核心优势)	家庭共享 (iCloud Famil
 3.1 核心导航 (Core Navigation)
 采用标准的底部标签栏 (Bottom Tab Bar) 作为App一级导航。
 •	Home: 宠物列表/当前宠物的“仪表盘”主页。
+•	Reminders: 查看所有宠物的提醒事项。
 •	Records: 查看当前选中宠物的记录时间线。
 •	Weight: 查看当前选中宠物的体重图表。
-•	Reminders: 查看所有宠物的提醒事项。
 3.2 宠物管理 (Pet Management)
 3.2.1 宠物列表主页 (Home Screen)
 •	顶部区域:

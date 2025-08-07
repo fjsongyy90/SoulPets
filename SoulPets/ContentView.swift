@@ -59,7 +59,11 @@ struct ContentView: View {
                         .tabItem {
                             Label(LocalizedStringKey("Home"), systemImage: "house")
                         }
-                    
+                    // 提醒标签
+                    RemindersView()
+                        .tabItem {
+                            Label(LocalizedStringKey("Reminders"), systemImage: "bell")
+                        }
                     // 记录标签
                     RecordsView(modelContext: modelContext)
                         .tabItem {
@@ -72,11 +76,6 @@ struct ContentView: View {
                             Label(LocalizedStringKey("Weight"), systemImage: "scalemass")
                         }
                     
-                    // 提醒标签
-                    RemindersView()
-                        .tabItem {
-                            Label(LocalizedStringKey("Reminders"), systemImage: "bell")
-                        }
                 }
                 .accentColor(accentColor)
             }

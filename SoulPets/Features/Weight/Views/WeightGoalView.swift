@@ -370,6 +370,14 @@ struct WeightGoalView: View {
             modelContext: modelContext
         )
         
+        // 确保数据保存
+        do {
+            try modelContext.save()
+        } catch {
+            showError(String(localized: "Failed to save goal: ") + error.localizedDescription)
+            return
+        }
+        
         dismiss()
     }
     
@@ -380,12 +388,15 @@ struct WeightGoalView: View {
         goal.isActive = false
         goal.updatedAt = Date()
         
+        // 确保数据保存
         do {
             try modelContext.save()
-            dismiss()
         } catch {
-            showError(String(localized: "Failed to cancel goal"))
+            showError(String(localized: "Failed to cancel goal: ") + error.localizedDescription)
+            return
         }
+        
+        dismiss()
     }
     
     /// 显示错误信息
