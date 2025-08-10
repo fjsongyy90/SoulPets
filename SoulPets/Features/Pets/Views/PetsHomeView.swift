@@ -8,8 +8,9 @@ struct PetsHomeView: View {
     @State private var showingAddPetSheet = false
     @State private var selectedPetIndex: Int = 0
     @State private var showingEditPetSheet = false
-    @State private var selectedPet: Pet?
+    @State private var showingPetDetailSheet = false // 新增：显示宠物详情
     @State private var showingSettingsSheet = false
+    @State private var selectedPet: Pet?
     
     // 背景和强调色
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -102,6 +103,40 @@ struct PetsHomeView: View {
         .sheet(isPresented: $showingEditPetSheet) {
             if let pet = selectedPet {
                 EditPetView(pet: pet)
+            }
+        }
+        .sheet(isPresented: $showingPetDetailSheet) {
+            if let pet = selectedPet {
+                NavigationStack {
+                    PetDetailView(pet: pet)
+                        .navigationBarTitleDisplayMode(.large)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button("Close") {
+                                    showingPetDetailSheet = false
+                                    selectedPet = nil  // 清除选中状态
+                                }
+                            }
+                        }
+                }
+                .onAppear {
+                    print("📱 PetDetailView Sheet 显示，宠物: \(pet.name)")
+                }
+            } else {
+                Text("No pet selected")
+                    .onAppear {
+                        print("❌ PetDetailView Sheet 显示但没有选中的宠物")
+                        // 如果没有选中宠物，自动关闭sheet
+                        DispatchQueue.main.async {
+                            showingPetDetailSheet = false
+                        }
+                    }
+            }
+        }
+        .onAppear {
+            // 确保selectedPet状态正确初始化
+            if selectedPet == nil && !pets.isEmpty {
+                selectedPet = pets.first
             }
         }
         .sheet(isPresented: $showingSettingsSheet) {
@@ -212,7 +247,8 @@ struct PetsHomeView: View {
                 // 查看详情按钮
                 Button(action: {
                     selectedPet = pet
-                    showingEditPetSheet = true
+                    print("🔍 点击View Profile按钮，选中宠物: \(pet.name)")
+                    showingPetDetailSheet = true
                 }) {
                     HStack(spacing: 8) {
                         Text(String(localized: "View Profile"))
@@ -299,7 +335,7 @@ struct PetsHomeView: View {
                     .fill(accentColor.opacity(0.1))
                     .frame(width: 140, height: 140)
                 
-                Image(systemName: "pawprint.2.fill")
+                Image(systemName: "pawprint.fill")
                     .font(.system(size: 60))
                     .foregroundColor(accentColor)
             }

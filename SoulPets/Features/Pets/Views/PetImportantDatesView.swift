@@ -22,10 +22,6 @@ struct PetImportantDatesView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
-                // 步骤进度指示器
-                ProgressBar(progress: 0.9)
-                    .padding(.horizontal, 40)
-                
                 // 生日选择
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Birthday"))

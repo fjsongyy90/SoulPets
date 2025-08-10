@@ -10,13 +10,13 @@ struct PetTypeSelectionView: View {
     
     // 未来支持的宠物类型配置
     private let futureTypes = [
-        ("Rabbit", "rabbit.fill"),
+        ("Rabbit", "hare.fill"),
         ("Bird", "bird.fill"),
         ("Fish", "fish.fill"),
         ("Turtle", "tortoise.fill"),
         ("Lizard", "lizard.fill"),
-        ("Snake", "snake.fill"),
-        ("Frog", "frog.fill")
+        ("Plate", "tree.fill"),
+        ("Insect", "ladybug.fill") // 用简单图标替代
     ]
     
     // 定义更高对比度的颜色

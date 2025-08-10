@@ -14,10 +14,25 @@ class ReminderService {
         do {
             // 获取所有提醒模板
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            logger.info("📋 所有提醒总数: \(allReminders.count)")
             
             // 筛选出今天需要执行但尚未完成的提醒
             let todayReminders = allReminders.filter { reminder in
-                reminder.needsReminderOn(date: today) && !reminder.isCompletedToday
+                let needsReminder = reminder.needsReminderOn(date: today)
+                let isCompleted = reminder.isCompletedToday
+                
+                // 特别为生日提醒添加详细日志
+                if reminder.tag.code == "planning.birthday" {
+                    logger.info("🎂 生日提醒检查: \(reminder.tag.name)")
+                    logger.info("  - 开始日期: \(reminder.startDate)")
+                    logger.info("  - 检查日期: \(today)")
+                    logger.info("  - 需要提醒: \(needsReminder)")
+                    logger.info("  - 已完成: \(isCompleted)")
+                    logger.info("  - 重复单位: \(reminder.repeatUnit?.rawValue ?? "无")")
+                    logger.info("  - 重复间隔: \(reminder.repeatInterval ?? 0)")
+                }
+                
+                return needsReminder && !isCompleted
             }
             
             return todayReminders
@@ -36,6 +51,7 @@ class ReminderService {
         do {
             // 获取所有提醒模板
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            logger.info("📋 获取未来提醒: 所有提醒总数 \(allReminders.count)")
             
             // 先获取今日的提醒ID，避免重复
             let todayReminderIds = Set(getTodayReminders(modelContext: modelContext).map { $0.id })
@@ -50,9 +66,18 @@ class ReminderService {
                 
                 // 筛选出在该日期需要提醒的模板，但排除今日已有的提醒
                 let remindersForDay = allReminders.filter { reminder in
-                    // 排除今日已有的提醒
-                    !todayReminderIds.contains(reminder.id) && 
-                    reminder.needsReminderOn(date: futureDate)
+                    let isNotToday = !todayReminderIds.contains(reminder.id)
+                    let needsReminder = reminder.needsReminderOn(date: futureDate)
+                    
+                    // 特别为生日提醒添加详细日志
+                    if reminder.tag.code == "planning.birthday" && needsReminder {
+                        logger.info("🎂 未来生日提醒检查: \(reminder.tag.name)")
+                        logger.info("  - 检查日期: \(futureDate)")
+                        logger.info("  - 需要提醒: \(needsReminder)")
+                        logger.info("  - 不在今日: \(isNotToday)")
+                    }
+                    
+                    return isNotToday && needsReminder
                 }
                 
                 upcomingReminders.append(contentsOf: remindersForDay)

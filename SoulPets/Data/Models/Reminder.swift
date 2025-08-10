@@ -136,9 +136,24 @@ extension Reminder {
             return months % interval == 0
             
         case .yearly:
-            components = calendar.dateComponents([.year], from: startDate, to: date)
-            guard let years = components.year else { return false }
-            return years % interval == 0
+            // 对于年度重复，检查月日是否匹配
+            let startComponents = calendar.dateComponents([.month, .day], from: startDate)
+            let targetComponents = calendar.dateComponents([.month, .day], from: date)
+            
+            guard let startMonth = startComponents.month, let startDay = startComponents.day,
+                  let targetMonth = targetComponents.month, let targetDay = targetComponents.day else {
+                return false
+            }
+            
+            // 检查是否是同一个月日
+            if startMonth == targetMonth && startDay == targetDay {
+                // 再检查年份间隔是否符合要求
+                components = calendar.dateComponents([.year], from: startDate, to: date)
+                guard let years = components.year else { return false }
+                return years >= 0 && years % interval == 0
+            }
+            
+            return false
         }
     }
     

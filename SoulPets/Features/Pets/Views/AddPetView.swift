@@ -4,9 +4,11 @@ import SwiftData
 /// 添加宠物的主视图
 struct AddPetView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel: PetViewModel
     @State private var showingBirthdayReminderAlert = false
     @State private var shouldCreateBirthdayReminder = false
+    @State private var savedPet: Pet? // 保存已创建的宠物引用
     
     // 背景和强调色
     private let backgroundColor = Color(red: 0.99, green: 0.98, blue: 0.94)
@@ -36,66 +38,71 @@ struct AddPetView: View {
                             PetImportantDatesView(viewModel: viewModel)
                         }
                     }
-                    .scrollDismissesKeyboard(.immediately) // 滚动时立即收起键盘
+                    .scrollDismissesKeyboard(.immediately)
                     
-                    // 导航按钮 - 使用新的UI风格
-                    if viewModel.currentStep == .selectType {
-                        Button(action: {
-                            viewModel.moveToNextStep()
-                        }) {
-                            Text(LocalizedStringKey("Next"))
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(accentColor)
-                                )
+                    Spacer()
+                    
+                    // 导航按钮
+                    VStack {
+                        if viewModel.currentStep == .selectType {
+                            Button(action: {
+                                viewModel.moveToNextStep()
+                            }) {
+                                Text(LocalizedStringKey("Next"))
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(accentColor)
+                                    )
+                            }
+                            .padding(.horizontal, 40)
+                            .padding(.bottom, 20)
+                            .padding(.top, 10)
+                        } else if viewModel.currentStep == .basicInfo {
+                            Button(action: {
+                                viewModel.moveToNextStep()
+                            }) {
+                                Text(LocalizedStringKey("Next"))
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(viewModel.formIsValid ? accentColor : Color.gray)
+                                    )
+                            }
+                            .disabled(!viewModel.formIsValid)
+                            .padding(.horizontal, 40)
+                            .padding(.bottom, 20)
+                            .padding(.top, 10)
+                        } else if viewModel.currentStep == .importantDates {
+                            Button(action: {
+                                // 最后一步，保存宠物
+                                saveAndFinish()
+                            }) {
+                                Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(accentColor)
+                                    )
+                            }
+                            .padding(.horizontal, 40)
+                            .padding(.bottom, 20)
+                            .padding(.top, 10)
                         }
-                        .padding(.horizontal, 40)
-                        .padding(.bottom, 20)
-                        .padding(.top, 10)
-                    } else if viewModel.currentStep == .basicInfo {
-                        Button(action: {
-                            viewModel.moveToNextStep()
-                        }) {
-                            Text(LocalizedStringKey("Next"))
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(viewModel.formIsValid ? accentColor : Color.gray)
-                                )
-                        }
-                        .disabled(!viewModel.formIsValid)
-                        .padding(.horizontal, 40)
-                        .padding(.bottom, 20)
-                        .padding(.top, 10)
-                    } else if viewModel.currentStep == .importantDates {
-                        Button(action: {
-                            // 最后一步，保存宠物
-                            saveAndFinish()
-                        }) {
-                            Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(accentColor)
-                                )
-                        }
-                        .padding(.horizontal, 40)
-                        .padding(.bottom, 20)
-                        .padding(.top, 10)
                     }
+                    .background(backgroundColor)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -141,16 +148,13 @@ struct AddPetView: View {
                     .foregroundColor(textColor)
             }
         }
-        .onAppear {
-            // 修复键盘工具栏布局问题
-            // 不再直接修改UIToolbar的外观，改为在PetBasicInfoView中处理
-        }
     }
     
     // 保存宠物并显示生日提醒询问
     private func saveAndFinish() {
         do {
-            _ = try viewModel.savePet()
+            savedPet = try viewModel.savePet()
+            // 不要重置currentStep，避免UI跳回第一步
             showingBirthdayReminderAlert = true
         } catch {
             print("Error saving pet: \(error.localizedDescription)")
@@ -161,9 +165,41 @@ struct AddPetView: View {
     private func finishAndDismiss() {
         if shouldCreateBirthdayReminder {
             // 创建生日提醒的代码
-            print("应该创建生日提醒")
+            createBirthdayReminder()
         }
+        // 在关闭前重置表单
+        viewModel.resetForm()
         dismiss()
+    }
+    
+    // 创建生日提醒
+    private func createBirthdayReminder() {
+        guard let pet = savedPet else {
+            print("❌ 找不到已保存的宠物")
+            return
+        }
+        
+        print("🎂 开始为\(pet.name)创建生日提醒")
+        print("📅 宠物生日: \(pet.birthday)")
+        
+        do {
+            PetService.createBirthdayReminder(pet: pet, modelContext: modelContext)
+            print("✅ 成功调用PetService.createBirthdayReminder")
+            
+            // 验证提醒是否已创建
+            let reminderDescriptor = FetchDescriptor<Reminder>()
+            let reminders = try modelContext.fetch(reminderDescriptor)
+            print("📝 当前数据库中共有 \(reminders.count) 个提醒")
+            
+            let birthdayReminders = reminders.filter { reminder in
+                reminder.tag.code == "planning.birthday" && 
+                reminder.pets?.contains(where: { $0.id == pet.id }) == true
+            }
+            print("🎂 \(pet.name)的生日提醒数量: \(birthdayReminders.count)")
+            
+        } catch {
+            print("❌ 创建生日提醒失败: \(error.localizedDescription)")
+        }
     }
 }
 

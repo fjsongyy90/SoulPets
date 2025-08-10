@@ -26,7 +26,7 @@ struct SoulPetsApp: App {
             ReminderCompletion.self
         ])
         
-        // 配置数据迁移选项
+        // 配置数据迁移选项 - 暂时使用删除存储的方式解决迁移问题
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
@@ -41,43 +41,32 @@ struct SoulPetsApp: App {
             print("✅ 成功创建ModelContainer，CloudKit已启用")
             return container
         } catch {
-            // 记录错误详细信息
+            // 如果遇到迁移错误，删除旧的存储文件并创建新的容器
             print("❌ 创建ModelContainer失败: \(error)")
+            print("🗑️ 尝试删除旧的存储文件并重新创建")
             
-            // 如果是数据迁移错误，尝试删除旧数据库并重新创建
-            if error.localizedDescription.contains("migration") || error.localizedDescription.contains("134110") {
-                print("检测到数据迁移错误，尝试重置数据库...")
-                
-                // 获取应用支持目录
-                if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
-                    let storeURL = appSupportURL.appendingPathComponent("default.store")
-                    
-                    // 删除旧的数据库文件
-                    try? FileManager.default.removeItem(at: storeURL)
-                    try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
-                    try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
-                    
-                    print("已删除旧数据库文件，尝试重新创建...")
-                    
-                    // 重新尝试创建容器
-                    do {
-                        let newContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
-                        print("成功重新创建ModelContainer")
-                        return newContainer
-                    } catch {
-                        print("重新创建也失败: \(error)")
-                    }
-                }
+            // 删除旧的存储文件
+            let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            if let appSupportURL = appSupportURL {
+                let storeURL = appSupportURL.appendingPathComponent("default.store")
+                try? FileManager.default.removeItem(at: storeURL)
+                try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
+                try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
+                print("🗑️ 已删除旧的存储文件: \(storeURL)")
             }
             
-            // 最后的回退方案：使用内存模式创建临时容器
             do {
-                let recoveryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-                let memoryContainer = try ModelContainer(for: schema, configurations: [recoveryConfig])
-                print("使用内存模式创建临时容器")
-                return memoryContainer
+                let newContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+                print("✅ 成功重新创建ModelContainer")
+                return newContainer
             } catch {
-                fatalError("无法创建ModelContainer，即使是内存模式也失败: \(error)")
+                print("❌ 重新创建ModelContainer也失败: \(error)")
+                print("🧠 使用内存模式创建临时容器")
+                
+                // 作为最后的备选方案，创建内存容器
+                let memoryConfig = ModelConfiguration(isStoredInMemoryOnly: true)
+                let memoryContainer = try! ModelContainer(for: schema, configurations: [memoryConfig])
+                return memoryContainer
             }
         }
     }()

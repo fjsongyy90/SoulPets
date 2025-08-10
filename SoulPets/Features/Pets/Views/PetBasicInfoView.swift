@@ -31,10 +31,6 @@ struct PetBasicInfoView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
-                        // 步骤进度指示器
-                        ProgressBar(progress: 0.5)
-                            .padding(.horizontal, 40)
-                        
                         // 头像选择器
                         ZStack {
                             Circle()

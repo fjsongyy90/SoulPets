@@ -131,7 +131,8 @@ class PetViewModel: ObservableObject {
             try modelContext.save()
             
             logger.info("成功创建宠物档案: \(pet.id.uuidString)")
-            resetForm()
+            // 移除自动重置表单，让调用者决定何时重置
+            // resetForm()
             return pet
         } catch {
             logger.error("保存宠物失败: \(error.localizedDescription)")

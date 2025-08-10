@@ -161,30 +161,10 @@ class PetService {
                 return
             }
             
-            // 设置今年的生日日期
-            let calendar = Calendar.current
-            let currentYear = calendar.component(.year, from: Date())
-            let birthdayMonth = calendar.component(.month, from: pet.birthday)
-            let birthdayDay = calendar.component(.day, from: pet.birthday)
-            
-            guard let nextBirthdayDate = calendar.date(from: DateComponents(year: currentYear, month: birthdayMonth, day: birthdayDay)) else {
-                logger.error("无法计算今年的生日日期")
-                return
-            }
-            
-            // 如果今年的生日已经过了，设置为明年的生日
-            var reminderDate = nextBirthdayDate
-            if reminderDate < Date() {
-                guard let nextYearDate = calendar.date(byAdding: .year, value: 1, to: nextBirthdayDate) else {
-                    logger.error("无法计算明年的生日日期")
-                    return
-                }
-                reminderDate = nextYearDate
-            }
-            
-            // 创建提醒
+            // 创建提醒 - 使用宠物的实际生日作为起始日期
+            // 这样年度重复算法就能正确计算每年的生日
             let reminder = Reminder(
-                startDate: reminderDate,
+                startDate: pet.birthday,
                 notes: "\(pet.name)的生日",
                 repeatInterval: 1,
                 repeatUnit: .yearly,
@@ -194,7 +174,7 @@ class PetService {
             
             modelContext.insert(reminder)
             try modelContext.save()
-            logger.info("成功为\(pet.name)创建生日提醒")
+            logger.info("成功为\(pet.name)创建生日提醒，起始日期: \(pet.birthday)")
             
             // 设置通知
             NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
