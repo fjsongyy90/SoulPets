@@ -10,7 +10,9 @@ class TagManagementService {
     
     /// 获取指定宠物类型的所有标签，按分类分组
     static func getTagsByCategory(for petType: PetType, in modelContext: ModelContext) -> [TagCategory: [Tag]] {
-        let descriptor = FetchDescriptor<Tag>()
+        let descriptor = FetchDescriptor<Tag>(
+            sortBy: [SortDescriptor<Tag>(\.sortOrder)]
+        )
         
         do {
             let allTags = try modelContext.fetch(descriptor)
@@ -18,7 +20,7 @@ class TagManagementService {
                 tag.isApplicableTo(petType: petType)
             }
             
-            // 按分类分组
+            // 按分类分组，每个分类内的标签已经按sortOrder排序
             let grouped = Dictionary(grouping: applicableTags) { $0.category }
             return grouped
         } catch {
@@ -29,10 +31,13 @@ class TagManagementService {
     
     /// 获取所有标签，按分类分组（用于多宠物类型管理）
     static func getAllTagsByCategory(in modelContext: ModelContext) -> [TagCategory: [Tag]] {
-        let descriptor = FetchDescriptor<Tag>()
+        let descriptor = FetchDescriptor<Tag>(
+            sortBy: [SortDescriptor<Tag>(\.sortOrder)]
+        )
         
         do {
             let allTags = try modelContext.fetch(descriptor)
+            // 按分类分组，每个分类内的标签已经按sortOrder排序
             let grouped = Dictionary(grouping: allTags) { $0.category }
             return grouped
         } catch {
@@ -92,17 +97,11 @@ class TagManagementService {
     // MARK: - 标签排序管理
     
     /// 更新同一分类内标签的排序
-    /// 注意：由于SwiftData的限制，这里通过修改标签的code来实现排序
-    /// 在实际应用中，可以考虑添加一个sortOrder字段
     static func reorderTags(in category: TagCategory, newOrder: [Tag], in modelContext: ModelContext) throws {
-        // 为了简化实现，这里暂时不修改数据库中的排序
-        // 在UI层面通过数组排序来实现用户自定义排序
-        // 如果需要持久化排序，可以在Tag模型中添加sortOrder字段
-        
-        for (_, tag) in newOrder.enumerated() {
+        // 现在真正实现排序持久化
+        for (index, tag) in newOrder.enumerated() {
+            tag.sortOrder = index
             tag.updatedAt = Date()
-            // 可以在这里添加sortOrder字段的更新
-            // tag.sortOrder = index
         }
         
         try modelContext.save()

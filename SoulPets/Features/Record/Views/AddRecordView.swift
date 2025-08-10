@@ -7,7 +7,7 @@ struct AddRecordView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: RecordViewModel
     @Query private var pets: [Pet]
-    @Query private var tags: [Tag]
+    @Query(sort: \Tag.sortOrder) private var tags: [Tag]  // 修改：按sortOrder排序
     
     // 照片选择器状态
     @State private var selectedItems: [PhotosPickerItem] = []

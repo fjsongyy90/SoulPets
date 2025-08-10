@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 struct TagItemManagementView: View {
     // MARK: - 属性
@@ -10,6 +11,9 @@ struct TagItemManagementView: View {
     
     // 颜色定义
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    
+    // 调试日志
+    private let logger = Logger(subsystem: "com.soulpets.app", category: "TagItemManagement")
     
     // MARK: - 视图
     var body: some View {
@@ -34,6 +38,10 @@ struct TagItemManagementView: View {
                 .stroke(isHidden ? Color.gray.opacity(0.3) : Color.clear, lineWidth: 1)
         )
         .opacity(isHidden ? 0.6 : 1.0)
+        .onAppear {
+            // 添加调试日志
+            logger.info("显示标签: \(tag.name), 图标名: \(tag.iconName), 记录次数: \(usageStats.recordCount), 提醒次数: \(usageStats.reminderCount)")
+        }
     }
     
     // MARK: - 子视图
@@ -59,13 +67,6 @@ struct TagItemManagementView: View {
                         .fontWeight(.medium)
                         .foregroundColor(isHidden ? .gray : .primary)
                         .strikethrough(isHidden)
-                    
-                    if isHidden {
-                        Text(String(localized: "(Hidden)"))
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .italic()
-                    }
                 }
                 
                 // 使用统计
@@ -82,7 +83,8 @@ struct TagItemManagementView: View {
                 .fill(isHidden ? Color.gray.opacity(0.2) : accentColor.opacity(0.1))
                 .frame(width: 32, height: 32)
             
-            Image(systemName: getSystemIconName())
+            // 直接使用tag.iconName，它应该已经是正确的系统图标名
+            Image(systemName: tag.iconName)
                 .font(.system(size: 14))
                 .foregroundColor(isHidden ? .gray : accentColor)
         }

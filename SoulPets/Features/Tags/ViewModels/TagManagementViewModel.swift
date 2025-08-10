@@ -33,13 +33,13 @@ class TagManagementViewModel: ObservableObject {
             let petTypes = Set(pets.map { $0.petType })
             availablePetTypes = Array(petTypes).sorted { $0.rawValue < $1.rawValue }
             
-            // 如果只有一种宠物类型，自动选择
-            if availablePetTypes.count == 1 {
+            // 自动选择第一个宠物类型（无论是一个还是多个）
+            if !availablePetTypes.isEmpty {
                 selectedPetType = availablePetTypes.first
                 loadTags()
             }
             
-            logger.info("加载到 \(self.availablePetTypes.count) 种宠物类型")
+            logger.info("加载到 \(self.availablePetTypes.count) 种宠物类型，默认选中: \(String(describing: self.selectedPetType?.rawValue))")
         } catch {
             logger.error("加载宠物类型失败: \(error.localizedDescription)")
             errorMessage = String(localized: "Failed to load pet types")
@@ -109,16 +109,26 @@ class TagManagementViewModel: ObservableObject {
     
     /// 重新排序标签
     func reorderTags(in category: TagCategory, from source: IndexSet, to destination: Int) {
-        guard var tags = tagsByCategory[category] else { return }
+        logger.info("开始重新排序标签 - 分类: \(category.rawValue)")
+        logger.info("源索引: \(source.description), 目标索引: \(destination)")
+        
+        guard var tags = tagsByCategory[category] else { 
+            logger.error("无法找到分类 \(category.rawValue) 的标签")
+            return 
+        }
+        
+        logger.info("当前标签顺序: \(tags.map { "\($0.name)(\($0.id.uuidString.prefix(8)))" }.joined(separator: ", "))")
         
         // 执行UI层面的重排序
         tags.move(fromOffsets: source, toOffset: destination)
         tagsByCategory[category] = tags
         
+        logger.info("重排序后标签顺序: \(tags.map { "\($0.name)(\($0.id.uuidString.prefix(8)))" }.joined(separator: ", "))")
+        
         // 保存到数据库
         do {
             try TagManagementService.reorderTags(in: category, newOrder: tags, in: modelContext)
-            logger.info("重新排序 \(category.rawValue) 分类下的标签")
+            logger.info("成功保存标签排序到数据库 - 分类: \(category.rawValue)")
         } catch {
             logger.error("保存标签排序失败: \(error.localizedDescription)")
             errorMessage = String(localized: "Failed to save tag order")

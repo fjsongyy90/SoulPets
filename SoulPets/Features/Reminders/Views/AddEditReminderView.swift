@@ -6,8 +6,9 @@ struct AddEditReminderView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var viewModel = AddEditReminderViewModel()
+    @State private var showingTagManagement = false  // 新增：标签管理状态
     @Query private var allPets: [Pet]
-    @Query private var allTags: [Tag]
+    @Query(sort: \Tag.sortOrder) private var allTags: [Tag]  // 修改：按sortOrder排序
     
     let reminderToEdit: Reminder?
     
@@ -69,6 +70,15 @@ struct AddEditReminderView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingTagManagement) {
+                TagManagementView(modelContext: modelContext)
+            }
+            .onChange(of: showingTagManagement) { oldValue, newValue in
+                // 当标签管理页面关闭后，重新加载标签数据
+                if oldValue && !newValue {
+                    viewModel.loadAvailableTags(from: modelContext)
+                }
+            }
             .alert(
                 String(localized: "Error"),
                 isPresented: .constant(viewModel.errorMessage != nil)
@@ -127,12 +137,29 @@ struct AddEditReminderView: View {
                         .padding(.horizontal)
                 }
                 
-                // 标签选择器
-                Text(String(localized: "Select Event Type"))
-                    .font(.headline)
-                    .foregroundColor(textColor)
-                    .padding(.horizontal)
-                    .padding(.top)
+                // 标签选择器标题和管理按钮
+                HStack {
+                    Text(String(localized: "Select Event Type"))
+                        .font(.headline)
+                        .foregroundColor(textColor)
+                    
+                    Spacer()
+                    
+                    // 标签管理按钮
+                    Button(action: {
+                        showingTagManagement = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gear")
+                                .font(.caption)
+                            Text(String(localized: "Manage Tags"))
+                                .font(.caption)
+                        }
+                        .foregroundColor(accentColor)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top)
                 
                 // 按分类显示标签
                 ForEach(TagCategory.allCases, id: \.self) { category in

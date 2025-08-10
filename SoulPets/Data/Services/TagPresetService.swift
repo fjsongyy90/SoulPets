@@ -33,71 +33,78 @@ class TagPresetService {
     /// 创建所有预设标签
     private static func createAllTags() -> [Tag] {
         var allTags: [Tag] = []
+        var currentSortOrder = 0
         
         // 日常生活标签
         allTags.append(contentsOf: [
-            createTag(code: "daily.food", name: "Dinner/Food", iconName: "food", category: .dailyLife, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "daily.water", name: "Water", iconName: "water", category: .dailyLife, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "daily.treats", name: "Treats/Wet Food", iconName: "treats", category: .dailyLife, defaultIsReminder: true, petTypes: [.cat]),
-            createTag(code: "daily.treats.dog", name: "Treats", iconName: "treats", category: .dailyLife, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "daily.walk", name: "Walk", iconName: "walk", category: .dailyLife, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "daily.training", name: "Training", iconName: "training", category: .dailyLife, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "daily.play", name: "Play", iconName: "play", category: .dailyLife, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "daily.milk", name: "Milk Feed", iconName: "milk", category: .dailyLife, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "daily.potty", name: "Potty", iconName: "potty", category: .dailyLife, defaultIsReminder: false, petTypes: [.cat, .dog])
+            createTag(code: "daily.food", name: "Dinner/Food", iconName: "fork.knife", category: .dailyLife, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "daily.water", name: "Water", iconName: "drop", category: .dailyLife, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "daily.treats", name: "Treats/Wet Food", iconName: "heart.fill", category: .dailyLife, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat]),
+            createTag(code: "daily.treats.dog", name: "Treats", iconName: "heart.fill", category: .dailyLife, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.dog]),
+            createTag(code: "daily.walk", name: "Walk", iconName: "figure.walk", category: .dailyLife, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.dog]),
+            createTag(code: "daily.training", name: "Training", iconName: "star", category: .dailyLife, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.dog]),
+            createTag(code: "daily.play", name: "Play", iconName: "gamecontroller", category: .dailyLife, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "daily.milk", name: "Milk Feed", iconName: "drop.fill", category: .dailyLife, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "daily.potty", name: "Potty", iconName: "trash", category: .dailyLife, sortOrder: currentSortOrder + 8, defaultIsReminder: false, petTypes: [.cat, .dog])
         ])
+        currentSortOrder += 20 // 为每个分类预留20个位置
         
         // 日常保健标签
         allTags.append(contentsOf: [
-            createTag(code: "health.medication", name: "Medication", iconName: "medication", category: .routineHealth, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "health.supplements", name: "Supplements", iconName: "supplements", category: .routineHealth, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "health.deworm", name: "Deworm/Flea & Tick", iconName: "deworm", category: .routineHealth, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "health.vaccine", name: "Vaccine", iconName: "vaccine", category: .routineHealth, defaultIsReminder: true, petTypes: [.cat, .dog])
+            createTag(code: "health.medication", name: "Medication", iconName: "pill", category: .routineHealth, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "health.supplements", name: "Supplements", iconName: "cross.case", category: .routineHealth, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "health.deworm", name: "Deworm/Flea & Tick", iconName: "ladybug", category: .routineHealth, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "health.vaccine", name: "Vaccine", iconName: "syringe", category: .routineHealth, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog])
         ])
+        currentSortOrder += 20
         
         // 美容清洁标签
         allTags.append(contentsOf: [
-            createTag(code: "grooming.brushing", name: "Brushing", iconName: "brushing", category: .groomingCleaning, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.teeth", name: "Teeth Brushing", iconName: "teeth", category: .groomingCleaning, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.nail", name: "Nail Trim", iconName: "nail", category: .groomingCleaning, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.ear", name: "Ear Cleaning", iconName: "ear", category: .groomingCleaning, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.bath", name: "Bath", iconName: "bath", category: .groomingCleaning, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.anal", name: "Anal Gland Express", iconName: "anal", category: .groomingCleaning, defaultIsReminder: true, petTypes: [.dog])
+            createTag(code: "grooming.brushing", name: "Brushing", iconName: "paintbrush", category: .groomingCleaning, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "grooming.teeth", name: "Teeth Brushing", iconName: "mouth", category: .groomingCleaning, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "grooming.nail", name: "Nail Trim", iconName: "scissors", category: .groomingCleaning, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "grooming.ear", name: "Ear Cleaning", iconName: "ear", category: .groomingCleaning, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "grooming.bath", name: "Bath", iconName: "shower", category: .groomingCleaning, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "grooming.anal", name: "Anal Gland Express", iconName: "drop.circle", category: .groomingCleaning, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.dog])
         ])
+        currentSortOrder += 20
         
         // 家居用品标签
         allTags.append(contentsOf: [
-            createTag(code: "home.buy", name: "Buy Supplies", iconName: "supplies", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "home.bowls", name: "Wash Bowls", iconName: "bowls", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "home.refill", name: "Supplies Refill", iconName: "refill", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "home.scoop", name: "Scoop Litterbox", iconName: "scoop", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat]),
-            createTag(code: "home.litter", name: "Change Litter", iconName: "litter", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat]),
-            createTag(code: "home.litterbox", name: "Wash Litterbox", iconName: "litterbox", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat]),
-            createTag(code: "home.bed.cat", name: "Wash Bed/Tree", iconName: "bed", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat]),
-            createTag(code: "home.bed.dog", name: "Wash Bed", iconName: "bed", category: .homeSupplies, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "home.crate", name: "Wash Crate/Pen", iconName: "crate", category: .homeSupplies, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "home.toys", name: "Wash Toys", iconName: "toys", category: .homeSupplies, defaultIsReminder: true, petTypes: [.cat, .dog])
+            createTag(code: "home.buy", name: "Buy Supplies", iconName: "cart", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "home.bowls", name: "Wash Bowls", iconName: "circle.grid.2x1", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "home.refill", name: "Supplies Refill", iconName: "arrow.clockwise", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "home.scoop", name: "Scoop Litterbox", iconName: "square", category: .homeSupplies, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat]),
+            createTag(code: "home.litter", name: "Change Litter", iconName: "square.fill", category: .homeSupplies, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.cat]),
+            createTag(code: "home.litterbox", name: "Wash Litterbox", iconName: "square.on.square", category: .homeSupplies, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.cat]),
+            createTag(code: "home.bed.cat", name: "Wash Bed/Tree", iconName: "house", category: .homeSupplies, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.cat]),
+            createTag(code: "home.bed.dog", name: "Wash Bed", iconName: "house", category: .homeSupplies, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.dog]),
+            createTag(code: "home.crate", name: "Wash Crate/Pen", iconName: "building.2", category: .homeSupplies, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.dog]),
+            createTag(code: "home.toys", name: "Wash Toys", iconName: "cube", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.cat, .dog])
         ])
+        currentSortOrder += 20
         
         // 医疗护理标签
         allTags.append(contentsOf: [
-            createTag(code: "medical.checkup", name: "Check-up", iconName: "checkup", category: .medicalCare, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "medical.grooming", name: "Grooming Appointment", iconName: "grooming", category: .medicalCare, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "medical.antibody", name: "Antibody Titer", iconName: "antibody", category: .medicalCare, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "medical.abnormal", name: "Abnormal Condition", iconName: "abnormal", category: .medicalCare, defaultIsReminder: false, petTypes: [.cat, .dog]),
-            createTag(code: "medical.surgery", name: "Surgery", iconName: "surgery", category: .medicalCare, defaultIsReminder: false, petTypes: [.cat, .dog]),
-            createTag(code: "medical.hospitalization", name: "Hospitalization", iconName: "hospital", category: .medicalCare, defaultIsReminder: false, petTypes: [.cat, .dog])
+            createTag(code: "medical.checkup", name: "Check-up", iconName: "stethoscope", category: .medicalCare, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "medical.grooming", name: "Grooming Appointment", iconName: "scissors", category: .medicalCare, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "medical.antibody", name: "Antibody Titer", iconName: "waveform.path", category: .medicalCare, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "medical.abnormal", name: "Abnormal Condition", iconName: "exclamationmark.triangle", category: .medicalCare, sortOrder: currentSortOrder + 3, defaultIsReminder: false, petTypes: [.cat, .dog]),
+            createTag(code: "medical.surgery", name: "Surgery", iconName: "cross", category: .medicalCare, sortOrder: currentSortOrder + 4, defaultIsReminder: false, petTypes: [.cat, .dog]),
+            createTag(code: "medical.hospitalization", name: "Hospitalization", iconName: "building", category: .medicalCare, sortOrder: currentSortOrder + 5, defaultIsReminder: false, petTypes: [.cat, .dog])
         ])
+        currentSortOrder += 20
         
         // 规划与里程碑标签
         allTags.append(contentsOf: [
-            createTag(code: "planning.sitter", name: "Pet Sitter", iconName: "sitter", category: .planningMilestones, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.boarding", name: "Boarding", iconName: "boarding", category: .planningMilestones, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.license", name: "License Renewal", iconName: "license", category: .planningMilestones, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.insurance", name: "Insurance Renewal", iconName: "insurance", category: .planningMilestones, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.birthday", name: "Birthday", iconName: "birthday", category: .planningMilestones, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.adoption", name: "Adoption/Gotcha Day", iconName: "adoption", category: .planningMilestones, defaultIsReminder: true, petTypes: [.cat, .dog])
+            createTag(code: "planning.sitter", name: "Pet Sitter", iconName: "person", category: .planningMilestones, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "planning.boarding", name: "Boarding", iconName: "building.2", category: .planningMilestones, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "planning.license", name: "License Renewal", iconName: "doc.text", category: .planningMilestones, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "planning.insurance", name: "Insurance Renewal", iconName: "shield", category: .planningMilestones, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "planning.birthday", name: "Birthday", iconName: "gift", category: .planningMilestones, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "planning.adoption", name: "Adoption/Gotcha Day", iconName: "heart.circle", category: .planningMilestones, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.cat, .dog])
         ])
+        currentSortOrder += 20
         
         return allTags
     }
@@ -108,6 +115,7 @@ class TagPresetService {
         name: String,
         iconName: String,
         category: TagCategory,
+        sortOrder: Int,
         defaultIsReminder: Bool,
         isHidden: Bool = false, // 预设标签默认都是显示状态
         petTypes: [PetType]
@@ -119,6 +127,7 @@ class TagPresetService {
             category: category,
             defaultIsReminder: defaultIsReminder,
             isHidden: isHidden,
+            sortOrder: sortOrder,
             associatedPetTypes: petTypes
         )
     }

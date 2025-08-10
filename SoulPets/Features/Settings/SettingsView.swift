@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import os.log
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -10,7 +11,15 @@ struct SettingsView: View {
     @State private var selectedAppearance: AppearanceMode = .system
     
     private var currentSettings: UserSettings {
-        userSettings.first ?? UserSettings()
+        if let settings = userSettings.first {
+            return settings
+        } else {
+            // 如果没有设置记录，创建一个新的
+            let newSettings = UserSettings()
+            modelContext.insert(newSettings)
+            try? modelContext.save()
+            return newSettings
+        }
     }
     
     var body: some View {
@@ -34,12 +43,12 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden()
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                            .foregroundColor(Color(hex: "E5B487"))
-                            .font(.title2)
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(String(localized: "common.done")) {
+                        dismiss()
                     }
+                    .foregroundColor(Color(hex: "E5B487"))
+                    .font(.body.weight(.medium))
                 }
             }
         }
@@ -69,13 +78,28 @@ struct SettingsView: View {
             
             // 设置项列表
             VStack(spacing: 1) {
-                // 外观设置
-                SettingsRowView(
-                    icon: "paintbrush",
-                    title: String(localized: "settings.general.appearance"),
-                    showChevron: false
-                ) {
-                    appearancePicker
+                // 外观设置 - 使用自定义组件
+                VStack(spacing: 0) {
+                    // 标题行
+                    HStack(spacing: 12) {
+                        Image(systemName: "paintbrush")
+                            .font(.title3)
+                            .foregroundColor(Color(hex: "E5B487"))
+                            .frame(width: 24, height: 24)
+                        
+                        Text(String(localized: "settings.general.appearance"))
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    
+                    // 外观选择器
+                    customAppearancePicker
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
                 }
                 
                 Divider()
@@ -112,17 +136,36 @@ struct SettingsView: View {
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
     
-    // MARK: - 外观选择器
-    private var appearancePicker: some View {
-        Picker(String(localized: "settings.general.appearance"), selection: $selectedAppearance) {
+    // MARK: - 自定义外观选择器
+    private var customAppearancePicker: some View {
+        HStack(spacing: 8) {
             ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                Text(String(localized: "settings.appearance.\(mode.rawValue.lowercased())"))
-                    .tag(mode)
+                Button(action: {
+                    selectedAppearance = mode
+                    updateAppearance(mode)
+                }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: iconForAppearance(mode))
+                            .font(.title2)
+                            .foregroundColor(selectedAppearance == mode ? .white : Color(hex: "E5B487"))
+                        
+                        Text(mode.rawValue)
+                            .font(.caption)
+                            .foregroundColor(selectedAppearance == mode ? .white : .primary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(selectedAppearance == mode ? Color(hex: "E5B487") : Color(hex: "FDFBF8"))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(hex: "E5B487").opacity(0.3), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-        }
-        .pickerStyle(.segmented)
-        .onChange(of: selectedAppearance) { _, newValue in
-            updateAppearance(newValue)
         }
     }
     
@@ -250,8 +293,42 @@ struct SettingsView: View {
         
         do {
             try modelContext.save()
+            
+            // 立即应用外观更改
+            DispatchQueue.main.async {
+                applyAppearanceToWindow(appearance)
+            }
         } catch {
-            print("Failed to save appearance setting: \(error)")
+            // 使用结构化日志
+            let logger = Logger(subsystem: "com.soulpets.app", category: "Settings")
+            logger.error("Failed to save appearance setting: \(error.localizedDescription)")
+        }
+    }
+    
+    private func applyAppearanceToWindow(_ appearance: AppearanceMode) {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+        
+        switch appearance {
+        case .light:
+            window.overrideUserInterfaceStyle = .light
+        case .dark:
+            window.overrideUserInterfaceStyle = .dark
+        case .system:
+            window.overrideUserInterfaceStyle = .unspecified
+        }
+    }
+    
+    private func iconForAppearance(_ mode: AppearanceMode) -> String {
+        switch mode {
+        case .light:
+            return "sun.max"
+        case .dark:
+            return "moon"
+        case .system:
+            return "gear"
         }
     }
 }

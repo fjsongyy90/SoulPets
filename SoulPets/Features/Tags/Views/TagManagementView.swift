@@ -1,10 +1,15 @@
 import SwiftUI
 import SwiftData
+import os.log
 
 struct TagManagementView: View {
     // MARK: - 属性
     @StateObject private var viewModel: TagManagementViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var editMode: EditMode = .active  // 直接设置为编辑模式
+    
+    // 调试日志
+    private let logger = Logger(subsystem: "com.soulpets.app", category: "TagManagementView")
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -27,8 +32,9 @@ struct TagManagementView: View {
                     mainContent
                 }
             }
-            .navigationTitle(String(localized: "Manage Tags"))
+            .navigationTitle(String(localized: "Tag Management"))
             .navigationBarTitleDisplayMode(.inline)
+            .environment(\.editMode, $editMode)  // 设置编辑模式环境
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(String(localized: "Done")) {
@@ -45,6 +51,9 @@ struct TagManagementView: View {
                 if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                 }
+            }
+            .onAppear {
+                logger.info("标签管理页面出现，EditMode: \(String(describing: editMode))")
             }
         }
     }
@@ -147,32 +156,46 @@ struct TagManagementView: View {
                 
                 Spacer()
                 
-                Text("\(viewModel.tagsByCategory[category]?.count ?? 0) \(String(localized: "tags"))")
+                Text("\(viewModel.tagsByCategory[category]?.count ?? 0) tags")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            .padding(.horizontal)
             
-            // 标签列表
+            // 标签列表 - 使用List来支持拖动功能
             if let tags = viewModel.tagsByCategory[category] {
-                ForEach(Array(tags.enumerated()), id: \.element.id) { index, tag in
-                    TagItemManagementView(
-                        tag: tag,
-                        onToggleReminder: {
-                            viewModel.toggleReminderAvailability(for: tag)
-                        },
-                        onToggleVisibility: {
-                            viewModel.toggleVisibility(for: tag)
-                        },
-                        usageStats: viewModel.getUsageStats(for: tag),
-                        isHidden: viewModel.isTagHidden(tag)
-                    )
+                List {
+                    ForEach(tags, id: \.id) { tag in
+                        TagItemManagementView(
+                            tag: tag,
+                            onToggleReminder: {
+                                logger.info("点击提醒开关 - 标签: \(tag.name)")
+                                viewModel.toggleReminderAvailability(for: tag)
+                            },
+                            onToggleVisibility: {
+                                logger.info("点击可见性开关 - 标签: \(tag.name)")
+                                viewModel.toggleVisibility(for: tag)
+                            },
+                            usageStats: viewModel.getUsageStats(for: tag),
+                            isHidden: viewModel.isTagHidden(tag)
+                        )
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    }
+                    .onMove { source, destination in
+                        logger.info("🎯 开始拖动操作 - 分类: \(category.rawValue)")
+                        logger.info("🎯 源索引: \(source.description), 目标索引: \(destination)")
+                        viewModel.reorderTags(in: category, from: source, to: destination)
+                    }
                 }
-                .onMove { source, destination in
-                    viewModel.reorderTags(in: category, from: source, to: destination)
-                }
+                .listStyle(PlainListStyle())
+                .scrollDisabled(true)
+                .frame(height: CGFloat(tags.count * 70)) // 根据标签数量动态设置高度
+                .background(Color.white)
+                .cornerRadius(12)
             }
         }
-        .padding()
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
