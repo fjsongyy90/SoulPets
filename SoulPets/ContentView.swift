@@ -88,10 +88,15 @@ struct ContentView: View {
     private func checkModelContext() {
         // 简单测试模型上下文是否可用
         do {
-            let _ = try modelContext.fetch(FetchDescriptor<Pet>())
+            let pets = try modelContext.fetch(FetchDescriptor<Pet>())
+            print("📊 当前数据库中有 \(pets.count) 只宠物")
+            
+            let tags = try modelContext.fetch(FetchDescriptor<Tag>())
+            print("🏷️ 当前数据库中有 \(tags.count) 个标签")
+            
             isModelReady = true
             errorMessage = nil
-            logger.info("模型上下文检查成功")
+            logger.info("模型上下文检查成功，数据持久化正常")
         } catch {
             isModelReady = false
             errorMessage = "无法访问数据库: \(error.localizedDescription)"

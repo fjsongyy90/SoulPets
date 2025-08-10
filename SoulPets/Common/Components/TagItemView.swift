@@ -20,12 +20,12 @@ struct TagItemView: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             // 图标
             Image(systemName: tag.iconName)
-                .font(.system(size: 20))
+                .font(.system(size: 18))
                 .foregroundColor(isSelected ? .white : accentColor)
-                .frame(width: 32, height: 32)
+                .frame(width: 28, height: 28)
                 .background(
                     Circle()
                         .fill(isSelected ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
@@ -33,15 +33,16 @@ struct TagItemView: View {
             
             // 名称
             Text(String(localized: LocalizedStringResource(stringLiteral: tag.name)))
-                .font(.caption)
+                .font(.caption2)
                 .foregroundColor(isSelected ? .white : textColor)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity, minHeight: 80)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(isSelected ? accentColor.opacity(0.8) : Color.white)
@@ -61,9 +62,37 @@ struct TagItemView: View {
         associatedPetTypes: [.cat, .dog]
     )
     
-    HStack {
-        TagItemView(tag: sampleTag, isSelected: false)
-        TagItemView(tag: sampleTag, isSelected: true)
+    let longNameTag = Tag(
+        code: "grooming.nail",
+        name: "Nail Trim",
+        iconName: "scissors",
+        category: .groomingCleaning,
+        defaultIsReminder: true,
+        isHidden: false,
+        associatedPetTypes: [.cat, .dog]
+    )
+    
+    VStack {
+        // 展示横向滚动效果
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                TagItemView(tag: sampleTag, isSelected: false)
+                    .frame(width: 100)
+                TagItemView(tag: longNameTag, isSelected: true)
+                    .frame(width: 100)
+                TagItemView(tag: sampleTag, isSelected: false)
+                    .frame(width: 100)
+            }
+            .padding(.horizontal)
+        }
+        
+        // 展示单个组件
+        HStack {
+            TagItemView(tag: sampleTag, isSelected: false)
+                .frame(width: 100)
+            TagItemView(tag: sampleTag, isSelected: true)
+                .frame(width: 100)
+        }
     }
     .padding()
 } 

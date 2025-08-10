@@ -9,6 +9,7 @@ struct PetsHomeView: View {
     @State private var selectedPetIndex: Int = 0
     @State private var showingEditPetSheet = false
     @State private var selectedPet: Pet?
+    @State private var showingSettingsSheet = false
     
     // 背景和强调色
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -66,6 +67,15 @@ struct PetsHomeView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showingSettingsSheet = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundColor(accentColor)
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showingAddPetSheet = true
@@ -93,6 +103,9 @@ struct PetsHomeView: View {
             if let pet = selectedPet {
                 EditPetView(pet: pet)
             }
+        }
+        .sheet(isPresented: $showingSettingsSheet) {
+            SettingsView()
         }
     }
     

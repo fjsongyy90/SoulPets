@@ -32,17 +32,17 @@ struct SoulPetsApp: App {
             isStoredInMemoryOnly: false,
             allowsSave: true,
             groupContainer: .none,
-            cloudKitDatabase: .none
+            cloudKitDatabase: .automatic
         )
         
         do {
             // 尝试创建容器
             let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            print("成功创建ModelContainer")
+            print("✅ 成功创建ModelContainer，CloudKit已启用")
             return container
         } catch {
             // 记录错误详细信息
-            print("创建ModelContainer失败: \(error)")
+            print("❌ 创建ModelContainer失败: \(error)")
             
             // 如果是数据迁移错误，尝试删除旧数据库并重新创建
             if error.localizedDescription.contains("migration") || error.localizedDescription.contains("134110") {

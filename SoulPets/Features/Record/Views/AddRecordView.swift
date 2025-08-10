@@ -326,18 +326,18 @@ struct AddRecordView: View {
     
     /// 标签网格视图
     private func tagGridView(tags: [Tag]) -> some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: 8),
-            GridItem(.flexible(), spacing: 8)
-        ], spacing: 12) {
-            ForEach(tags) { tag in
-                TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
-                    .onTapGesture {
-                        viewModel.selectTag(tag)
-                    }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(tags) { tag in
+                    TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
+                        .frame(width: 100) // 固定宽度确保一致性
+                        .onTapGesture {
+                            viewModel.selectTag(tag)
+                        }
+                }
             }
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
     }
     
     /// 根据宠物类型和分类筛选标签

@@ -251,4 +251,49 @@
 
 // 体重模块 - 删除记录
 "Delete Weight Record" = "Delete Weight Record";
-"This action cannot be undone." = "This action cannot be undone."; 
+"This action cannot be undone." = "This action cannot be undone.";
+
+// 设置页面 - 通用
+"settings.title" = "Settings";
+"common.ok" = "OK";
+
+// 设置页面 - 通用设置卡片
+"settings.general.title" = "General";
+"settings.general.appearance" = "Appearance";
+"settings.general.notifications" = "Notifications";
+"settings.general.language" = "Language";
+"settings.general.language.current" = "English";
+
+// 设置页面 - 外观选项
+"settings.appearance.light" = "Light";
+"settings.appearance.dark" = "Dark";
+"settings.appearance.system" = "System";
+
+// 设置页面 - 语言提示
+"settings.language.coming_soon.title" = "Coming Soon";
+"settings.language.coming_soon.message" = "We are working hard to support more languages. Stay tuned!";
+
+// 设置页面 - 支持与反馈卡片
+"settings.support.title" = "Support & Feedback";
+"settings.support.suggest_feature" = "Suggest a Feature";
+"settings.support.rate_app" = "Rate SoulPets on the App Store";
+"settings.support.share_app" = "Share SoulPets";
+
+// 设置页面 - 功能建议邮件
+"settings.support.suggest_feature.email_subject" = "Feature Suggestion for SoulPets";
+"settings.support.suggest_feature.email_body" = "Hi SoulPets Team,\n\nI have a suggestion for a new feature:\n\n[Please describe your suggestion here]\n\nThanks for creating such a wonderful app!\n\nBest regards,\n[Your name]";
+
+// 设置页面 - 分享应用
+"settings.support.share_app.text" = "Check out SoulPets - the perfect app for managing your pet's life with complete privacy!";
+
+// 设置页面 - 关于卡片
+"settings.about.title" = "About";
+"settings.about.privacy_policy" = "Privacy Policy";
+"settings.about.terms_of_service" = "Terms of Service";
+"settings.about.version" = "Version";
+
+// 主页缺失的字符串
+"Welcome to SoulPets" = "Welcome to SoulPets";
+"Start by adding your first pet to create their digital profile" = "Start by adding your first pet to create their digital profile";
+"Add Your First Pet" = "Add Your First Pet";
+"Latest Weight" = "Latest Weight"; 
