@@ -8,7 +8,7 @@ struct PetsHomeView: View {
     @State private var showingAddPetSheet = false
     @State private var selectedPetIndex: Int = 0
     @State private var showingEditPetSheet = false
-    @State private var showingPetDetailSheet = false // 新增：显示宠物详情
+    @State private var showingPetDetailSheet = false
     @State private var showingSettingsSheet = false
     @State private var selectedPet: Pet?
     
@@ -28,14 +28,24 @@ struct PetsHomeView: View {
                 VStack(spacing: 0) {
                     if !pets.isEmpty {
                         // 宠物卡片滑动区域
-                        TabView(selection: $selectedPetIndex) {
-                            ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
-                                petCard(pet: pet)
-                                    .tag(index)
+                        GeometryReader { geometry in
+                            TabView(selection: $selectedPetIndex) {
+                                ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
+                                    petCard(pet: pet, geometry: geometry)
+                                        .tag(index)
+                                }
+                            }
+                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                            .onChange(of: selectedPetIndex) { _, newIndex in
+                                // 确保索引有效并更新选中的宠物
+                                print("🐾 selectedPetIndex变化: \(newIndex), pets数量: \(pets.count)")
+                                if newIndex < pets.count {
+                                    selectedPet = pets[newIndex]
+                                    print("🐾 通过索引更新selectedPet: \(selectedPet?.name ?? "nil")")
+                                }
                             }
                         }
-                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                        .frame(height: 480)
+                        .frame(height: min(480, UIScreen.main.bounds.height * 0.6))
                         .padding(.top, 10)
                         
                         // 页面指示器
@@ -86,14 +96,43 @@ struct PetsHomeView: View {
                     }
                 }
             }
-            .onChange(of: pets) { _, newPets in
-                if !newPets.isEmpty && selectedPetIndex >= newPets.count {
+            .onChange(of: pets) { oldPets, newPets in
+                // 当宠物列表发生变化时，更新状态
+                print("🐾 宠物列表变化: \(oldPets.count) -> \(newPets.count)")
+                if newPets.isEmpty {
+                    // 如果没有宠物了，重置状态
+                    print("🐾 没有宠物，重置状态")
+                    selectedPet = nil
                     selectedPetIndex = 0
+                } else {
+                    // 确保选中索引有效
+                    if selectedPetIndex >= newPets.count {
+                        print("🐾 索引超出范围，调整索引: \(selectedPetIndex) -> \(max(0, newPets.count - 1))")
+                        selectedPetIndex = max(0, newPets.count - 1)
+                    }
+                    // 更新选中的宠物
+                    if selectedPetIndex < newPets.count {
+                        selectedPet = newPets[selectedPetIndex]
+                        print("🐾 更新selectedPet为索引\(selectedPetIndex)的宠物: \(selectedPet?.name ?? "nil")")
+                    } else if let firstPet = newPets.first {
+                        selectedPet = firstPet
+                        selectedPetIndex = 0
+                        print("🐾 设置selectedPet为第一只宠物: \(selectedPet?.name ?? "nil")")
+                    }
                 }
             }
             .onAppear {
-                if !pets.isEmpty && selectedPetIndex >= pets.count {
-                    selectedPetIndex = 0
+                // 初始化状态
+                print("🐾 PetsHomeView onAppear，宠物数量: \(pets.count)")
+                if !pets.isEmpty {
+                    if selectedPetIndex >= pets.count {
+                        selectedPetIndex = 0
+                        print("🐾 初始化时调整索引为0")
+                    }
+                    if selectedPet == nil || !pets.contains(where: { $0.id == selectedPet?.id }) {
+                        selectedPet = pets[selectedPetIndex < pets.count ? selectedPetIndex : 0]
+                        print("🐾 初始化selectedPet: \(selectedPet?.name ?? "nil")")
+                    }
                 }
             }
         }
@@ -111,21 +150,26 @@ struct PetsHomeView: View {
                     PetDetailView(pet: pet)
                         .navigationBarTitleDisplayMode(.large)
                         .toolbar {
-                            ToolbarItem(placement: .navigationBarTrailing) {
+                            ToolbarItem(placement: .navigationBarLeading) {
                                 Button("Close") {
                                     showingPetDetailSheet = false
-                                    selectedPet = nil  // 清除选中状态
                                 }
+                                .foregroundColor(accentColor)
                             }
                         }
                 }
                 .onAppear {
-                    print("📱 PetDetailView Sheet 显示，宠物: \(pet.name)")
+                    print("📱 PetDetailView Sheet 显示，宠物: \(pet.name), ID: \(pet.id)")
                 }
             } else {
                 Text("No pet selected")
                     .onAppear {
                         print("❌ PetDetailView Sheet 显示但没有选中的宠物")
+                        print("❌ 当前pets数量: \(pets.count)")
+                        print("❌ 当前selectedPetIndex: \(selectedPetIndex)")
+                        if !pets.isEmpty {
+                            print("❌ pets列表: \(pets.map { "\($0.name)(\($0.id))" })")
+                        }
                         // 如果没有选中宠物，自动关闭sheet
                         DispatchQueue.main.async {
                             showingPetDetailSheet = false
@@ -133,30 +177,29 @@ struct PetsHomeView: View {
                     }
             }
         }
-        .onAppear {
-            // 确保selectedPet状态正确初始化
-            if selectedPet == nil && !pets.isEmpty {
-                selectedPet = pets.first
-            }
-        }
         .sheet(isPresented: $showingSettingsSheet) {
             SettingsView()
         }
     }
     
-    // 优化的宠物卡片设计
-    private func petCard(pet: Pet) -> some View {
-        VStack(spacing: 0) {
+    // 优化的宠物卡片设计 - 支持响应式布局
+    private func petCard(pet: Pet, geometry: GeometryProxy) -> some View {
+        let isLandscape = geometry.size.width > geometry.size.height
+        let cardHeight = isLandscape ? min(geometry.size.height - 40, 400) : min(geometry.size.height - 40, 480)
+        
+        return VStack(spacing: 0) {
             // 卡片主体
-            VStack(spacing: 24) {
+            VStack(spacing: isLandscape ? 16 : 24) {
                 // 头像和基本信息
-                VStack(spacing: 16) {
+                VStack(spacing: isLandscape ? 12 : 16) {
                     // 宠物头像
+                    let avatarSize: CGFloat = isLandscape ? 80 : 100
+                    
                     if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 100, height: 100)
+                            .frame(width: avatarSize, height: avatarSize)
                             .clipShape(Circle())
                             .overlay(
                                 Circle()
@@ -173,10 +216,10 @@ struct PetsHomeView: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: 100, height: 100)
+                                .frame(width: avatarSize, height: avatarSize)
                             
                             Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
-                                .font(.system(size: 40))
+                                .font(.system(size: isLandscape ? 32 : 40))
                                 .foregroundColor(accentColor)
                         }
                         .overlay(
@@ -189,7 +232,7 @@ struct PetsHomeView: View {
                     // 宠物名字和基本信息
                     VStack(spacing: 8) {
                         Text(pet.name)
-                            .font(.title)
+                            .font(isLandscape ? .title2 : .title)
                             .fontWeight(.bold)
                             .foregroundColor(textColor)
                         
@@ -208,46 +251,87 @@ struct PetsHomeView: View {
                         }
                     }
                 }
-                .padding(.top, 24)
+                .padding(.top, isLandscape ? 16 : 24)
                 
                 // 信息卡片区域
-                VStack(spacing: 12) {
-                    // 年龄信息
-                    infoRow(
-                        icon: "birthday.cake.fill",
-                        title: String(localized: "Age"),
-                        value: "\(pet.age.years)y \(pet.age.months)m \(pet.age.days)d"
-                    )
-                    
-                    // 生日信息
-                    infoRow(
-                        icon: "calendar.badge.clock",
-                        title: String(localized: "Next Birthday"),
-                        value: "In \(pet.daysToNextBirthday) days"
-                    )
-                    
-                    // 相伴天数
-                    if let days = pet.daysWithOwner {
+                if isLandscape {
+                    // 横屏时使用水平布局
+                    HStack(spacing: 12) {
+                        VStack(spacing: 8) {
+                            infoRow(
+                                icon: "birthday.cake.fill",
+                                title: String(localized: "Age"),
+                                value: "\(pet.age.years)y \(pet.age.months)m \(pet.age.days)d"
+                            )
+                            
+                            infoRow(
+                                icon: "calendar.badge.clock",
+                                title: String(localized: "Next Birthday"),
+                                value: "In \(pet.daysToNextBirthday) days"
+                            )
+                        }
+                        
+                        VStack(spacing: 8) {
+                            // 相伴天数
+                            if let days = pet.daysWithOwner {
+                                infoRow(
+                                    icon: "heart.fill",
+                                    title: String(localized: "Together for"),
+                                    value: "\(days) days"
+                                )
+                            }
+                            
+                            // 最新体重
+                            infoRow(
+                                icon: "scalemass.fill",
+                                title: String(localized: "Latest Weight"),
+                                value: latestWeightText(for: pet)
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                } else {
+                    // 竖屏时使用垂直布局
+                    VStack(spacing: 12) {
+                        // 年龄信息
                         infoRow(
-                            icon: "heart.fill",
-                            title: String(localized: "Together for"),
-                            value: "\(days) days"
+                            icon: "birthday.cake.fill",
+                            title: String(localized: "Age"),
+                            value: "\(pet.age.years)y \(pet.age.months)m \(pet.age.days)d"
+                        )
+                        
+                        // 生日信息
+                        infoRow(
+                            icon: "calendar.badge.clock",
+                            title: String(localized: "Next Birthday"),
+                            value: "In \(pet.daysToNextBirthday) days"
+                        )
+                        
+                        // 相伴天数
+                        if let days = pet.daysWithOwner {
+                            infoRow(
+                                icon: "heart.fill",
+                                title: String(localized: "Together for"),
+                                value: "\(days) days"
+                            )
+                        }
+                        
+                        // 最新体重
+                        infoRow(
+                            icon: "scalemass.fill",
+                            title: String(localized: "Latest Weight"),
+                            value: latestWeightText(for: pet)
                         )
                     }
-                    
-                    // 最新体重
-                    infoRow(
-                        icon: "scalemass.fill",
-                        title: String(localized: "Latest Weight"),
-                        value: latestWeightText(for: pet)
-                    )
+                    .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
                 
                 // 查看详情按钮
                 Button(action: {
                     selectedPet = pet
-                    print("🔍 点击View Profile按钮，选中宠物: \(pet.name)")
+                    print("🔍 点击View Profile按钮，选中宠物: \(pet.name), ID: \(pet.id)")
+                    print("🔍 当前selectedPet: \(selectedPet?.name ?? "nil")")
+                    print("🔍 当前pets数量: \(pets.count)")
                     showingPetDetailSheet = true
                 }) {
                     HStack(spacing: 8) {
@@ -259,7 +343,7 @@ struct PetsHomeView: View {
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(.white)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, isLandscape ? 12 : 14)
                     .padding(.horizontal, 32)
                     .background(
                         RoundedRectangle(cornerRadius: 25)
@@ -274,7 +358,7 @@ struct PetsHomeView: View {
                     .shadow(color: accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 24)
+                .padding(.bottom, isLandscape ? 16 : 24)
             }
             .background(
                 RoundedRectangle(cornerRadius: 20)
@@ -282,6 +366,7 @@ struct PetsHomeView: View {
                     .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: 8)
             )
         }
+        .frame(height: cardHeight)
         .padding(.horizontal, 16)
     }
     

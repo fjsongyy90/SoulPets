@@ -61,18 +61,20 @@ struct PetDetailView: View {
                 }
                 
                 // 健康信息卡片
-                if !pet.microchipID.isEmpty || !pet.insurancePolicyNo.isEmpty {
-                    infoCard(title: "Health Information") {
-                        if !pet.microchipID.isEmpty {
-                            infoRow(label: "Microchip ID", value: pet.microchipID)
-                        }
-                        
-                        if !pet.insurancePolicyNo.isEmpty {
-                            infoRow(label: "Insurance Policy No.", value: pet.insurancePolicyNo)
-                        }
-                        
-                        infoRow(label: "Weight Unit", value: pet.weightUnitPreference.rawValue)
+                infoCard(title: "Health Information") {
+                    if !pet.microchipID.isEmpty {
+                        infoRow(label: "Microchip ID", value: pet.microchipID)
+                    } else {
+                        infoRow(label: "Microchip ID", value: "Not set")
                     }
+                    
+                    if !pet.insurancePolicyNo.isEmpty {
+                        infoRow(label: "Insurance Policy No.", value: pet.insurancePolicyNo)
+                    } else {
+                        infoRow(label: "Insurance Policy No.", value: "Not set")
+                    }
+                    
+                    infoRow(label: "Weight Unit", value: pet.weightUnitPreference.rawValue)
                 }
             }
             .padding()
@@ -80,8 +82,8 @@ struct PetDetailView: View {
         .background(backgroundColor.ignoresSafeArea())
         .navigationTitle(pet.name)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarItems(
-            trailing: HStack {
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button(action: {
                         showingEditSheet = true
@@ -96,20 +98,24 @@ struct PetDetailView: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
+                        .foregroundColor(accentColor)
+                        .font(.system(size: 18))
                 }
             }
-        )
+        }
         .sheet(isPresented: $showingEditSheet) {
             EditPetView(pet: pet)
         }
-        .alert("Delete Pet", isPresented: $showingDeleteAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
+        .customConfirmAlert(
+            title: "Delete Pet",
+            message: "Are you sure you want to delete \(pet.name)? This action cannot be undone.",
+            isPresented: $showingDeleteAlert,
+            confirmTitle: "Delete",
+            confirmAction: {
                 deletePet()
-            }
-        } message: {
-            Text("Are you sure you want to delete \(pet.name)? This action cannot be undone.")
-        }
+            },
+            isDestructive: true
+        )
     }
     
     // 宠物头像部分
@@ -176,12 +182,16 @@ struct PetDetailView: View {
         .padding(.vertical, 4)
     }
     
-    // 删除宠物
+    // 删除宠物 - 优化删除逻辑
     private func deletePet() {
         do {
             modelContext.delete(pet)
             try modelContext.save()
-            dismiss()
+            
+            // 延迟关闭，确保删除操作先完成
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                dismiss()
+            }
         } catch {
             print("Error deleting pet: \(error.localizedDescription)")
         }

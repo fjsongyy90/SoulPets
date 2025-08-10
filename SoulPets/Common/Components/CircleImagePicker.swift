@@ -8,6 +8,7 @@ struct CircleImagePicker: View {
     
     var size: CGFloat = 120
     var placeholderSystemName: String = "pawprint.circle.fill"
+    var accentColor: Color = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     var body: some View {
         VStack {
@@ -28,11 +29,11 @@ struct CircleImagePicker: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: size / 2)
-                            .foregroundColor(Color("AccentColor"))
+                            .foregroundColor(accentColor)
                     }
                     
                     Circle()
-                        .stroke(Color("AccentColor"), lineWidth: 2)
+                        .stroke(accentColor, lineWidth: 2)
                         .frame(width: size, height: size)
                 }
             }
