@@ -134,14 +134,112 @@ class PetService {
     
     /// 删除宠物
     static func deletePet(pet: Pet, modelContext: ModelContext) {
+        // 1. 删除与该宠物相关的所有记录
+        let recordDescriptor = FetchDescriptor<Record>()
+        do {
+            let allRecords = try modelContext.fetch(recordDescriptor)
+            let petRecords = allRecords.filter { record in
+                record.pets?.contains { $0.id == pet.id } == true
+            }
+            
+            for record in petRecords {
+                // 如果记录只关联这一只宠物，直接删除记录（RecordPhoto会级联删除）
+                if record.pets?.count == 1 {
+                    modelContext.delete(record)
+                } else {
+                    // 如果记录关联多只宠物，只移除当前宠物的关联
+                    record.pets?.removeAll { $0.id == pet.id }
+                }
+            }
+            logger.info("成功处理\(pet.name)相关的\(petRecords.count)条记录")
+        } catch {
+            logger.error("删除宠物记录时出错: \(error.localizedDescription)")
+        }
+        
+        // 2. 删除与该宠物相关的所有提醒
+        let reminderDescriptor = FetchDescriptor<Reminder>()
+        do {
+            let allReminders = try modelContext.fetch(reminderDescriptor)
+            let petReminders = allReminders.filter { reminder in
+                reminder.pets?.contains { $0.id == pet.id } == true
+            }
+            
+            for reminder in petReminders {
+                // 如果提醒只关联这一只宠物，先清理通知再删除提醒（包括其完成记录）
+                if reminder.pets?.count == 1 {
+                    // 清理与该提醒相关的所有通知
+                    NotificationService.removeNotificationsForReminder(reminderId: reminder.id)
+                    modelContext.delete(reminder)
+                } else {
+                    // 如果提醒关联多只宠物，只移除当前宠物的关联
+                    // 同时需要清理该宠物的特定通知
+                    let notificationId = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)"
+                    NotificationService.removeNotification(withIdentifier: notificationId)
+                    reminder.pets?.removeAll { $0.id == pet.id }
+                }
+            }
+            logger.info("成功处理\(pet.name)相关的\(petReminders.count)条提醒")
+        } catch {
+            logger.error("删除宠物提醒时出错: \(error.localizedDescription)")
+        }
+        
+        // 3. 删除宠物本身（体重数据会通过cascade自动删除）
         modelContext.delete(pet)
         
         do {
             try modelContext.save()
-            logger.info("成功删除宠物: \(pet.name)")
+            logger.info("成功删除宠物及其所有相关数据: \(pet.name)")
         } catch {
             logger.error("删除宠物时出错: \(error.localizedDescription)")
         }
+    }
+    
+    /// 删除所有数据
+    private static func deleteAllData(in modelContext: ModelContext) throws {
+        // 删除所有记录完成
+        let reminderCompletionDescriptor = FetchDescriptor<ReminderCompletion>()
+        let reminderCompletions = try modelContext.fetch(reminderCompletionDescriptor)
+        for completion in reminderCompletions {
+            modelContext.delete(completion)
+        }
+        
+        // 删除所有提醒
+        let reminderDescriptor = FetchDescriptor<Reminder>()
+        let reminders = try modelContext.fetch(reminderDescriptor)
+        for reminder in reminders {
+            modelContext.delete(reminder)
+        }
+        
+        // 删除所有记录（RecordPhoto会自动级联删除）
+        let recordDescriptor = FetchDescriptor<Record>()
+        let records = try modelContext.fetch(recordDescriptor)
+        for record in records {
+            modelContext.delete(record)
+        }
+        
+        // 删除所有体重目标
+        let weightGoalDescriptor = FetchDescriptor<WeightGoal>()
+        let weightGoals = try modelContext.fetch(weightGoalDescriptor)
+        for goal in weightGoals {
+            modelContext.delete(goal)
+        }
+        
+        // 删除所有体重记录
+        let weightDescriptor = FetchDescriptor<Weight>()
+        let weights = try modelContext.fetch(weightDescriptor)
+        for weight in weights {
+            modelContext.delete(weight)
+        }
+        
+        // 删除所有宠物
+        let petDescriptor = FetchDescriptor<Pet>()
+        let pets = try modelContext.fetch(petDescriptor)
+        for pet in pets {
+            modelContext.delete(pet)
+        }
+        
+        // 保存更改
+        try modelContext.save()
     }
     
     /// 为宠物生日创建提醒

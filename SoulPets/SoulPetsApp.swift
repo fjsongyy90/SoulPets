@@ -15,16 +15,7 @@ struct SoulPetsApp: App {
     private let startTime = Date()
     
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Pet.self,
-            Record.self,
-            RecordPhoto.self,
-            Tag.self,
-            Weight.self,
-            WeightGoal.self,
-            Reminder.self,
-            ReminderCompletion.self
-        ])
+        let schema = Schema(ModelRegistration.models)
         
         // 配置数据迁移选项 - 暂时使用删除存储的方式解决迁移问题
         let modelConfiguration = ModelConfiguration(

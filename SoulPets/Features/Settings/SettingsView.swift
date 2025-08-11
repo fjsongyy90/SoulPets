@@ -5,22 +5,16 @@ import os.log
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Query private var userSettings: [UserSettings]
+    @StateObject private var userSettings = UserSettings.shared
     
     @State private var showingLanguageAlert = false
     @State private var selectedAppearance: AppearanceMode = .system
     
-    private var currentSettings: UserSettings {
-        if let settings = userSettings.first {
-            return settings
-        } else {
-            // 如果没有设置记录，创建一个新的
-            let newSettings = UserSettings()
-            modelContext.insert(newSettings)
-            try? modelContext.save()
-            return newSettings
-        }
-    }
+    // Debug功能相关状态
+    @State private var showingResetDataAlert = false
+    @State private var showingResetOptionsSheet = false
+    @State private var selectedResetOptions: Set<SettingsService.ResetDataOption> = []
+    @State private var showingResetSuccessAlert = false
     
     var body: some View {
         NavigationStack {
@@ -31,6 +25,11 @@ struct SettingsView: View {
                     
                     // MARK: - 支持与反馈卡片
                     supportFeedbackCard
+                    
+                    // MARK: - Debug卡片（仅Debug模式）
+                    if SettingsService.isDebugMode {
+                        debugCard
+                    }
                     
                     // MARK: - 关于卡片
                     aboutCard
@@ -53,12 +52,30 @@ struct SettingsView: View {
             }
         }
         .onAppear {
-            selectedAppearance = currentSettings.appearance
+            selectedAppearance = userSettings.appearance
         }
         .alert(String(localized: "settings.language.coming_soon.title"), isPresented: $showingLanguageAlert) {
             Button(String(localized: "common.ok"), role: .cancel) { }
         } message: {
             Text(String(localized: "settings.language.coming_soon.message"))
+        }
+        .sheet(isPresented: $showingResetOptionsSheet) {
+            resetDataOptionsSheet
+        }
+        .alert(String(localized: "settings.debug.reset.confirm.title"), isPresented: $showingResetDataAlert) {
+            Button(String(localized: "common.cancel"), role: .cancel) {
+                selectedResetOptions = []
+            }
+            Button(String(localized: "settings.debug.reset.confirm.action"), role: .destructive) {
+                performDataReset()
+            }
+        } message: {
+            Text(String(localized: "settings.debug.reset.confirm.message"))
+        }
+        .alert(String(localized: "settings.debug.reset.success.title"), isPresented: $showingResetSuccessAlert) {
+            Button(String(localized: "common.ok"), role: .cancel) { }
+        } message: {
+            Text(String(localized: "settings.debug.reset.success.message"))
         }
     }
     
@@ -228,6 +245,51 @@ struct SettingsView: View {
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
     
+    // MARK: - Debug卡片
+    private var debugCard: some View {
+        VStack(spacing: 0) {
+            // 卡片标题
+            HStack {
+                Text(String(localized: "settings.debug.title"))
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+            
+            // 设置项列表
+            VStack(spacing: 1) {
+                // 重置数据
+                SettingsRowView(
+                    icon: "arrow.clockwise",
+                    title: String(localized: "settings.debug.reset_data"),
+                    showChevron: true,
+                    action: {
+                        selectedResetOptions = [] // 清空已选选项
+                        showingResetOptionsSheet = true
+                    }
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // 版本信息
+                SettingsRowView(
+                    icon: "info.circle",
+                    title: String(localized: "settings.about.version"),
+                    rightText: SettingsService.appVersion,
+                    showChevron: false
+                )
+            }
+            .padding(.bottom, 16)
+        }
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+    
     // MARK: - 关于卡片
     private var aboutCard: some View {
         VStack(spacing: 0) {
@@ -287,21 +349,13 @@ struct SettingsView: View {
     
     // MARK: - 私有方法
     private func updateAppearance(_ appearance: AppearanceMode) {
-        let settings = currentSettings
-        settings.appearance = appearance
-        settings.updatedAt = Date()
+        // 更新UserSettings
+        userSettings.appearance = appearance
+        selectedAppearance = appearance
         
-        do {
-            try modelContext.save()
-            
-            // 立即应用外观更改
-            DispatchQueue.main.async {
-                applyAppearanceToWindow(appearance)
-            }
-        } catch {
-            // 使用结构化日志
-            let logger = Logger(subsystem: "com.soulpets.app", category: "Settings")
-            logger.error("Failed to save appearance setting: \(error.localizedDescription)")
+        // 立即应用外观更改
+        DispatchQueue.main.async {
+            applyAppearanceToWindow(appearance)
         }
     }
     
@@ -331,9 +385,114 @@ struct SettingsView: View {
             return "gear"
         }
     }
+    
+    // MARK: - Debug相关方法
+    
+    /// 重置数据选项选择Sheet
+    private var resetDataOptionsSheet: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // 说明文本
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(String(localized: "settings.debug.reset.description"))
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.leading)
+                    
+                    Text(String(localized: "settings.debug.reset.warning"))
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.leading)
+                }
+                .padding()
+                .background(Color(hex: "FDFBF8"))
+                
+                // 选项列表
+                List {
+                    ForEach(SettingsService.ResetDataOption.allCases, id: \.self) { option in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(option.localizedTitle)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                
+                                Text(option.description)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            if selectedResetOptions.contains(option) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(Color(hex: "E5B487"))
+                            } else {
+                                Image(systemName: "circle")
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedResetOptions.contains(option) {
+                                selectedResetOptions.remove(option)
+                            } else {
+                                selectedResetOptions.insert(option)
+                            }
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+            .navigationTitle(String(localized: "settings.debug.reset_data"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(String(localized: "common.cancel")) {
+                        showingResetOptionsSheet = false
+                        selectedResetOptions = []
+                    }
+                    .foregroundColor(Color(hex: "E5B487"))
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(String(localized: "settings.debug.reset.confirm")) {
+                        showingResetOptionsSheet = false
+                        showingResetDataAlert = true
+                    }
+                    .foregroundColor(selectedResetOptions.isEmpty ? .gray : .red)
+                    .disabled(selectedResetOptions.isEmpty)
+                }
+            }
+        }
+    }
+    
+    /// 执行数据重置
+    private func performDataReset() {
+        Task {
+            do {
+                // 在后台线程执行数据重置
+                try await Task.sleep(nanoseconds: 100_000_000) // 短暂延迟确保UI更新
+                
+                // 执行重置操作
+                SettingsService.resetData(options: selectedResetOptions, modelContext: modelContext)
+                
+                // 在主线程更新UI
+                await MainActor.run {
+                    selectedResetOptions = []
+                    showingResetSuccessAlert = true
+                }
+                
+            } catch {
+                await MainActor.run {
+                    selectedResetOptions = []
+                    // 可以在这里添加错误提示
+                    print("重置数据时出错: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
 }
 
 #Preview {
     SettingsView()
-        .modelContainer(for: UserSettings.self, inMemory: true)
 } 

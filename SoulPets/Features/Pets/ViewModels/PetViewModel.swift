@@ -173,8 +173,8 @@ class PetViewModel: ObservableObject {
     func deletePet(_ pet: Pet) throws {
         do {
             logger.info("开始删除宠物档案: \(pet.id.uuidString)")
-            modelContext.delete(pet)
-            try modelContext.save()
+            // 使用PetService的删除方法，正确处理多对多关系和通知清理
+            PetService.deletePet(pet: pet, modelContext: modelContext)
             logger.info("成功删除宠物档案")
         } catch {
             logger.error("删除宠物失败: \(error.localizedDescription)")

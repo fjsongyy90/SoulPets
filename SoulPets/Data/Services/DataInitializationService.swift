@@ -21,28 +21,9 @@ class DataInitializationService {
     
     /// 初始化用户设置
     private static func initializeUserSettings(modelContext: ModelContext) {
-        // 检查是否已有用户设置
-        let descriptor = FetchDescriptor<UserSettings>()
-        
-        do {
-            let existingSettings = try modelContext.fetch(descriptor)
-            if !existingSettings.isEmpty {
-                logger.info("已存在用户设置，跳过初始化")
-                return
-            }
-            
-            // 创建默认用户设置
-            let defaultSettings = UserSettings(
-                appearance: .system,
-                userName: nil,
-                iCloudSyncEnabled: true
-            )
-            
-            modelContext.insert(defaultSettings)
-            try modelContext.save()
-            logger.info("成功创建默认用户设置")
-        } catch {
-            logger.error("初始化用户设置时发生错误: \(error.localizedDescription)")
-        }
+        // UserSettings现在使用UserDefaults存储，会在第一次访问时自动初始化
+        // 这里只需要确保UserSettings.shared被初始化即可
+        _ = UserSettings.shared
+        logger.info("用户设置已初始化（使用UserDefaults）")
     }
 } 

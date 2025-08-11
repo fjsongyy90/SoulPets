@@ -107,10 +107,10 @@ struct PetDetailView: View {
             EditPetView(pet: pet)
         }
         .customConfirmAlert(
-            title: "Delete Pet",
-            message: "Are you sure you want to delete \(pet.name)? This action cannot be undone.",
+            title: String(localized: "delete_pet.title"),
+            message: String(localized: "delete_pet.message"),
             isPresented: $showingDeleteAlert,
-            confirmTitle: "Delete",
+            confirmTitle: String(localized: "delete_pet.confirm"),
             confirmAction: {
                 deletePet()
             },
@@ -182,18 +182,13 @@ struct PetDetailView: View {
         .padding(.vertical, 4)
     }
     
-    // 删除宠物 - 优化删除逻辑
+    // 删除宠物 - 使用PetService处理删除逻辑
     private func deletePet() {
-        do {
-            modelContext.delete(pet)
-            try modelContext.save()
-            
-            // 延迟关闭，确保删除操作先完成
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                dismiss()
-            }
-        } catch {
-            print("Error deleting pet: \(error.localizedDescription)")
+        PetService.deletePet(pet: pet, modelContext: modelContext)
+        
+        // 延迟关闭，确保删除操作先完成
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            dismiss()
         }
     }
 } 

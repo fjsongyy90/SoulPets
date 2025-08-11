@@ -83,6 +83,11 @@
 "Delete" = "Delete";
 "Cancel" = "Cancel";
 
+// 删除宠物 - 详细确认
+"delete_pet.title" = "Delete Pet";
+"delete_pet.message" = "Deleting this pet will permanently remove all of their reminders, records, and weight data. This action cannot be undone.";
+"delete_pet.confirm" = "Delete";
+
 // 未保存更改提示
 "Unsaved Changes" = "Unsaved Changes";
 "You have unsaved changes. Would you like to save them?" = "You have unsaved changes. Would you like to save them?";
@@ -292,6 +297,24 @@
 "settings.about.privacy_policy" = "Privacy Policy";
 "settings.about.terms_of_service" = "Terms of Service";
 "settings.about.version" = "Version";
+
+// 设置页面 - Debug功能（仅Debug模式）
+"settings.debug.title" = "Debug Tools";
+"settings.debug.reset_data" = "Reset Data";
+"settings.debug.reset.userdefaults" = "UserDefaults";
+"settings.debug.reset.database" = "Database";
+"settings.debug.reset.cache" = "Cache Files";
+"settings.debug.reset.userdefaults.description" = "Clear all app preferences and settings";
+"settings.debug.reset.database.description" = "Delete all pets, records, reminders and weight data";
+"settings.debug.reset.cache.description" = "Clear temporary files and cached data";
+"settings.debug.reset.description" = "Select the data types you want to reset. This action is irreversible.";
+"settings.debug.reset.warning" = "⚠️ This feature is for development and testing only.";
+"settings.debug.reset.confirm" = "Reset";
+"settings.debug.reset.confirm.title" = "Reset Data";
+"settings.debug.reset.confirm.message" = "Are you sure you want to reset the selected data? This action cannot be undone.";
+"settings.debug.reset.confirm.action" = "Reset Now";
+"settings.debug.reset.success.title" = "Reset Complete";
+"settings.debug.reset.success.message" = "The selected data has been successfully reset.";
 
 // 主页缺失的字符串
 "Welcome to SoulPets" = "Welcome to SoulPets";

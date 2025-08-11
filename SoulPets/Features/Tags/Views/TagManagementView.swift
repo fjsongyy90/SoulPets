@@ -245,7 +245,7 @@ struct TagManagementView: View {
 
 #Preview {
     // 创建预览用的ModelContext
-    let schema = Schema([Pet.self, Tag.self, Record.self, RecordPhoto.self, Weight.self, Reminder.self, ReminderCompletion.self])
+    let schema = Schema(ModelRegistration.models)
     let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: [modelConfiguration])
     

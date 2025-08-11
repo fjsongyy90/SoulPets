@@ -49,7 +49,7 @@ final class RecordPhoto {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship(deleteRule: .nullify)
+    @Relationship(deleteRule: .cascade)
     var record: Record
     
     // MARK: - 初始化

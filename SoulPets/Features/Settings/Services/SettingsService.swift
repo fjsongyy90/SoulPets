@@ -2,9 +2,13 @@ import Foundation
 import UIKit
 import StoreKit
 import MessageUI
+import SwiftData
+import os.log
 
 /// 设置服务类，处理所有设置相关的业务逻辑
 final class SettingsService {
+    
+    private static let logger = Logger(subsystem: "com.soulpets.app", category: "SettingsService")
     
     // MARK: - 静态属性
     
@@ -29,6 +33,15 @@ final class SettingsService {
         return "\(appVersion) (\(buildVersion))"
     }
     
+    /// 检查是否为Debug模式
+    static var isDebugMode: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+    
     // MARK: - 通用设置
     
     /// 打开系统通知设置
@@ -39,6 +52,187 @@ final class SettingsService {
         
         if UIApplication.shared.canOpenURL(settingsUrl) {
             UIApplication.shared.open(settingsUrl)
+        }
+    }
+    
+    // MARK: - Debug功能：重置数据
+    
+    /// 重置数据选项
+    enum ResetDataOption: String, CaseIterable {
+        case userDefaults = "UserDefaults"
+        case database = "Database"
+        case cacheFiles = "Cache Files"
+        
+        var localizedTitle: String {
+            switch self {
+            case .userDefaults:
+                return String(localized: "settings.debug.reset.userdefaults")
+            case .database:
+                return String(localized: "settings.debug.reset.database")
+            case .cacheFiles:
+                return String(localized: "settings.debug.reset.cache")
+            }
+        }
+        
+        var description: String {
+            switch self {
+            case .userDefaults:
+                return String(localized: "settings.debug.reset.userdefaults.description")
+            case .database:
+                return String(localized: "settings.debug.reset.database.description")
+            case .cacheFiles:
+                return String(localized: "settings.debug.reset.cache.description")
+            }
+        }
+    }
+    
+    /// 执行重置操作
+    static func resetData(options: Set<ResetDataOption>, modelContext: ModelContext? = nil) {
+        guard isDebugMode else {
+            logger.warning("重置数据功能只能在Debug模式下使用")
+            return
+        }
+        
+        logger.info("开始重置数据，选项: \(options.map { $0.rawValue }.joined(separator: ", "))")
+        
+        for option in options {
+            switch option {
+            case .userDefaults:
+                resetUserDefaults()
+            case .database:
+                resetDatabase(modelContext: modelContext)
+            case .cacheFiles:
+                resetCacheFiles()
+            }
+        }
+        
+        // 如果重置了数据库，重新初始化预设数据
+        if options.contains(.database), let modelContext = modelContext {
+            logger.info("重新初始化预设数据")
+            Task { @MainActor in
+                await ModelRegistration.initializeDatabase(modelContext: modelContext)
+                logger.info("预设数据重新初始化完成")
+            }
+        }
+        
+        logger.info("数据重置完成")
+    }
+    
+    /// 重置UserDefaults
+    private static func resetUserDefaults() {
+        guard let bundleID = Bundle.main.bundleIdentifier else {
+            logger.error("无法获取Bundle ID")
+            return
+        }
+        
+        do {
+            // 使用新的UserSettings清理方法
+            UserSettings.clearAllSettings()
+            
+            // 清理应用的所有UserDefaults数据
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            UserDefaults.standard.synchronize()
+            
+            logger.info("UserDefaults 重置成功")
+        } catch {
+            logger.error("重置UserDefaults时出错: \(error.localizedDescription)")
+        }
+    }
+    
+    /// 重置数据库
+    private static func resetDatabase(modelContext: ModelContext?) {
+        guard let modelContext = modelContext else {
+            logger.error("ModelContext 为空，无法重置数据库")
+            return
+        }
+        
+        do {
+            // 删除所有数据
+            try deleteAllData(in: modelContext)
+            logger.info("数据库重置成功")
+        } catch {
+            logger.error("重置数据库时出错: \(error.localizedDescription)")
+        }
+    }
+    
+    /// 删除所有数据
+    private static func deleteAllData(in modelContext: ModelContext) throws {
+        logger.info("开始删除所有数据")
+        
+        // 使用批量删除，一次性删除每种类型的所有实体
+        
+        // 删除所有记录完成
+        logger.info("删除提醒完成记录...")
+        try modelContext.delete(model: ReminderCompletion.self)
+        logger.info("提醒完成记录删除完成")
+        
+        // 删除所有记录照片
+        logger.info("删除记录照片...")
+        try modelContext.delete(model: RecordPhoto.self)
+        logger.info("记录照片删除完成")
+        
+        // 删除所有记录
+        logger.info("删除记录...")
+        try modelContext.delete(model: Record.self)
+        logger.info("记录删除完成")
+        
+        // 删除所有提醒
+        logger.info("删除提醒...")
+        try modelContext.delete(model: Reminder.self)
+        logger.info("提醒删除完成")
+        
+        // 删除所有体重目标
+        logger.info("删除体重目标...")
+        try modelContext.delete(model: WeightGoal.self)
+        logger.info("体重目标删除完成")
+        
+        // 删除所有体重记录
+        logger.info("删除体重记录...")
+        try modelContext.delete(model: Weight.self)
+        logger.info("体重记录删除完成")
+        
+        // 删除所有宠物
+        logger.info("删除宠物...")
+        try modelContext.delete(model: Pet.self)
+        logger.info("宠物删除完成")
+        
+        // 删除所有标签
+        logger.info("删除标签...")
+        try modelContext.delete(model: Tag.self)
+        logger.info("标签删除完成")
+        
+        // 最终保存
+        try modelContext.save()
+        logger.info("所有数据删除完成")
+    }
+    
+    /// 重置缓存文件
+    private static func resetCacheFiles() {
+        let fileManager = FileManager.default
+        
+        // 清理缓存目录
+        if let cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first {
+            do {
+                let cacheContents = try fileManager.contentsOfDirectory(at: cacheDirectory, includingPropertiesForKeys: nil)
+                for cacheFile in cacheContents {
+                    try fileManager.removeItem(at: cacheFile)
+                }
+                logger.info("缓存文件清理成功")
+            } catch {
+                logger.error("清理缓存文件时出错: \(error.localizedDescription)")
+            }
+        }
+        
+        // 清理临时目录
+        let tempDirectory = fileManager.temporaryDirectory
+        do {
+            let tempContents = try fileManager.contentsOfDirectory(at: tempDirectory, includingPropertiesForKeys: nil)
+            for tempFile in tempContents {
+                try? fileManager.removeItem(at: tempFile)
+            }
+            logger.info("临时文件清理成功")
+        } catch {
+            logger.error("清理临时文件时出错: \(error.localizedDescription)")
         }
     }
     

@@ -1,21 +1,8 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - 设置页预览
 #Preview("设置页面") {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: UserSettings.self, configurations: config)
-    
-    // 添加测试用户设置
-    let userSettings = UserSettings(
-        appearance: .system,
-        userName: "测试用户",
-        iCloudSyncEnabled: true
-    )
-    container.mainContext.insert(userSettings)
-    
-    return SettingsView()
-        .modelContainer(container)
+    SettingsView()
 }
 
 #Preview("设置行组件 - 基础") {
