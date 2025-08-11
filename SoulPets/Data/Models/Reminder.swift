@@ -7,6 +7,20 @@ enum RepeatUnit: String, Codable, CaseIterable {
     case weekly = "Weekly"
     case monthly = "Monthly"
     case yearly = "Yearly"
+    
+    /// 获取对应的 Calendar.Component
+    var calendarComponent: Calendar.Component {
+        switch self {
+        case .daily:
+            return .day
+        case .weekly:
+            return .weekOfYear
+        case .monthly:
+            return .month
+        case .yearly:
+            return .year
+        }
+    }
 }
 
 @Model

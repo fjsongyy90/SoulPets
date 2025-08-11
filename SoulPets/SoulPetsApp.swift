@@ -71,11 +71,40 @@ struct SoulPetsApp: App {
                     let launchTime = Date().timeIntervalSince(startTime)
                     logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
                     
+                    // 请求通知权限
+                    requestNotificationPermission()
+                    
                     // 在后台线程初始化数据库
                     Task {
                         try? await initializeDatabase()
                     }
                 }
+        }
+    }
+    
+    // MARK: - 请求通知权限
+    private func requestNotificationPermission() {
+        // 先检查当前权限状态
+        NotificationService.checkAuthorizationStatus { status in
+            switch status {
+            case .notDetermined:
+                // 如果用户还未决定，则请求权限
+                NotificationService.requestAuthorization { granted in
+                    DispatchQueue.main.async {
+                        if granted {
+                            self.logger.info("🔔 用户授予了通知权限")
+                        } else {
+                            self.logger.warning("🔕 用户拒绝了通知权限")
+                        }
+                    }
+                }
+            case .denied:
+                logger.warning("🔕 用户已拒绝通知权限")
+            case .authorized, .provisional, .ephemeral:
+                logger.info("🔔 通知权限已授权")
+            @unknown default:
+                logger.warning("🔔 未知的通知权限状态: \(status.rawValue)")
+            }
         }
     }
     

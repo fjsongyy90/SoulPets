@@ -36,8 +36,85 @@ class NotificationService {
     
     /// 为提醒创建本地通知
     static func scheduleReminderNotification(reminder: Reminder, pet: Pet) {
-        // 获取标签名称，如果为空则使用默认值
-        let tagName = reminder.tag.name.isEmpty ? "提醒" : reminder.tag.name
+        // 首先检查通知权限
+        checkAuthorizationStatus { status in
+            guard status == .authorized || status == .provisional else {
+                logger.warning("通知权限未授权，无法创建通知。当前状态: \(status.rawValue)")
+                return
+            }
+            
+            // 获取标签名称，如果为空则使用默认值
+            let tagName = reminder.tag.name.isEmpty ? String(localized: "reminder.default_title") : reminder.tag.name
+            
+            // 构建通知内容
+            let content = UNMutableNotificationContent()
+            content.title = "\(pet.name): \(tagName)"
+            
+            if let notes = reminder.notes, !notes.isEmpty {
+                content.body = notes
+            } else {
+                content.body = String(localized: "notification.reminder_body", defaultValue: "是时候给\(pet.name)进行\(tagName)了")
+            }
+            
+            content.sound = .default
+            
+            // 为通知设置唯一标识符
+            let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)"
+            
+            // 设置触发器
+            let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminder.startDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+            
+            // 创建通知请求
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+            
+            // 添加通知请求到通知中心
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    logger.error("添加通知失败: \(error.localizedDescription)")
+                } else {
+                    logger.info("成功为\(pet.name)的\(tagName)添加通知，ID: \(identifier)")
+                    logger.debug("通知将在 \(reminder.startDate) 触发")
+                }
+            }
+        }
+    }
+    
+    /// 为重复提醒创建多个通知（用于处理重复提醒）
+    static func scheduleRepeatingReminderNotifications(reminder: Reminder, pet: Pet, maxNotifications: Int = 10) {
+        // 首先检查通知权限
+        checkAuthorizationStatus { status in
+            guard status == .authorized || status == .provisional else {
+                logger.warning("通知权限未授权，无法创建重复通知。当前状态: \(status.rawValue)")
+                return
+            }
+            
+            guard let repeatInterval = reminder.repeatInterval,
+                  let repeatUnit = reminder.repeatUnit else {
+                // 如果不是重复提醒，则只创建一次性通知
+                scheduleReminderNotification(reminder: reminder, pet: pet)
+                return
+            }
+            
+            let calendar = Calendar.current
+            
+            // 创建多个未来的通知实例（最多10个）
+            for i in 0..<maxNotifications {
+                if let nextDate = calendar.date(byAdding: repeatUnit.calendarComponent, value: repeatInterval * i, to: reminder.startDate) {
+                    // 只为未来的日期创建通知
+                    if nextDate > Date() {
+                        scheduleIndividualNotification(reminder: reminder, pet: pet, triggerDate: nextDate, instanceIndex: i)
+                    }
+                } else {
+                    break
+                }
+            }
+        }
+    }
+    
+    /// 创建单个通知实例
+    private static func scheduleIndividualNotification(reminder: Reminder, pet: Pet, triggerDate: Date, instanceIndex: Int) {
+        let tagName = reminder.tag.name.isEmpty ? String(localized: "reminder.default_title") : reminder.tag.name
         
         // 构建通知内容
         let content = UNMutableNotificationContent()
@@ -46,16 +123,16 @@ class NotificationService {
         if let notes = reminder.notes, !notes.isEmpty {
             content.body = notes
         } else {
-            content.body = "是时候给\(pet.name)进行\(tagName)了"
+            content.body = String(localized: "notification.reminder_body", defaultValue: "是时候给\(pet.name)进行\(tagName)了")
         }
         
         content.sound = .default
         
-        // 为通知设置唯一标识符
-        let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)"
+        // 为通知设置唯一标识符（包含实例索引）
+        let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)-\(instanceIndex)"
         
         // 设置触发器
-        let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminder.startDate)
+        let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         
         // 创建通知请求
@@ -64,9 +141,9 @@ class NotificationService {
         // 添加通知请求到通知中心
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                logger.error("添加通知失败: \(error.localizedDescription)")
+                logger.error("添加重复通知失败: \(error.localizedDescription)")
             } else {
-                logger.info("成功为\(pet.name)的\(tagName)添加通知，ID: \(identifier)")
+                logger.info("成功为\(pet.name)的\(tagName)添加重复通知，ID: \(identifier)，触发时间: \(triggerDate)")
             }
         }
     }
@@ -97,5 +174,17 @@ class NotificationService {
     static func removeAllPendingNotifications() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         logger.info("移除了所有待处理的通知")
+    }
+    
+    /// 获取所有待处理的通知（用于调试）
+    static func logPendingNotifications() {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            logger.info("当前待处理的通知数量: \(requests.count)")
+            for request in requests {
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger {
+                    logger.debug("通知ID: \(request.identifier), 触发时间: \(String(describing: trigger.nextTriggerDate()))")
+                }
+            }
+        }
     }
 } 

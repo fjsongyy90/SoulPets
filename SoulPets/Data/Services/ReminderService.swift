@@ -122,8 +122,19 @@ class ReminderService {
         
         // 为每个关联的宠物创建通知
         for pet in pets {
-            NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
+            // 如果是重复提醒，使用重复通知方法
+            if reminder.repeatInterval != nil && reminder.repeatUnit != nil {
+                NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pet)
+            } else {
+                // 单次提醒
+                NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
+            }
         }
+        
+        // 调试：记录待处理的通知
+        #if DEBUG
+        NotificationService.logPendingNotifications()
+        #endif
     }
     
     /// 获取特定宠物的所有提醒
