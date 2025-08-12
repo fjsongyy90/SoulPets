@@ -165,7 +165,8 @@ struct AddEditWeightView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .font(.title2)
                     .multilineTextAlignment(.center)
-                    .background(Color.white)
+                    .colorScheme(.light) // 强制使用浅色模式
+                    .background(Color.white) // 强制使用白色背景
                     .cornerRadius(8)
                 
                 // 单位选择器
@@ -187,7 +188,7 @@ struct AddEditWeightView: View {
             }
         }
         .padding()
-        .background(cardColor)
+        .background(Color.white) // 强制使用白色背景
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -206,10 +207,11 @@ struct AddEditWeightView: View {
                 displayedComponents: [.date]
             )
             .datePickerStyle(CompactDatePickerStyle())
+            .colorScheme(.light) // 强制使用浅色模式
             .accentColor(accentColor)
         }
         .padding()
-        .background(cardColor)
+        .background(Color.white) // 强制使用白色背景
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }

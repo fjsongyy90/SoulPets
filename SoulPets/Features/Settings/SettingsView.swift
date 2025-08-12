@@ -67,7 +67,10 @@ struct SettingsView: View {
             }
         }
         .onAppear {
+            // 确保选中的外观模式与当前设置一致
             selectedAppearance = userSettings.appearance
+            // 应用当前的外观设置到窗口
+            applyAppearanceToWindow(userSettings.appearance)
         }
         .alert(String(localized: "settings.language.coming_soon.title"), isPresented: $showingLanguageAlert) {
             Button(String(localized: "common.ok"), role: .cancel) { }

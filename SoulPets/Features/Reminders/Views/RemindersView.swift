@@ -687,9 +687,25 @@ struct ReminderCardView: View {
                             .foregroundColor(.green)
                     }
                 } else {
-                    Text(formattedDate)
-                        .font(.subheadline)
-                        .foregroundColor(labelColor)
+                    HStack(spacing: 4) {
+                        Text(formattedDate)
+                            .font(.subheadline)
+                            .foregroundColor(labelColor)
+                        
+                        // 如果是明天的提醒，显示"Tomorrow"标签
+                        if isTomorrow {
+                            Text(String(localized: "Tomorrow"))
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(accentColor.opacity(0.1))
+                                )
+                                .foregroundColor(accentColor)
+                        }
+                    }
                 }
             }
             
@@ -783,6 +799,15 @@ struct ReminderCardView: View {
             formatter.dateStyle = .medium
             return formatter.string(from: reminder.startDate)
         }
+    }
+    
+    // 判断是否是明天的提醒
+    private var isTomorrow: Bool {
+        let calendar = Calendar.current
+        let startDate = reminder.startDate
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+        
+        return calendar.isDate(startDate, inSameDayAs: tomorrow)
     }
 }
 

@@ -194,12 +194,15 @@ struct AddEditReminderView: View {
                     DatePicker("", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
                         .labelsHidden()
                         .datePickerStyle(.compact)
+                        .colorScheme(.light) // 强制使用浅色模式
                         .padding()
-                        .background(
+                        .background(Color.white) // 强制使用白色背景
+                        .cornerRadius(12)
+                        .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
+                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                         .accentColor(accentColor)
                 }
                 .padding(.horizontal)
@@ -259,7 +262,7 @@ struct AddEditReminderView: View {
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white)
+                            .fill(Color.white) // 强制使用白色背景
                             .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                     )
                 }
@@ -275,23 +278,14 @@ struct AddEditReminderView: View {
                         .foregroundColor(textColor)
                         .frame(minHeight: 100)
                         .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                        )
+                        .background(Color.white) // 直接设置白色背景
+                        .colorScheme(.light) // 强制使用浅色模式
+                        .cornerRadius(12)
                         .overlay(
-                            Group {
-                                if viewModel.notes.isEmpty {
-                                    Text(String(localized: "Add some notes about this reminder (optional)"))
-                                        .foregroundColor(labelColor)
-                                        .padding(.horizontal, 20)
-                                        .padding(.vertical, 16)
-                                        .allowsHitTesting(false)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                }
-                            }
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
+                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                 }
                 .padding(.horizontal)
             }

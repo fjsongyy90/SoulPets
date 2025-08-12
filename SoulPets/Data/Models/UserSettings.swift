@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// 应用外观模式枚举
 enum AppearanceMode: String, Codable, CaseIterable {
@@ -93,6 +94,31 @@ final class UserSettings: ObservableObject {
         lastSyncTimestamp = nil
         
         // 不重置firstLaunchDate，因为这是历史记录
+    }
+    
+    /// 应用当前外观设置到应用
+    func applyCurrentAppearance() {
+        DispatchQueue.main.async {
+            self.applyAppearanceToAllWindows(self.appearance)
+        }
+    }
+    
+    /// 应用外观设置到所有窗口
+    private func applyAppearanceToAllWindows(_ appearance: AppearanceMode) {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            return
+        }
+        
+        for window in windowScene.windows {
+            switch appearance {
+            case .light:
+                window.overrideUserInterfaceStyle = .light
+            case .dark:
+                window.overrideUserInterfaceStyle = .dark
+            case .system:
+                window.overrideUserInterfaceStyle = .unspecified
+            }
+        }
     }
     
     /// 清除所有UserDefaults中的设置数据

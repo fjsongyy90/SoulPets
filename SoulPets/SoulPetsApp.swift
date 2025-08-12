@@ -71,6 +71,9 @@ struct SoulPetsApp: App {
                     let launchTime = Date().timeIntervalSince(startTime)
                     logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
                     
+                    // 应用保存的外观设置
+                    UserSettings.shared.applyCurrentAppearance()
+                    
                     // 请求通知权限
                     requestNotificationPermission()
                     
