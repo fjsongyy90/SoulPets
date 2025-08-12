@@ -10,7 +10,7 @@ enum ReminderCreationStep: CaseIterable {
 
 @Observable
 class AddEditReminderViewModel {
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "AddEditReminderViewModel")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AddEditReminderViewModel")
     
     // MARK: - 步骤管理
     var currentStep: ReminderCreationStep = .selectPetsAndEvent

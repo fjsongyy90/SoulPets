@@ -22,7 +22,7 @@ struct RemindersView: View {
     @Query private var allPets: [Pet]
     
     // 日志
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RemindersView")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RemindersView")
     
     // 颜色定义 - 与Record模块保持一致
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)

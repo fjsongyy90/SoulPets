@@ -3,7 +3,7 @@ import OSLog
 
 /// 日志服务，提供应用统一的日志记录功能
 class LoggerService {
-    private static let subsystem = "com.yourapp.SoulPets"
+    private static let subsystem = "com.byte.driver.SoulPets"
     
     /// 创建特定分类的日志记录器
     static func createLogger(category: String) -> Logger {

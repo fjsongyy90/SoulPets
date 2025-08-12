@@ -4,7 +4,7 @@ import OSLog
 
 /// 记录服务，负责处理记录相关的业务逻辑
 class RecordService {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "Record")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Record")
     
     /// 获取所有记录（可按宠物筛选）
     static func getAllRecords(forPet pet: Pet? = nil, modelContext: ModelContext) -> [Record] {

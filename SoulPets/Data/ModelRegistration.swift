@@ -4,7 +4,7 @@ import OSLog
 
 /// 模型注册类，用于管理所有SwiftData模型
 struct ModelRegistration {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "ModelRegistration")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "ModelRegistration")
     
     /// 注册的所有模型类型
     static var models: [any PersistentModel.Type] {

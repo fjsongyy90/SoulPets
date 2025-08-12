@@ -7,7 +7,7 @@ import OSLog
 class RecordViewModel: ObservableObject {
     // MARK: - 属性
     var modelContext: ModelContext
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RecordViewModel")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RecordViewModel")
     
     // 记录列表状态
     @Published var records: [Record] = []

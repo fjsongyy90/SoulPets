@@ -4,7 +4,7 @@ import OSLog
 
 /// 宠物服务，负责处理宠物相关的业务逻辑
 class PetService {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "Pet")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Pet")
     
     /// 获取所有宠物
     static func getAllPets(modelContext: ModelContext) -> [Pet] {

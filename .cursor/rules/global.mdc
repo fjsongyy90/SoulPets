@@ -118,7 +118,7 @@ alwaysApply: true
   import os.log
   
   // 在需要的地方创建 Logger 实例
-  let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "PetCreation")
+  let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "PetCreation")
   
   // 打印不同级别的日志
   logger.info("Starting to create a new pet profile.")

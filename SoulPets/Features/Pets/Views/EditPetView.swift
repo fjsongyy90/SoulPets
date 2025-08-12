@@ -7,7 +7,7 @@ struct EditPetView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "EditPetView")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "EditPetView")
     let pet: Pet
     @StateObject private var viewModel: PetViewModel
     

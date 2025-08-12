@@ -4,7 +4,7 @@ import OSLog
 
 /// 记录统计服务
 class RecordStatsService {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RecordStats")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RecordStats")
     
     // MARK: - 基础统计
     

@@ -16,7 +16,7 @@ struct RecordDetailView: View {
     @State private var newPhotos: [UIImage] = []
     @State private var showingDeleteAlert = false
     
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RecordDetail")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RecordDetail")
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)

@@ -4,7 +4,7 @@ import OSLog
 
 @Observable
 class RemindersViewModel {
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RemindersViewModel")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RemindersViewModel")
     
     // MARK: - 状态属性
     var todayReminders: [Reminder] = []

@@ -4,7 +4,7 @@ import OSLog
 
 /// 提醒服务，负责处理提醒相关的业务逻辑
 class ReminderService {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "Reminder")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Reminder")
     
     /// 获取今日待办提醒
     static func getTodayReminders(modelContext: ModelContext) -> [Reminder] {

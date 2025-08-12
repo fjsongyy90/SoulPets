@@ -31,7 +31,7 @@ enum WeightChartTimeRange: String, CaseIterable {
 /// 体重管理视图模型
 @MainActor
 class WeightViewModel: ObservableObject {
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "WeightViewModel")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "WeightViewModel")
     
     // MARK: - Published Properties
     @Published var selectedPet: Pet?

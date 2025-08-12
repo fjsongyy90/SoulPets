@@ -7,7 +7,7 @@ struct WeightGoalView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "WeightGoalView")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "WeightGoalView")
     
     let pet: Pet?
     

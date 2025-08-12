@@ -7,7 +7,7 @@ import os.log
 class PetViewModel: ObservableObject {
     // MARK: - 属性
     private var modelContext: ModelContext
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "PetViewModel")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "PetViewModel")
     private var validationWorkItem: DispatchWorkItem?
     
     // 新宠物表单数据

@@ -9,7 +9,7 @@ struct WeightView: View {
     @StateObject private var viewModel = WeightViewModel()
     @Query private var allPets: [Pet]
     
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "WeightView")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "WeightView")
     
     @State private var showingAddWeight = false
     @State private var showingWeightGoal = false

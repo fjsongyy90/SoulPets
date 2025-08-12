@@ -11,7 +11,7 @@ import OSLog
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "ContentView")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "ContentView")
     @State private var isModelReady = false
     @State private var errorMessage: String? = nil
     

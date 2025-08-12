@@ -13,7 +13,7 @@ class TagManagementViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     private let modelContext: ModelContext
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "TagManagementViewModel")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "TagManagementViewModel")
     
     // MARK: - 初始化
     init(modelContext: ModelContext) {

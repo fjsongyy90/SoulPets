@@ -4,7 +4,7 @@ import OSLog
 
 /// 体重服务，负责处理体重相关的业务逻辑
 class WeightService {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "Weight")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Weight")
     
     /// 获取宠物的所有体重记录（按日期降序排列）
     static func getWeightEntries(for pet: Pet, modelContext: ModelContext) -> [Weight] {

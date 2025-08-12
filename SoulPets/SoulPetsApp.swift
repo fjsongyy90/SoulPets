@@ -11,7 +11,7 @@ import OSLog
 
 @main
 struct SoulPetsApp: App {
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "SoulPetsApp")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
     private let startTime = Date()
     
     var sharedModelContainer: ModelContainer = {

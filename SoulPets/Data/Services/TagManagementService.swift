@@ -4,7 +4,7 @@ import OSLog
 
 /// 标签管理服务，用于处理标签的个性化配置
 class TagManagementService {
-    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "TagManagementService")
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "TagManagementService")
     
     // MARK: - 获取标签数据
     

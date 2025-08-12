@@ -4,7 +4,7 @@ import OSLog
 
 /// 通知服务，负责处理应用的本地通知功能
 class NotificationService {
-    private static let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "Notification")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Notification")
     
     /// 请求通知权限
     static func requestAuthorization(completion: @escaping (Bool) -> Void) {
