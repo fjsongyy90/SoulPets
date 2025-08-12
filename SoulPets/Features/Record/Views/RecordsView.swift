@@ -119,6 +119,10 @@ struct RecordsView: View {
                     currentPet = vmCurrentPet
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .recordCreated)) { _ in
+                // 收到记录创建通知，刷新记录列表
+                viewModel.loadRecords()
+            }
         }
     }
     
@@ -598,6 +602,7 @@ struct RecordsView: View {
                             labelColor: labelColor,
                             showPetAvatars: viewModel.isShowingAllPets
                         )
+                        .id("\(record.id)_\(record.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                         .padding(.horizontal)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -701,37 +706,10 @@ struct RecordCardView: View {
                 
                 Spacer()
                 
-                // 时间戳
+                // 时间戳（移到原来宠物头像的位置）
                 Text(formattedDate)
                     .font(.subheadline)
                     .foregroundColor(labelColor)
-            }
-            
-            // 宠物头像（如果是"所有宠物"视图）
-            if showPetAvatars, let pets = record.pets, !pets.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(pets) { pet in
-                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 30, height: 30)
-                                    .clipShape(Circle())
-                            } else {
-                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
-                                    .padding(5)
-                                    .background(
-                                        Circle()
-                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                    )
-                            }
-                        }
-                    }
-                }
             }
             
             // 备注
@@ -758,6 +736,49 @@ struct RecordCardView: View {
                     }
                 }
             }
+            
+            // 底部区域：左侧空白，右侧宠物头像
+            HStack {
+                Spacer()
+                
+                // 宠物头像（移到右下角）
+                if showPetAvatars, let pets = record.pets, !pets.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(pets.prefix(3)) { pet in // 最多显示3个头像，避免过度拥挤
+                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 24, height: 24)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .padding(4)
+                                    .background(
+                                        Circle()
+                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                    )
+                            }
+                        }
+                        
+                        // 如果宠物数量超过3个，显示省略号
+                        if pets.count > 3 {
+                            Text("+\(pets.count - 3)")
+                                .font(.caption2)
+                                .foregroundColor(labelColor)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                )
+                        }
+                    }
+                }
+            }
         }
         .padding()
         .background(
@@ -778,4 +799,9 @@ struct RecordCardView: View {
 
 #Preview {
     RecordsView(modelContext: ModelContext(try! ModelContainer(for: Pet.self, Record.self, Tag.self, RecordPhoto.self)))
+}
+
+// MARK: - 通知名称扩展
+extension Notification.Name {
+    static let recordCreated = Notification.Name("recordCreated")
 } 

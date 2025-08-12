@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct RemindersView: View {
     @Environment(\.modelContext) private var modelContext
@@ -19,6 +20,9 @@ struct RemindersView: View {
     @State private var currentPet: Pet?
     
     @Query private var allPets: [Pet]
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.yourapp.SoulPets", category: "RemindersView")
     
     // 颜色定义 - 与Record模块保持一致
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -489,6 +493,7 @@ struct RemindersView: View {
                             handleReminderDeletion(reminder)
                         }
                     )
+                    .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                     .padding(.horizontal)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -537,6 +542,7 @@ struct RemindersView: View {
                             handleReminderDeletion(reminder)
                         }
                     )
+                    .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                     .padding(.horizontal)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -585,6 +591,7 @@ struct RemindersView: View {
                             handleReminderDeletion(reminder)
                         }
                     )
+                    .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                     .padding(.horizontal)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -606,8 +613,11 @@ struct RemindersView: View {
         guard let reminder = selectedReminderForRecord else { return }
         
         if let newRecord = viewModel.showCreateRecordFromReminder(reminder, modelContext: modelContext) {
-            // TODO: 跳转到记录编辑页面
-            print("创建了新记录: \(newRecord.id)")
+            // 记录创建成功，发送通知让记录模块刷新数据
+            NotificationCenter.default.post(name: .recordCreated, object: newRecord)
+            logger.info("✅ 从提醒创建了新记录: \(newRecord.id), 标签: \(newRecord.tag.name)")
+        } else {
+            logger.error("❌ 从提醒创建记录失败")
         }
         
         selectedReminderForRecord = nil
@@ -647,7 +657,7 @@ struct ReminderCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // 标签和时间
+            // 标签和时间/完成按钮
             HStack {
                 // 标签图标和名称
                 HStack(spacing: 6) {
@@ -667,7 +677,7 @@ struct ReminderCardView: View {
                 
                 Spacer()
                 
-                // 完成按钮（今日提醒且未完成时显示）
+                // 时间（移到原来宠物头像的位置）或完成按钮
                 if isToday && !reminder.isCompletedToday {
                     Button {
                         onComplete(reminder)
@@ -676,33 +686,10 @@ struct ReminderCardView: View {
                             .font(.system(size: 24))
                             .foregroundColor(.green)
                     }
-                }
-            }
-            
-            // 宠物头像（如果关联多只宠物）
-            if let pets = reminder.pets, !pets.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(pets) { pet in
-                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 30, height: 30)
-                                    .clipShape(Circle())
-                            } else {
-                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
-                                    .padding(5)
-                                    .background(
-                                        Circle()
-                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                    )
-                            }
-                        }
-                    }
+                } else {
+                    Text(formattedDate)
+                        .font(.subheadline)
+                        .foregroundColor(labelColor)
                 }
             }
             
@@ -714,8 +701,9 @@ struct ReminderCardView: View {
                     .lineLimit(3)
             }
             
-            // 重复规则和下次提醒时间
+            // 底部区域：左侧重复规则，右侧宠物头像
             HStack {
+                // 重复规则
                 if let repeatRule = reminder.repeatRuleText {
                     Text(repeatRule)
                         .font(.caption)
@@ -724,9 +712,43 @@ struct ReminderCardView: View {
                 
                 Spacer()
                 
-                Text(formattedDate)
-                    .font(.caption)
-                    .foregroundColor(labelColor)
+                // 宠物头像（移到右下角）
+                if let pets = reminder.pets, !pets.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(pets.prefix(3)) { pet in // 最多显示3个头像，避免过度拥挤
+                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 24, height: 24)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .padding(4)
+                                    .background(
+                                        Circle()
+                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                    )
+                            }
+                        }
+                        
+                        // 如果宠物数量超过3个，显示省略号
+                        if pets.count > 3 {
+                            Text("+\(pets.count - 3)")
+                                .font(.caption2)
+                                .foregroundColor(labelColor)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                )
+                        }
+                    }
+                }
             }
         }
         .padding()

@@ -42,13 +42,13 @@ struct ReminderDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        Button(String(localized: "common.edit")) {
+                        Button(String(localized: "Edit")) {
                             showingEditView = true
                         }
                         
                         Divider()
                         
-                        Button(String(localized: "common.delete"), role: .destructive) {
+                        Button(String(localized: "Delete"), role: .destructive) {
                             showingDeleteAlert = true
                         }
                     } label: {
@@ -63,10 +63,10 @@ struct ReminderDetailView: View {
                 String(localized: "reminder.delete_title"),
                 isPresented: $showingDeleteAlert
             ) {
-                Button(String(localized: "common.delete"), role: .destructive) {
+                Button(String(localized: "Delete"), role: .destructive) {
                     deleteReminder()
                 }
-                Button(String(localized: "common.cancel"), role: .cancel) { }
+                Button(String(localized: "Cancel"), role: .cancel) { }
             } message: {
                 Text(String(localized: "reminder.delete_message"))
             }

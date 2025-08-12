@@ -60,36 +60,47 @@ struct RecordDetailView: View {
             }
             .navigationTitle(String(localized: "Record Details"))
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(isEditing)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        if isEditing {
-                            Button(String(localized: "Save")) {
-                                saveChanges()
+                // 自定义返回按钮（编辑模式下）
+                if isEditing {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            cancelEditing()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text(String(localized: "Cancel"))
+                                    .font(.body)
                             }
                             .foregroundColor(accentColor)
-                            
-                            Button(String(localized: "Cancel")) {
-                                cancelEditing()
-                            }
-                            .foregroundColor(.secondary)
-                        } else {
-                            Menu {
-                                Button {
-                                    startEditing()
-                                } label: {
-                                    Label(String(localized: "Edit"), systemImage: "pencil")
-                                }
-                                
-                                Button(role: .destructive) {
-                                    showingDeleteAlert = true
-                                } label: {
-                                    Label(String(localized: "Delete"), systemImage: "trash")
-                                }
+                        }
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if isEditing {
+                        Button(String(localized: "Save")) {
+                            saveChanges()
+                        }
+                        .foregroundColor(accentColor)
+                    } else {
+                        Menu {
+                            Button {
+                                startEditing()
                             } label: {
-                                Image(systemName: "ellipsis.circle")
-                                    .foregroundColor(accentColor)
+                                Label(String(localized: "Edit"), systemImage: "pencil")
                             }
+                            
+                            Button(role: .destructive) {
+                                showingDeleteAlert = true
+                            } label: {
+                                Label(String(localized: "Delete"), systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundColor(accentColor)
                         }
                     }
                 }
@@ -411,7 +422,7 @@ struct RecordDetailView: View {
             
             // 添加新照片
             for image in newPhotos {
-                if let imageData = image.jpegData(compressionQuality: 0.7) {
+                if let imageData = image.jpegData(compressionQuality: 0.5) {
                     RecordService.addPhotoToRecord(record: record, photoData: imageData, modelContext: modelContext)
                 }
             }

@@ -222,9 +222,9 @@ class RecordViewModel: ObservableObject {
             // 插入到数据库
             modelContext.insert(record)
             
-            // 添加照片
+            // 添加照片 - 使用更低的压缩质量以减少文件大小
             for photo in recordPhotos {
-                if let photoData = photo.jpegData(compressionQuality: 0.7) {
+                if let photoData = photo.jpegData(compressionQuality: 0.5) {
                     let recordPhoto = RecordPhoto(
                         photoData: photoData,
                         record: record
@@ -289,9 +289,9 @@ class RecordViewModel: ObservableObject {
             // 插入到数据库
             modelContext.insert(record)
             
-            // 添加照片
+            // 添加照片 - 使用更低的压缩质量以减少文件大小
             for photo in recordPhotos {
-                if let photoData = photo.jpegData(compressionQuality: 0.8) {
+                if let photoData = photo.jpegData(compressionQuality: 0.5) {
                     let recordPhoto = RecordPhoto(
                         photoData: photoData,
                         record: record
