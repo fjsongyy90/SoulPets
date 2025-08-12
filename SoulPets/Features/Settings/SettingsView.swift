@@ -16,6 +16,21 @@ struct SettingsView: View {
     @State private var selectedResetOptions: Set<SettingsService.ResetDataOption> = []
     @State private var showingResetSuccessAlert = false
     
+    // 颜色定义
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15) // #E5B487
+    
+    // 适应性强调色 - 在深色模式下使用更亮的版本
+    private var adaptiveAccentColor: Color {
+        Color(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor(red: 0.90, green: 0.71, blue: 0.53, alpha: 1.0) // 深色模式：更亮的版本
+            default:
+                return UIColor(red: 0.60, green: 0.35, blue: 0.15, alpha: 1.0) // 浅色模式：原始棕褐色
+            }
+        })
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -46,7 +61,7 @@ struct SettingsView: View {
                     Button(String(localized: "common.done")) {
                         dismiss()
                     }
-                    .foregroundColor(.orange) // 使用系统橙色，偏暖色调且适应深色模式
+                    .foregroundColor(adaptiveAccentColor) // 使用适应性强调色，确保在深色模式下也清晰可见
                     .font(.body.weight(.medium))
                 }
             }
@@ -101,7 +116,7 @@ struct SettingsView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "paintbrush")
                             .font(.title3)
-                            .foregroundColor(.orange) // 使用系统橙色
+                            .foregroundColor(adaptiveAccentColor) // 使用适应性强调色
                             .frame(width: 24, height: 24)
                         
                         Text(String(localized: "settings.general.appearance"))
@@ -164,7 +179,7 @@ struct SettingsView: View {
                     VStack(spacing: 4) {
                         Image(systemName: iconForAppearance(mode))
                             .font(.title2)
-                            .foregroundColor(selectedAppearance == mode ? .white : .orange) // 使用系统橙色
+                            .foregroundColor(selectedAppearance == mode ? .white : adaptiveAccentColor) // 使用适应性强调色
                         
                         Text(mode.rawValue)
                             .font(.caption)
@@ -174,11 +189,11 @@ struct SettingsView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(selectedAppearance == mode ? .orange : Color(.tertiarySystemBackground)) // 使用系统颜色
+                            .fill(selectedAppearance == mode ? adaptiveAccentColor : Color(.tertiarySystemBackground)) // 使用系统颜色
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.orange.opacity(0.3), lineWidth: 1) // 使用系统橙色
+                            .stroke(adaptiveAccentColor.opacity(0.3), lineWidth: 1) // 使用适应性强调色
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -425,7 +440,7 @@ struct SettingsView: View {
                             
                             if selectedResetOptions.contains(option) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.orange) // 使用系统橙色
+                                    .foregroundColor(adaptiveAccentColor) // 使用适应性强调色
                             } else {
                                 Image(systemName: "circle")
                                     .foregroundColor(.gray)
@@ -451,7 +466,7 @@ struct SettingsView: View {
                         showingResetOptionsSheet = false
                         selectedResetOptions = []
                     }
-                    .foregroundColor(.orange) // 使用系统橙色
+                    .foregroundColor(adaptiveAccentColor) // 使用适应性强调色
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {

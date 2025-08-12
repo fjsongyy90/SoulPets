@@ -8,6 +8,21 @@ struct SettingsRowView<Content: View>: View {
     let action: (() -> Void)?
     let content: (() -> Content)?
     
+    // 颜色定义
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15) // #E5B487
+    
+    // 适应性强调色 - 在深色模式下使用更亮的版本
+    private var adaptiveAccentColor: Color {
+        Color(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor(red: 0.90, green: 0.71, blue: 0.53, alpha: 1.0) // 深色模式：更亮的版本
+            default:
+                return UIColor(red: 0.60, green: 0.35, blue: 0.15, alpha: 1.0) // 浅色模式：原始棕褐色
+            }
+        })
+    }
+    
     // MARK: - 初始化器
     
     /// 基础设置行（仅标题和图标）
@@ -52,7 +67,7 @@ struct SettingsRowView<Content: View>: View {
                     // 左侧图标
                     Image(systemName: icon)
                         .font(.title3)
-                        .foregroundColor(.orange) // 使用系统橙色，偏暖色调且适应深色模式
+                        .foregroundColor(adaptiveAccentColor) // 使用适应性强调色，确保在深色模式下也清晰可见
                         .frame(width: 24, height: 24)
                     
                     // 标题

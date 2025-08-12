@@ -20,6 +20,18 @@ struct ContentView: View {
     private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
+    // 适应性强调色 - 在深色模式下使用更亮的版本
+    private var adaptiveAccentColor: Color {
+        Color(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor(red: 0.90, green: 0.71, blue: 0.53, alpha: 1.0) // 深色模式：更亮的版本
+            default:
+                return UIColor(red: 0.60, green: 0.35, blue: 0.15, alpha: 1.0) // 浅色模式：原始棕褐色
+            }
+        })
+    }
+    
     var body: some View {
         ZStack {
             // 应用背景色
@@ -77,7 +89,7 @@ struct ContentView: View {
                         }
                     
                 }
-                .tint(.orange) // 使用系统橙色作为全局 tint，偏暖色调且适应深色模式
+                .tint(adaptiveAccentColor) // 使用适应性强调色，确保在深色模式下也清晰可见
             }
         }
         .onAppear {
@@ -114,8 +126,8 @@ struct ContentView: View {
         appearance.titleTextAttributes = [.foregroundColor: UIColor(textColor)]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(textColor)]
         
-        // 设置按钮颜色为系统橙色，偏暖色调且适应深色模式
-        UINavigationBar.appearance().tintColor = UIColor.systemOrange
+        // 设置按钮颜色为适应性强调色，确保在深色模式下也清晰可见
+        UINavigationBar.appearance().tintColor = UIColor(adaptiveAccentColor)
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().compactAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
