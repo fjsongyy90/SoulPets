@@ -129,24 +129,44 @@ extension Reminder {
         }
         
         // 处理重复提醒
-        guard let interval = repeatInterval, let unit = repeatUnit else { return false }
+        guard let interval = repeatInterval, let unit = repeatUnit, interval > 0 else { return false }
         
         // 计算从开始日期到给定日期经过的单位数
-        var components: DateComponents
         switch unit {
         case .daily:
-            components = calendar.dateComponents([.day], from: startDate, to: date)
-            guard let days = components.day else { return false }
+            let components = calendar.dateComponents([.day], from: startDate, to: date)
+            guard let days = components.day, days >= 0 else { return false }
             return days % interval == 0
             
         case .weekly:
-            components = calendar.dateComponents([.weekOfYear], from: startDate, to: date)
-            guard let weeks = components.weekOfYear else { return false }
+            // 检查是否在同一周的同一天
+            let startWeekday = calendar.component(.weekday, from: startDate)
+            let targetWeekday = calendar.component(.weekday, from: date)
+            
+            if startWeekday != targetWeekday {
+                return false
+            }
+            
+            let components = calendar.dateComponents([.weekOfYear], from: startDate, to: date)
+            guard let weeks = components.weekOfYear, weeks >= 0 else { return false }
             return weeks % interval == 0
             
         case .monthly:
-            components = calendar.dateComponents([.month], from: startDate, to: date)
-            guard let months = components.month else { return false }
+            // 检查是否在同一月的同一天
+            let startDay = calendar.component(.day, from: startDate)
+            let targetDay = calendar.component(.day, from: date)
+            
+            // 处理月末日期的特殊情况
+            let daysInTargetMonth = calendar.range(of: .day, in: .month, for: date)?.count ?? 30
+            
+            let effectiveTargetDay = min(startDay, daysInTargetMonth)
+            
+            if targetDay != effectiveTargetDay {
+                return false
+            }
+            
+            let components = calendar.dateComponents([.month], from: startDate, to: date)
+            guard let months = components.month, months >= 0 else { return false }
             return months % interval == 0
             
         case .yearly:
@@ -162,9 +182,9 @@ extension Reminder {
             // 检查是否是同一个月日
             if startMonth == targetMonth && startDay == targetDay {
                 // 再检查年份间隔是否符合要求
-                components = calendar.dateComponents([.year], from: startDate, to: date)
-                guard let years = components.year else { return false }
-                return years >= 0 && years % interval == 0
+                let components = calendar.dateComponents([.year], from: startDate, to: date)
+                guard let years = components.year, years >= 0 else { return false }
+                return years % interval == 0
             }
             
             return false

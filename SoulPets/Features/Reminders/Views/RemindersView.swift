@@ -4,7 +4,7 @@ import OSLog
 
 struct RemindersView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel = RemindersViewModel()
+    @State private var viewModel: RemindersViewModel
     @State private var showingAddReminder = false
     @State private var showingEditReminder = false
     @State private var showingReminderToRecordAlert = false
@@ -23,6 +23,13 @@ struct RemindersView: View {
     
     // 日志
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RemindersView")
+    
+    // 初始化
+    init() {
+        // 在init中我们无法访问Environment，所以先创建基础的ViewModel
+        // 在onAppear时再进行默认宠物的设置
+        _viewModel = State(initialValue: RemindersViewModel())
+    }
     
     // 颜色定义 - 与Record模块保持一致
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -131,6 +138,15 @@ struct RemindersView: View {
                 viewModel.loadReminders(from: modelContext)
             }
             .onAppear {
+                // 首次加载时设置默认宠物筛选
+                if viewModel.selectedPetFilter.isAll && !allPets.isEmpty {
+                    // 选择第一只宠物作为默认筛选
+                    if let firstPet = allPets.first {
+                        currentPet = firstPet
+                        viewModel.setPetFilter(.specific(firstPet))
+                        logger.info("🐾 提醒页面默认选中第一只宠物: \(firstPet.name)")
+                    }
+                }
                 viewModel.loadReminders(from: modelContext)
             }
             .refreshable {
@@ -657,7 +673,7 @@ struct ReminderCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // 标签和时间/完成按钮
+            // 标签和时间
             HStack {
                 // 标签图标和名称
                 HStack(spacing: 6) {
@@ -677,7 +693,44 @@ struct ReminderCardView: View {
                 
                 Spacer()
                 
-                // 时间（移到原来宠物头像的位置）或完成按钮
+                // 时间显示（所有提醒都显示时间）
+                HStack(spacing: 4) {
+                    Text(formattedDate)
+                        .font(.subheadline)
+                        .foregroundColor(labelColor)
+                    
+                    // 如果是明天的提醒，显示"Tomorrow"标签
+                    if isTomorrow {
+                        Text(String(localized: "Tomorrow"))
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                Capsule()
+                                    .fill(accentColor.opacity(0.1))
+                            )
+                            .foregroundColor(accentColor)
+                    }
+                }
+            }
+            
+            // 第二行：备注和完成按钮
+            HStack {
+                // 备注（如果有的话）
+                if let notes = reminder.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.body)
+                        .foregroundColor(textColor)
+                        .lineLimit(3)
+                } else {
+                    // 如果没有备注，用空的 VStack 占位
+                    VStack { }
+                }
+                
+                Spacer()
+                
+                // 完成按钮（仅今天未完成的提醒显示）
                 if isToday && !reminder.isCompletedToday {
                     Button {
                         onComplete(reminder)
@@ -686,35 +739,7 @@ struct ReminderCardView: View {
                             .font(.system(size: 24))
                             .foregroundColor(.green)
                     }
-                } else {
-                    HStack(spacing: 4) {
-                        Text(formattedDate)
-                            .font(.subheadline)
-                            .foregroundColor(labelColor)
-                        
-                        // 如果是明天的提醒，显示"Tomorrow"标签
-                        if isTomorrow {
-                            Text(String(localized: "Tomorrow"))
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(accentColor.opacity(0.1))
-                                )
-                                .foregroundColor(accentColor)
-                        }
-                    }
                 }
-            }
-            
-            // 备注
-            if let notes = reminder.notes, !notes.isEmpty {
-                Text(notes)
-                    .font(.body)
-                    .foregroundColor(textColor)
-                    .lineLimit(3)
             }
             
             // 底部区域：左侧重复规则，右侧宠物头像
@@ -774,6 +799,14 @@ struct ReminderCardView: View {
                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
         .contextMenu {
+            // Complete 操作 - 移除限制，所有提醒都可以完成
+            Button {
+                onComplete(reminder)
+            } label: {
+                Label(String(localized: "Complete"), systemImage: "checkmark.circle")
+                    .foregroundColor(.green)
+            }
+            
             Button {
                 onEdit(reminder)
             } label: {
@@ -789,16 +822,12 @@ struct ReminderCardView: View {
         }
     }
     
-    // 格式化日期
+    // 格式化日期 - 自定义格式 "Aug 12, 2025 at 16:44"
     private var formattedDate: String {
         let formatter = DateFormatter()
-        if isToday {
-            formatter.timeStyle = .short
-            return formatter.string(from: reminder.startDate)
-        } else {
-            formatter.dateStyle = .medium
-            return formatter.string(from: reminder.startDate)
-        }
+        formatter.dateFormat = "MMM d, yyyy 'at' HH:mm"
+        formatter.locale = Locale(identifier: "en_US_POSIX") // 确保英文月份缩写
+        return formatter.string(from: reminder.startDate)
     }
     
     // 判断是否是明天的提醒

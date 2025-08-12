@@ -59,6 +59,11 @@ class RemindersViewModel {
     func loadReminders(from modelContext: ModelContext? = nil) {
         guard let context = modelContext else { return }
         
+        // 首次加载时设置默认宠物筛选（如果当前是显示所有宠物）
+        if selectedPetFilter.isAll {
+            setupDefaultPetFilter(modelContext: context)
+        }
+        
         isLoading = true
         errorMessage = nil
         
@@ -98,6 +103,22 @@ class RemindersViewModel {
             }
             
             self.isLoading = false
+        }
+    }
+    
+    // MARK: - 设置默认宠物筛选
+    private func setupDefaultPetFilter(modelContext: ModelContext) {
+        let descriptor = FetchDescriptor<Pet>(sortBy: [SortDescriptor(\.name)])
+        
+        do {
+            let pets = try modelContext.fetch(descriptor)
+            if let firstPet = pets.first {
+                selectedPetFilter = .specific(firstPet)
+                logger.info("🐾 提醒模块默认选中宠物: \(firstPet.name)")
+            }
+        } catch {
+            logger.error("获取宠物列表失败: \(error.localizedDescription)")
+            // 如果获取失败，保持默认的 .all 设置
         }
     }
     
@@ -151,13 +172,13 @@ class RemindersViewModel {
     
     // MARK: - 提醒操作
     func markReminderAsCompleted(_ reminder: Reminder, modelContext: ModelContext) {
+        // 标记提醒为完成（对于重复提醒会更新到下一个周期）
+        ReminderService.markReminderAsCompleted(reminder: reminder, modelContext: modelContext)
+        
+        // 立即重新加载数据以反映更改
         Task { @MainActor in
-            ReminderService.markReminderAsCompleted(reminder: reminder, modelContext: modelContext)
-            
-            // 重新加载数据
             loadReminders(from: modelContext)
-            
-            logger.info("已标记提醒为完成: \(reminder.title)")
+            logger.info("已标记提醒为完成并刷新数据: \(reminder.title)")
         }
     }
     

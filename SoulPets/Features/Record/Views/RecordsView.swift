@@ -16,6 +16,7 @@ struct RecordsView: View {
     @State private var showingTagSelector = false
     @State private var selectedDate: Date?
     @State private var selectedTag: Tag?
+    @State private var selectedRecord: Record?
     @Query private var pets: [Pet]
     @Query private var allTags: [Tag]
     
@@ -89,6 +90,9 @@ struct RecordsView: View {
                 viewModel.loadRecords()
             }) {
                 AddRecordView(modelContext: modelContext)
+            }
+            .navigationDestination(item: $selectedRecord) { record in
+                RecordDetailView(record: record)
             }
             .sheet(isPresented: $showingDatePicker) {
                 datePickerSheet
@@ -608,16 +612,17 @@ struct RecordsView: View {
                     .buttonStyle(PlainButtonStyle())
                     .contextMenu {
                         Button {
-                            // 编辑记录 - 现在通过详情页实现
+                            // 编辑记录 - 创建一个状态来处理导航
+                            selectedRecord = record
                         } label: {
-                            Label(String(localized: "View Details"), systemImage: "eye")
+                            Label(String(localized: "Edit"), systemImage: "pencil")
                                 .foregroundColor(accentColor)
                         }
                         
                         Button(role: .destructive) {
                             viewModel.deleteRecord(record)
                         } label: {
-                            Label(String(localized: "Delete Record"), systemImage: "trash")
+                            Label(String(localized: "Delete"), systemImage: "trash")
                         }
                     }
                 }

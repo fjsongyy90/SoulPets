@@ -53,9 +53,6 @@ class ReminderService {
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
             logger.info("📋 获取未来提醒: 所有提醒总数 \(allReminders.count)")
             
-            // 先获取今日的提醒ID，避免重复
-            let todayReminderIds = Set(getTodayReminders(modelContext: modelContext).map { $0.id })
-            
             var upcomingReminders: [Reminder] = []
             
             // 检查未来7天的每一天（从明天开始）
@@ -64,23 +61,48 @@ class ReminderService {
                     continue
                 }
                 
-                // 筛选出在该日期需要提醒的模板，但排除今日已有的提醒
+                // 筛选出在该日期需要提醒的模板
                 let remindersForDay = allReminders.filter { reminder in
-                    let isNotToday = !todayReminderIds.contains(reminder.id)
                     let needsReminder = reminder.needsReminderOn(date: futureDate)
+                    let isNotCompletedOnThatDay = !reminder.isCompletedOn(date: futureDate)
                     
                     // 特别为生日提醒添加详细日志
                     if reminder.tag.code == "planning.birthday" && needsReminder {
                         logger.info("🎂 未来生日提醒检查: \(reminder.tag.name)")
                         logger.info("  - 检查日期: \(futureDate)")
                         logger.info("  - 需要提醒: \(needsReminder)")
-                        logger.info("  - 不在今日: \(isNotToday)")
+                        logger.info("  - 未完成: \(isNotCompletedOnThatDay)")
                     }
                     
-                    return isNotToday && needsReminder
+                    return needsReminder && isNotCompletedOnThatDay
                 }
                 
                 upcomingReminders.append(contentsOf: remindersForDay)
+            }
+            
+            // 🔧 新增：对于今天已完成的重复提醒，立即显示它们的下一个周期
+            let todayCompletedReminders = allReminders.filter { reminder in
+                // 检查是否是重复提醒且今天已完成
+                let isRepeating = reminder.repeatInterval != nil && reminder.repeatUnit != nil
+                let isCompletedToday = reminder.isCompletedToday
+                let needsTodayReminder = reminder.needsReminderOn(date: today)
+                
+                return isRepeating && isCompletedToday && needsTodayReminder
+            }
+            
+            // 为今天已完成的重复提醒计算下一个周期日期
+            for reminder in todayCompletedReminders {
+                if let nextCycleDate = calculateNextCycleDate(for: reminder, from: today) {
+                    // 检查下一个周期是否在未来7天内，且该提醒尚未包含在upcomingReminders中
+                    let daysDifference = calendar.dateComponents([.day], from: today, to: nextCycleDate).day ?? 0
+                    let isWithinRange = daysDifference > 0 && daysDifference <= daysAhead
+                    let notAlreadyIncluded = !upcomingReminders.contains { $0.id == reminder.id }
+                    
+                    if isWithinRange && notAlreadyIncluded {
+                        upcomingReminders.append(reminder)
+                        logger.info("🔄 添加已完成重复提醒的下一周期: \(reminder.tag.name)，下次日期: \(nextCycleDate)")
+                    }
+                }
             }
             
             // 去重，一个模板可能在多个未来日期都有提醒
@@ -95,6 +117,28 @@ class ReminderService {
         }
     }
     
+    /// 计算重复提醒的下一个周期日期
+    private static func calculateNextCycleDate(for reminder: Reminder, from date: Date) -> Date? {
+        guard let interval = reminder.repeatInterval, 
+              let unit = reminder.repeatUnit,
+              interval > 0 else { 
+            return nil 
+        }
+        
+        let calendar = Calendar.current
+        
+        switch unit {
+        case .daily:
+            return calendar.date(byAdding: .day, value: interval, to: date)
+        case .weekly:
+            return calendar.date(byAdding: .weekOfYear, value: interval, to: date)
+        case .monthly:
+            return calendar.date(byAdding: .month, value: interval, to: date)
+        case .yearly:
+            return calendar.date(byAdding: .year, value: interval, to: date)
+        }
+    }
+    
     /// 标记提醒为已完成
     static func markReminderAsCompleted(reminder: Reminder, modelContext: ModelContext) {
         // 创建完成记录
@@ -104,6 +148,10 @@ class ReminderService {
         )
         
         modelContext.insert(completion)
+        
+        // 🔧 修复：移除错误的startDate更新逻辑
+        // 重复提醒的startDate应该保持不变，只需要记录完成情况即可
+        // 显示逻辑会基于重复计算和完成记录来判断是否需要显示
         
         do {
             try modelContext.save()

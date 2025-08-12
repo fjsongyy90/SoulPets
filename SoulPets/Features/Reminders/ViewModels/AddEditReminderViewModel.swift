@@ -76,7 +76,7 @@ class AddEditReminderViewModel {
     func setupForEditing(_ reminder: Reminder) {
         isEditing = true
         reminderToEdit = reminder
-        currentStep = .reminderDetails // 编辑模式直接跳到详情步骤
+        currentStep = .selectPetsAndEvent // 编辑模式从第一步开始，让用户可以修改宠物和事件
         
         selectedPets = reminder.pets ?? []
         selectedTag = reminder.tag
