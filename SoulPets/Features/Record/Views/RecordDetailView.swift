@@ -61,13 +61,6 @@ struct RecordDetailView: View {
             .navigationTitle(String(localized: "Record Details"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(String(localized: "Back")) {
-                        dismiss()
-                    }
-                    .foregroundColor(accentColor)
-                }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
                         if isEditing {

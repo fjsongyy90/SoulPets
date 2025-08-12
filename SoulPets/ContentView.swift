@@ -77,11 +77,12 @@ struct ContentView: View {
                         }
                     
                 }
-                .accentColor(accentColor)
+                .tint(.orange) // 使用系统橙色作为全局 tint，偏暖色调且适应深色模式
             }
         }
         .onAppear {
             checkModelContext()
+            configureNavigationBarAppearance()
         }
     }
     
@@ -102,6 +103,34 @@ struct ContentView: View {
             errorMessage = "无法访问数据库: \(error.localizedDescription)"
             logger.error("模型上下文检查失败: \(error.localizedDescription)")
         }
+    }
+    
+    // MARK: - 导航栏外观配置
+    private func configureNavigationBarAppearance() {
+        // 使用现代的 UINavigationBarAppearance API
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(backgroundColor)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor(textColor)]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(textColor)]
+        
+        // 设置按钮颜色为系统橙色，偏暖色调且适应深色模式
+        UINavigationBar.appearance().tintColor = UIColor.systemOrange
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        
+        // 配置 TabBar 外观
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithOpaqueBackground()
+        tabBarAppearance.backgroundColor = UIColor(backgroundColor)
+        
+        UITabBar.appearance().standardAppearance = tabBarAppearance
+        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+        
+        // TabBar 使用自定义强调色，但导航栏使用系统蓝色
+        UITabBar.appearance().tintColor = UIColor(accentColor)
+        UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray
     }
 }
 

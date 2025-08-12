@@ -37,7 +37,7 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 20)
             }
-            .background(Color(hex: "FDFBF8"))
+            .background(Color(.systemBackground)) // 使用系统背景色，适应深色模式
             .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden()
@@ -46,7 +46,7 @@ struct SettingsView: View {
                     Button(String(localized: "common.done")) {
                         dismiss()
                     }
-                    .foregroundColor(Color(hex: "E5B487"))
+                    .foregroundColor(.orange) // 使用系统橙色，偏暖色调且适应深色模式
                     .font(.body.weight(.medium))
                 }
             }
@@ -101,7 +101,7 @@ struct SettingsView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "paintbrush")
                             .font(.title3)
-                            .foregroundColor(Color(hex: "E5B487"))
+                            .foregroundColor(.orange) // 使用系统橙色
                             .frame(width: 24, height: 24)
                         
                         Text(String(localized: "settings.general.appearance"))
@@ -148,7 +148,7 @@ struct SettingsView: View {
             }
             .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground)) // 使用系统二级背景色，适应深色模式
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
@@ -164,7 +164,7 @@ struct SettingsView: View {
                     VStack(spacing: 4) {
                         Image(systemName: iconForAppearance(mode))
                             .font(.title2)
-                            .foregroundColor(selectedAppearance == mode ? .white : Color(hex: "E5B487"))
+                            .foregroundColor(selectedAppearance == mode ? .white : .orange) // 使用系统橙色
                         
                         Text(mode.rawValue)
                             .font(.caption)
@@ -174,11 +174,11 @@ struct SettingsView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(selectedAppearance == mode ? Color(hex: "E5B487") : Color(hex: "FDFBF8"))
+                            .fill(selectedAppearance == mode ? .orange : Color(.tertiarySystemBackground)) // 使用系统颜色
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color(hex: "E5B487").opacity(0.3), lineWidth: 1)
+                            .stroke(Color.orange.opacity(0.3), lineWidth: 1) // 使用系统橙色
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -240,7 +240,7 @@ struct SettingsView: View {
             }
             .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground)) // 使用系统二级背景色，适应深色模式
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
@@ -285,7 +285,7 @@ struct SettingsView: View {
             }
             .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground)) // 使用系统二级背景色，适应深色模式
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
@@ -342,7 +342,7 @@ struct SettingsView: View {
             }
             .padding(.bottom, 16)
         }
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground)) // 使用系统二级背景色，适应深色模式
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
@@ -405,7 +405,7 @@ struct SettingsView: View {
                         .multilineTextAlignment(.leading)
                 }
                 .padding()
-                .background(Color(hex: "FDFBF8"))
+                .background(Color(.systemBackground)) // 使用系统背景色，适应深色模式
                 
                 // 选项列表
                 List {
@@ -425,7 +425,7 @@ struct SettingsView: View {
                             
                             if selectedResetOptions.contains(option) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color(hex: "E5B487"))
+                                    .foregroundColor(.orange) // 使用系统橙色
                             } else {
                                 Image(systemName: "circle")
                                     .foregroundColor(.gray)
@@ -451,7 +451,7 @@ struct SettingsView: View {
                         showingResetOptionsSheet = false
                         selectedResetOptions = []
                     }
-                    .foregroundColor(Color(hex: "E5B487"))
+                    .foregroundColor(.orange) // 使用系统橙色
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {

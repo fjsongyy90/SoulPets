@@ -52,7 +52,7 @@ struct SettingsRowView<Content: View>: View {
                     // 左侧图标
                     Image(systemName: icon)
                         .font(.title3)
-                        .foregroundColor(Color(hex: "E5B487"))
+                        .foregroundColor(.orange) // 使用系统橙色，偏暖色调且适应深色模式
                         .frame(width: 24, height: 24)
                     
                     // 标题
@@ -108,7 +108,7 @@ struct SettingsRowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(
-                Color.white
+                Color(.secondarySystemBackground) // 使用系统二级背景色，适应深色模式
                     .opacity(configuration.isPressed ? 0.8 : 1.0)
             )
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
