@@ -27,54 +27,63 @@ struct PetDetailView: View {
     var body: some View {
         ScrollView(showsIndicators: true) {
             VStack(spacing: 24) {
+                // 调试信息
+                Text("Debug: PetDetailView loaded for \(pet.name)")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                
+                Text("Debug: Pet ID: \(pet.id.uuidString)")
+                    .foregroundColor(.blue)
+                    .font(.caption)
+                
                 // 宠物头像
                 petAvatarSection
                 
                 // 基本信息卡片
-                infoCard(title: "Basic Information") {
-                    infoRow(label: "Name", value: pet.name)
-                    infoRow(label: "Type", value: pet.petType.rawValue)
-                    infoRow(label: "Breed / Color", value: pet.breed)
-                    infoRow(label: "Gender", value: pet.gender.rawValue)
-                    infoRow(label: "Neutered / Spayed", value: pet.isNeutered ? "Yes" : "No")
+                infoCard(title: String(localized: "Basic Information")) {
+                    infoRow(label: String(localized: "Name"), value: pet.name)
+                    infoRow(label: String(localized: "Type"), value: pet.petType.rawValue)
+                    infoRow(label: String(localized: "Breed / Color"), value: pet.breed)
+                    infoRow(label: String(localized: "Gender"), value: pet.gender.rawValue)
+                    infoRow(label: String(localized: "Neutered / Spayed"), value: pet.isNeutered ? String(localized: "Yes") : String(localized: "No"))
                 }
                 
                 // 年龄与日期信息卡片
-                infoCard(title: "Age & Important Dates") {
+                infoCard(title: String(localized: "Age & Important Dates")) {
                     // 年龄显示
                     let age = pet.age
-                    infoRow(label: "Age", value: "\(age.years)y \(age.months)m \(age.days)d")
+                    infoRow(label: String(localized: "Age"), value: "\(age.years)y \(age.months)m \(age.days)d")
                     
                     // 生日显示
-                    infoRow(label: "Birthday", value: birthdayFormatter.string(from: pet.birthday))
+                    infoRow(label: String(localized: "Birthday"), value: birthdayFormatter.string(from: pet.birthday))
                     
                     // 领养日显示
                     if let adoptionDay = pet.adoptionDay {
-                        infoRow(label: "Adoption Day", value: birthdayFormatter.string(from: adoptionDay))
+                        infoRow(label: String(localized: "Adoption Day"), value: birthdayFormatter.string(from: adoptionDay))
                         if let days = pet.daysWithOwner {
-                            infoRow(label: "Together for", value: "\(days) days")
+                            infoRow(label: String(localized: "Together for"), value: "\(days) days")
                         }
                     }
                     
                     // 下个生日
-                    infoRow(label: "Next Birthday", value: "In \(pet.daysToNextBirthday) days")
+                    infoRow(label: String(localized: "Next Birthday"), value: "In \(pet.daysToNextBirthday) days")
                 }
                 
                 // 健康信息卡片
-                infoCard(title: "Health Information") {
+                infoCard(title: String(localized: "Health Information")) {
                     if !pet.microchipID.isEmpty {
-                        infoRow(label: "Microchip ID", value: pet.microchipID)
+                        infoRow(label: String(localized: "Microchip ID"), value: pet.microchipID)
                     } else {
-                        infoRow(label: "Microchip ID", value: "Not set")
+                        infoRow(label: String(localized: "Microchip ID"), value: String(localized: "Not set"))
                     }
                     
                     if !pet.insurancePolicyNo.isEmpty {
-                        infoRow(label: "Insurance Policy No.", value: pet.insurancePolicyNo)
+                        infoRow(label: String(localized: "Insurance Policy No."), value: pet.insurancePolicyNo)
                     } else {
-                        infoRow(label: "Insurance Policy No.", value: "Not set")
+                        infoRow(label: String(localized: "Insurance Policy No."), value: String(localized: "Not set"))
                     }
                     
-                    infoRow(label: "Weight Unit", value: pet.weightUnitPreference.rawValue)
+                    infoRow(label: String(localized: "Weight Unit"), value: pet.weightUnitPreference.rawValue)
                 }
             }
             .padding()
@@ -82,19 +91,22 @@ struct PetDetailView: View {
         .background(backgroundColor.ignoresSafeArea())
         .navigationTitle(pet.name)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            print("🐾 PetDetailView onAppear called for pet: \(pet.name), ID: \(pet.id)")
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button(action: {
                         showingEditSheet = true
                     }) {
-                        Label("Edit", systemImage: "pencil")
+                        Label(String(localized: "Edit"), systemImage: "pencil")
                     }
                     
                     Button(role: .destructive, action: {
                         showingDeleteAlert = true
                     }) {
-                        Label("Delete", systemImage: "trash")
+                        Label(String(localized: "Delete"), systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")

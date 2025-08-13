@@ -201,11 +201,12 @@ struct EditPetView: View {
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             DatePicker(
-                String(localized: "Birthday"),
+                "",
                 selection: $viewModel.birthday,
                 displayedComponents: .date
             )
             .datePickerStyle(CompactDatePickerStyle())
+            .labelsHidden()
             .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
         }
     }
@@ -218,11 +219,12 @@ struct EditPetView: View {
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             DatePicker(
-                String(localized: "Adoption / Gotcha Day"),
+                "",
                 selection: $viewModel.adoptionDay,
                 displayedComponents: .date
             )
             .datePickerStyle(CompactDatePickerStyle())
+            .labelsHidden()
             .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
         }
     }
