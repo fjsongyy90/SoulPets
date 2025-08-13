@@ -27,15 +27,6 @@ struct PetDetailView: View {
     var body: some View {
         ScrollView(showsIndicators: true) {
             VStack(spacing: 24) {
-                // 调试信息
-                Text("Debug: PetDetailView loaded for \(pet.name)")
-                    .foregroundColor(.red)
-                    .font(.caption)
-                
-                Text("Debug: Pet ID: \(pet.id.uuidString)")
-                    .foregroundColor(.blue)
-                    .font(.caption)
-                
                 // 宠物头像
                 petAvatarSection
                 
@@ -92,7 +83,7 @@ struct PetDetailView: View {
         .navigationTitle(pet.name)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            print("🐾 PetDetailView onAppear called for pet: \(pet.name), ID: \(pet.id)")
+            // 视图出现时的初始化逻辑
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {

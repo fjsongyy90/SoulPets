@@ -12,6 +12,18 @@ struct PetsHomeView: View {
     @State private var showingSettingsSheet = false
     @State private var selectedPet: Pet?
     
+    // 新增：专门用于详情页面的宠物引用，避免状态竞争
+    // @State private var detailViewPet: Pet?  // 已改用detailViewPetID
+    
+    // 新增：专门用于编辑页面的宠物引用，避免状态竞争
+    @State private var editViewPet: Pet?
+    
+    // 新增：延迟清理检查器，处理SwiftData的暂时状态变化
+    @State private var delayedCleanupTask: Task<Void, Never>?
+    
+    // 新增：使用pet ID来避免对象引用问题
+    @State private var detailViewPetID: UUID?
+    
     // 背景和强调色
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
@@ -36,14 +48,6 @@ struct PetsHomeView: View {
                                 }
                             }
                             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                            .onChange(of: selectedPetIndex) { _, newIndex in
-                                // 确保索引有效并更新选中的宠物
-                                print("🐾 selectedPetIndex变化: \(newIndex), pets数量: \(pets.count)")
-                                if newIndex < pets.count {
-                                    selectedPet = pets[newIndex]
-                                    print("🐾 通过索引更新selectedPet: \(selectedPet?.name ?? "nil")")
-                                }
-                            }
                         }
                         .frame(height: min(480, UIScreen.main.bounds.height * 0.6))
                         .padding(.top, 10)
@@ -98,54 +102,95 @@ struct PetsHomeView: View {
             }
             .onChange(of: pets) { oldPets, newPets in
                 // 当宠物列表发生变化时，更新状态
-                print("🐾 宠物列表变化: \(oldPets.count) -> \(newPets.count)")
-                if newPets.isEmpty {
-                    // 如果没有宠物了，重置状态
-                    print("🐾 没有宠物，重置状态")
+                
+                // 取消之前的延迟清理任务
+                delayedCleanupTask?.cancel()
+                
+                if newPets.isEmpty && !oldPets.isEmpty {
+                    // 宠物列表从有变成无 - 可能是SwiftData的暂时状态
+                    selectedPet = nil
+                    selectedPetIndex = 0
+                    
+                    // 启动延迟检查任务，给SwiftData 1秒时间恢复
+                    delayedCleanupTask = Task {
+                        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒
+                        
+                        await MainActor.run {
+                            if pets.isEmpty && detailViewPetID != nil {
+                                detailViewPetID = nil
+                                if showingPetDetailSheet {
+                                    showingPetDetailSheet = false
+                                }
+                            }
+                        }
+                    }
+                } else if newPets.isEmpty {
+                    // 列表一直为空的情况
                     selectedPet = nil
                     selectedPetIndex = 0
                 } else {
+                    // 有宠物的正常情况
+                    
                     // 确保选中索引有效
                     if selectedPetIndex >= newPets.count {
-                        print("🐾 索引超出范围，调整索引: \(selectedPetIndex) -> \(max(0, newPets.count - 1))")
                         selectedPetIndex = max(0, newPets.count - 1)
                     }
                     // 更新选中的宠物
                     if selectedPetIndex < newPets.count {
-                        selectedPet = newPets[selectedPetIndex]
-                        print("🐾 更新selectedPet为索引\(selectedPetIndex)的宠物: \(selectedPet?.name ?? "nil")")
+                        let newSelectedPet = newPets[selectedPetIndex]
+                        selectedPet = newSelectedPet
+                        
+                        // 🔧 只有当detailViewPetID对应的宠物确实被删除时才清理
+                        if let currentDetailPetID = detailViewPetID,
+                           !newPets.contains(where: { $0.id == currentDetailPetID }) {
+                            detailViewPetID = nil
+                        }
                     } else if let firstPet = newPets.first {
                         selectedPet = firstPet
                         selectedPetIndex = 0
-                        print("🐾 设置selectedPet为第一只宠物: \(selectedPet?.name ?? "nil")")
                     }
                 }
+            }
+            .onChange(of: selectedPetIndex) { oldIndex, newIndex in
+                // 确保索引有效并更新选中的宠物
+                
+                if newIndex < pets.count {
+                    selectedPet = pets[newIndex]
+                }
+                
             }
             .onAppear {
                 // 初始化状态
-                print("🐾 PetsHomeView onAppear，宠物数量: \(pets.count)")
                 if !pets.isEmpty {
                     if selectedPetIndex >= pets.count {
                         selectedPetIndex = 0
-                        print("🐾 初始化时调整索引为0")
                     }
                     if selectedPet == nil || !pets.contains(where: { $0.id == selectedPet?.id }) {
                         selectedPet = pets[selectedPetIndex < pets.count ? selectedPetIndex : 0]
-                        print("🐾 初始化selectedPet: \(selectedPet?.name ?? "nil")")
                     }
                 }
             }
+        }
+        .onDisappear {
+            // 清理延迟任务
+            delayedCleanupTask?.cancel()
         }
         .sheet(isPresented: $showingAddPetSheet) {
             AddPetView(modelContext: modelContext)
         }
         .sheet(isPresented: $showingEditPetSheet) {
-            if let pet = selectedPet {
+            if let pet = editViewPet {
                 EditPetView(pet: pet)
+                    .onDisappear {
+                        // 清理临时状态
+                        editViewPet = nil
+                    }
             }
         }
         .sheet(isPresented: $showingPetDetailSheet) {
-            if let pet = selectedPet {
+            // 主要逻辑：使用detailViewPetID查找宠物
+            if let petID = detailViewPetID,
+               let pet = pets.first(where: { $0.id == petID }) {
                 NavigationStack {
                     PetDetailView(pet: pet)
                         .navigationBarTitleDisplayMode(.large)
@@ -159,18 +204,63 @@ struct PetsHomeView: View {
                         }
                 }
                 .onAppear {
-                    print("📱 PetDetailView Sheet 显示，宠物: \(pet.name), ID: \(pet.id)")
+                    // 设置detailViewPetID以保持状态一致
+                    detailViewPetID = pet.id
                 }
-            } else {
+                .onDisappear {
+                    detailViewPetID = nil
+                }
+            }
+            // 🔧 备用逻辑：如果detailViewPetID为nil，使用当前选中的宠物
+            else if detailViewPetID == nil, let pet = selectedPet {
+                NavigationStack {
+                    PetDetailView(pet: pet)
+                        .navigationBarTitleDisplayMode(.large)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Close") {
+                                    showingPetDetailSheet = false
+                                }
+                                .foregroundColor(accentColor)
+                            }
+                        }
+                }
+                .onAppear {
+                    // 设置detailViewPetID以保持状态一致
+                    detailViewPetID = pet.id
+                }
+                .onDisappear {
+                    detailViewPetID = nil
+                }
+            }
+            // 🔧 第二级备用逻辑：如果selectedPet也为nil，但pets不为空，使用第一只宠物
+            else if !pets.isEmpty {
+                let pet = pets[0]
+                NavigationStack {
+                    PetDetailView(pet: pet)
+                        .navigationBarTitleDisplayMode(.large)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Close") {
+                                    showingPetDetailSheet = false
+                                }
+                                .foregroundColor(accentColor)
+                            }
+                        }
+                }
+                .onAppear {
+                    // 设置detailViewPetID以保持状态一致
+                    detailViewPetID = pet.id
+                }
+                .onDisappear {
+                    detailViewPetID = nil
+                }
+            }
+            // 最后的兜底逻辑
+            else {
                 Text("No pet selected")
                     .onAppear {
-                        print("❌ PetDetailView Sheet 显示但没有选中的宠物")
-                        print("❌ 当前pets数量: \(pets.count)")
-                        print("❌ 当前selectedPetIndex: \(selectedPetIndex)")
-                        if !pets.isEmpty {
-                            print("❌ pets列表: \(pets.map { "\($0.name)(\($0.id))" })")
-                        }
-                        // 如果没有选中宠物，自动关闭sheet
+                        // 如果没有找到宠物，自动关闭sheet
                         DispatchQueue.main.async {
                             showingPetDetailSheet = false
                         }
@@ -328,11 +418,15 @@ struct PetsHomeView: View {
                 
                 // 查看详情按钮
                 Button(action: {
-                    selectedPet = pet
-                    print("🔍 点击View Profile按钮，选中宠物: \(pet.name), ID: \(pet.id)")
-                    print("🔍 当前selectedPet: \(selectedPet?.name ?? "nil")")
-                    print("🔍 当前pets数量: \(pets.count)")
-                    showingPetDetailSheet = true
+                    // 设置要显示的宠物ID
+                    detailViewPetID = pet.id
+                    
+                    // 使用两层异步确保状态完全更新
+                    DispatchQueue.main.async {
+                        DispatchQueue.main.async {
+                            showingPetDetailSheet = true
+                        }
+                    }
                 }) {
                     HStack(spacing: 8) {
                         Text(String(localized: "View Profile"))

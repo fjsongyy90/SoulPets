@@ -7,6 +7,9 @@ struct PetImportantDatesView: View {
     @FocusState private var isWeightFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
     
+    // 新增：用于处理保存和完成的回调
+    var onSaveAndFinish: (() -> Void)?
+    
     // 定义更高对比度的颜色
     private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
     private let labelColor = Color(red: 0.3, green: 0.3, blue: 0.3)
@@ -86,22 +89,26 @@ struct PetImportantDatesView: View {
                             .foregroundColor(accentColor)
                             .padding(.leading)
                         
-                        TextField(LocalizedStringKey("Enter weight"), text: $viewModel.initialWeight)
-                            .keyboardType(.decimalPad)
-                            .padding(.horizontal)
-                            .foregroundColor(textColor)
-                            .focused($isWeightFocused)
-                            .onChange(of: viewModel.initialWeight) { oldValue, newValue in
-                                // 确保只输入数字和小数点
-                                let filtered = newValue.filter { "0123456789.".contains($0) }
-                                if filtered != newValue {
-                                    viewModel.initialWeight = filtered
-                                }
-                            }
+                        Spacer()
                         
-                        Text(viewModel.weightUnitPreference.rawValue)
-                            .foregroundColor(labelColor)
-                            .padding(.trailing)
+                        HStack(spacing: 4) {
+                            TextField(LocalizedStringKey("Enter weight"), text: $viewModel.initialWeight)
+                                .keyboardType(.decimalPad)
+                                .foregroundColor(textColor)
+                                .focused($isWeightFocused)
+                                .multilineTextAlignment(.trailing)
+                                .onChange(of: viewModel.initialWeight) { oldValue, newValue in
+                                    // 确保只输入数字和小数点
+                                    let filtered = newValue.filter { "0123456789.".contains($0) }
+                                    if filtered != newValue {
+                                        viewModel.initialWeight = filtered
+                                    }
+                                }
+                            
+                            Text(viewModel.weightUnitPreference.rawValue)
+                                .foregroundColor(labelColor)
+                        }
+                        .padding(.trailing)
                     }
                     .padding()
                     .background(Color(red: 0.95, green: 0.91, blue: 0.85))
@@ -139,6 +146,24 @@ struct PetImportantDatesView: View {
                 .padding(.horizontal)
                 
                 Spacer(minLength: 100) // 增加底部空间，防止键盘遮挡
+                
+                // Finish按钮
+                Button(action: {
+                    onSaveAndFinish?()
+                }) {
+                    Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(accentColor)
+                        )
+                }
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
             }
             .padding(.bottom, keyboardHeight)
         }
@@ -165,6 +190,8 @@ struct PetImportantDatesView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Pet.self, configurations: config)
     let viewModel = PetViewModel(modelContext: container.mainContext)
-    return PetImportantDatesView(viewModel: viewModel)
+    return PetImportantDatesView(viewModel: viewModel, onSaveAndFinish: {
+        print("Save and finish callback")
+    })
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
 } 

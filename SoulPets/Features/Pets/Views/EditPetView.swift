@@ -200,14 +200,22 @@ struct EditPetView: View {
                 .fontWeight(.medium)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
-            DatePicker(
-                "",
-                selection: $viewModel.birthday,
-                displayedComponents: .date
-            )
-            .datePickerStyle(CompactDatePickerStyle())
-            .labelsHidden()
-            .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+            HStack {
+                DatePicker(
+                    "",
+                    selection: $viewModel.birthday,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(CompactDatePickerStyle())
+                .labelsHidden()
+                .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+                
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(8)
         }
     }
     
@@ -218,14 +226,22 @@ struct EditPetView: View {
                 .fontWeight(.medium)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
-            DatePicker(
-                "",
-                selection: $viewModel.adoptionDay,
-                displayedComponents: .date
-            )
-            .datePickerStyle(CompactDatePickerStyle())
-            .labelsHidden()
-            .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+            HStack {
+                DatePicker(
+                    "",
+                    selection: $viewModel.adoptionDay,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(CompactDatePickerStyle())
+                .labelsHidden()
+                .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+                
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(8)
         }
     }
     

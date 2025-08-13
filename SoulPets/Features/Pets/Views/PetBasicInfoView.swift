@@ -187,6 +187,25 @@ struct PetBasicInfoView: View {
                         
                         Spacer(minLength: 60) // 减少底部空间
                         
+                        // Next按钮
+                        Button(action: {
+                            viewModel.moveToNextStep()
+                        }) {
+                            Text(LocalizedStringKey("Next"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(viewModel.formIsValid ? accentColor : Color.gray)
+                                )
+                        }
+                        .disabled(!viewModel.formIsValid)
+                        .padding(.horizontal, 40)
+                        .padding(.bottom, 20)
+                        
                         // 隐私承诺文案
                         Text("Your pet's data never leaves your device.")
                             .font(.caption)

@@ -35,58 +35,20 @@ struct AddPetView: View {
                         case .basicInfo:
                             PetBasicInfoView(viewModel: viewModel)
                         case .importantDates:
-                            PetImportantDatesView(viewModel: viewModel)
+                            PetImportantDatesView(viewModel: viewModel, onSaveAndFinish: saveAndFinish)
                         }
                     }
                     .scrollDismissesKeyboard(.immediately)
                     
                     Spacer()
                     
-                    // 导航按钮
-                    VStack {
-                        if viewModel.currentStep == .selectType {
+                    // 导航按钮 - 仅用于第一步
+                    if viewModel.currentStep == .selectType {
+                        VStack {
                             Button(action: {
                                 viewModel.moveToNextStep()
                             }) {
                                 Text(LocalizedStringKey("Next"))
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(accentColor)
-                                    )
-                            }
-                            .padding(.horizontal, 40)
-                            .padding(.bottom, 20)
-                            .padding(.top, 10)
-                        } else if viewModel.currentStep == .basicInfo {
-                            Button(action: {
-                                viewModel.moveToNextStep()
-                            }) {
-                                Text(LocalizedStringKey("Next"))
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(viewModel.formIsValid ? accentColor : Color.gray)
-                                    )
-                            }
-                            .disabled(!viewModel.formIsValid)
-                            .padding(.horizontal, 40)
-                            .padding(.bottom, 20)
-                            .padding(.top, 10)
-                        } else if viewModel.currentStep == .importantDates {
-                            Button(action: {
-                                // 最后一步，保存宠物
-                                saveAndFinish()
-                            }) {
-                                Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
@@ -101,8 +63,8 @@ struct AddPetView: View {
                             .padding(.bottom, 20)
                             .padding(.top, 10)
                         }
+                        .background(backgroundColor)
                     }
-                    .background(backgroundColor)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
