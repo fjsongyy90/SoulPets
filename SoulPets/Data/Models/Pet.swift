@@ -43,6 +43,9 @@ final class Pet {
     @Relationship(deleteRule: .cascade, inverse: \Weight.pet)
     var weights: [Weight]?
     
+    @Relationship(deleteRule: .cascade, inverse: \WeightGoal.pet)
+    var weightGoals: [WeightGoal]?
+    
     @Relationship(deleteRule: .nullify)
     var records: [Record]?
     
