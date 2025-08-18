@@ -454,13 +454,12 @@ struct RecordsView: View {
                                 VStack(spacing: 4) {
                                     Image(tag.iconName)
                                         .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 16, height: 16)
-                                        .foregroundColor(selectedTag?.id == tag.id ? .white : accentColor)
+                                        .scaledToFill()
                                         .frame(width: 32, height: 32)
-                                        .background(
+                                        .clipShape(Circle())
+                                        .overlay(
                                             Circle()
-                                                .fill(selectedTag?.id == tag.id ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                                                .stroke(selectedTag?.id == tag.id ? accentColor : Color.clear, lineWidth: 2)
                                         )
                                     
                                     Text(tag.name)
@@ -699,14 +698,9 @@ struct RecordCardView: View {
                 HStack(spacing: 6) {
                     Image(record.tag.iconName)
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: 16, height: 16)
-                        .foregroundColor(.white)
+                        .scaledToFill()
                         .frame(width: 30, height: 30)
-                        .background(
-                            Circle()
-                                .fill(accentColor)
-                        )
+                        .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
                         .font(.headline)

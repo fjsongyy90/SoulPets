@@ -24,13 +24,12 @@ struct TagItemView: View {
             // 图标
             Image(tag.iconName)
                 .resizable()
-                .scaledToFit()
-                .frame(width: 18, height: 18)
-                .foregroundStyle(isSelected ? .white : accentColor)
+                .scaledToFill()
                 .frame(width: 28, height: 28)
-                .background(
+                .clipShape(Circle())
+                .overlay(
                     Circle()
-                        .fill(isSelected ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                        .stroke(isSelected ? Color.white : accentColor, lineWidth: 1)
                 )
             
             // 名称

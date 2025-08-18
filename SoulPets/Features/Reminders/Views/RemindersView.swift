@@ -679,14 +679,9 @@ struct ReminderCardView: View {
                 HStack(spacing: 6) {
                     Image(reminder.tag.iconName)
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: 16, height: 16)
-                        .foregroundColor(.white)
+                        .scaledToFill()
                         .frame(width: 30, height: 30)
-                        .background(
-                            Circle()
-                                .fill(accentColor)
-                        )
+                        .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
                         .font(.headline)

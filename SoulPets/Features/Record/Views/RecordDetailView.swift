@@ -124,14 +124,9 @@ struct RecordDetailView: View {
             HStack {
                 Image(record.tag.iconName)
                     .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .foregroundColor(.white)
+                    .scaledToFill()
                     .frame(width: 50, height: 50)
-                    .background(
-                        Circle()
-                            .fill(accentColor)
-                    )
+                    .clipShape(Circle())
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))

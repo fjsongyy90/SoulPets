@@ -81,9 +81,9 @@ struct TagItemManagementView: View {
                 .frame(width: 32, height: 32)
             Image(tag.iconName)
                 .resizable()
-                .scaledToFit()
-                .frame(width: 14,height: 14)
-                .foregroundStyle(isHidden ? .gray : accentColor)
+                .scaledToFill()
+                .frame(width: 24, height: 24)
+                .clipShape(Circle())
         }
     }
     

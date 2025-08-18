@@ -79,9 +79,9 @@ struct ReminderDetailView: View {
             HStack {
                 Image(reminder.tag.iconName)
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
                     .frame(width: 28, height: 28)
-                    .foregroundColor(.accentColor)
+                    .clipShape(Circle())
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(reminder.tag.name)
