@@ -44,8 +44,10 @@ struct PetBasicInfoView: View {
                                     .frame(width: 100, height: 100)
                                     .clipShape(Circle())
                             } else {
-                                Image(systemName: viewModel.petType == .dog ? "dog.fill" : "cat.fill")
-                                    .font(.system(size: 50))
+                                Image(viewModel.petType == .dog ? "pet_dog" : "pet_cat")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 50, height: 50)
                                     .foregroundColor(accentColor)
                             }
                             

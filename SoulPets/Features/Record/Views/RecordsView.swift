@@ -155,15 +155,10 @@ struct RecordsView: View {
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(systemName: currentPet.petType == .dog ? "dog.fill" : "cat.fill")
+                            Image(currentPet.petType == .dog ? "pet_dog" : "pet_cat")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 14, height: 14)
-                                .padding(3)
-                                .background(
-                                    Circle()
-                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                )
+                                .frame(width: 20, height: 20)
                         }
                         Text(currentPet.name)
                             .font(.caption)
@@ -336,18 +331,13 @@ struct RecordsView: View {
                                             .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
-                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
+                                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .padding(8)
-                                    .background(
+                                    .frame(width: 40, height: 40)
+                                    .overlay(
                                         Circle()
-                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
-                                            )
+                                            .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             }
                             
@@ -755,7 +745,7 @@ struct RecordCardView: View {
                                     .frame(width: 24, height: 24)
                                     .clipShape(Circle())
                             } else {
-                                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
+                                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 16, height: 16)

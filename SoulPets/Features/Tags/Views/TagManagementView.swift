@@ -114,8 +114,10 @@ struct TagManagementView: View {
             viewModel.selectPetType(petType)
         }) {
             HStack {
-                Image(systemName: petType == .cat ? "cat.fill" : "dog.fill")
-                    .font(.title2)
+                Image(petType == .cat ? "pet_cat" : "pet_dog")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                 Text(petType.rawValue)
                     .font(.body)
                     .fontWeight(.medium)

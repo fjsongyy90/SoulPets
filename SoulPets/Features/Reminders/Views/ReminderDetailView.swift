@@ -266,12 +266,10 @@ struct PetMiniCard: View {
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
             } else {
-                Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
+                Image(pet.petType == .cat ? "pet_cat" : "pet_dog")
+                    .resizable()
+                    .scaledToFit()
                     .frame(width: 50, height: 50)
-                    .background(Color.accentColor.opacity(0.1))
-                    .clipShape(Circle())
             }
             
             Text(pet.name)

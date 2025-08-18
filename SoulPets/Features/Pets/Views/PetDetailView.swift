@@ -135,12 +135,11 @@ struct PetDetailView: View {
                             .stroke(accentColor, lineWidth: 3)
                     )
             } else {
-                Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
+                Image(pet.petType == .cat ? "pet_cat" : "pet_dog")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 60)
-                    .padding(30)
-                    .background(Circle().fill(Color(.systemGray5)))
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
                     .overlay(
                         Circle()
                             .stroke(accentColor, lineWidth: 3)

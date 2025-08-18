@@ -15,7 +15,7 @@ struct PetTypeSelectionView: View {
         ("Fish", "fish.fill"),
         ("Turtle", "tortoise.fill"),
         ("Lizard", "lizard.fill"),
-        ("Plate", "tree.fill"),
+        ("Mouse", "pawprint.fill"),
         ("Insect", "ladybug.fill") // 用简单图标替代
     ]
     
@@ -38,9 +38,9 @@ struct PetTypeSelectionView: View {
             // 宠物类型网格
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 25) {
                 // 支持的宠物类型 - 猫
-                PetTypeCircleButton(
+                PetTypeImageButton(
                     type: "Cat",
-                    iconName: "cat.fill",
+                    imageName: "pet_cat",
                     isSelected: selectedType == .cat,
                     isDisabled: false,
                     backgroundColor: catColor
@@ -49,9 +49,9 @@ struct PetTypeSelectionView: View {
                 }
                 
                 // 支持的宠物类型 - 狗
-                PetTypeCircleButton(
+                PetTypeImageButton(
                     type: "Dog",
-                    iconName: "dog.fill",
+                    imageName: "pet_dog",
                     isSelected: selectedType == .dog,
                     isDisabled: false,
                     backgroundColor: dogColor
@@ -101,7 +101,59 @@ struct PetTypeSelectionView: View {
     }
 }
 
-/// 圆形宠物类型按钮
+/// 使用导入图片的宠物类型按钮
+struct PetTypeImageButton: View {
+    let type: String
+    let imageName: String
+    let isSelected: Bool
+    let isDisabled: Bool
+    let backgroundColor: Color
+    let action: () -> Void
+    
+    // 定义更高对比度的颜色
+    private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 12) {
+                ZStack {
+                    // 背景圆圈
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    isSelected ? backgroundColor : Color.clear,
+                                    lineWidth: 3
+                                )
+                                .scaleEffect(1.1)
+                        )
+                    
+                    // 宠物图片
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 60, height: 60)
+                        .opacity(isDisabled ? 0.7 : 1.0)
+                }
+                .scaleEffect(isSelected ? 1.1 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
+                
+                Text(LocalizedStringKey(type))
+                    .font(.caption)
+                    .fontWeight(isSelected ? .bold : .medium)
+                    .foregroundColor(isSelected ? backgroundColor : textColor)
+                    .opacity(isDisabled ? 0.6 : 1.0)
+            }
+        }
+        .disabled(isDisabled)
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+/// 圆形宠物类型按钮（用于未来支持的宠物类型）
 struct PetTypeCircleButton: View {
     let type: String
     let iconName: String

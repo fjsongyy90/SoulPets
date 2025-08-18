@@ -308,9 +308,10 @@ struct PetsHomeView: View {
                                 )
                                 .frame(width: avatarSize, height: avatarSize)
                             
-                            Image(systemName: pet.petType == .cat ? "cat.fill" : "dog.fill")
-                                .font(.system(size: isLandscape ? 32 : 40))
-                                .foregroundColor(accentColor)
+                            Image(pet.petType == .cat ? "pet_cat" : "pet_dog")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: isLandscape ? 32 : 40, height: isLandscape ? 32 : 40)
                         }
                         .overlay(
                             Circle()

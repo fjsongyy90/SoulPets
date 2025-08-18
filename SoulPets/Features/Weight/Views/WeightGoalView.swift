@@ -152,15 +152,11 @@ struct WeightGoalView: View {
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
             } else {
-                Image(systemName: pet.petType == .dog ? "dog.fill" : "cat.fill")
+                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 30, height: 30)
-                    .padding(10)
-                    .background(
-                        Circle()
-                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                    )
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
             }
             
             VStack(alignment: .leading, spacing: 2) {
