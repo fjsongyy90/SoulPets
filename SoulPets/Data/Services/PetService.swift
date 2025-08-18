@@ -4,7 +4,7 @@ import OSLog
 
 /// 宠物服务，负责处理宠物相关的业务逻辑
 class PetService {
-	private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Pet")
+    static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Pet")
 	
 	/// 获取所有宠物
 	static func getAllPets(modelContext: ModelContext) -> [Pet] {
@@ -132,103 +132,9 @@ class PetService {
 		}
 	}
 	
-	/// 删除宠物
+	/// 删除宠物 - 使用级联删除扩展
 	static func deletePet(pet: Pet, modelContext: ModelContext) {
-		logger.info("🔄 开始删除宠物: \(pet.name) (ID: \(pet.id))")
-		
-		do {
-			logger.info("📊 步骤1: 开始获取所有Records...")
-			// 1. 手动处理Records的多对多关系
-			let recordDescriptor = FetchDescriptor<Record>()
-			let allRecords = try modelContext.fetch(recordDescriptor)
-			logger.info("📊 获取到 \(allRecords.count) 条记录")
-			
-			var processedRecords = 0
-			for record in allRecords {
-				guard let pets = record.pets else { 
-					processedRecords += 1
-					continue 
-				}
-				
-				// 检查是否包含要删除的宠物
-				if pets.contains(where: { $0.id == pet.id }) {
-					logger.info("📊 处理记录 \(record.id)，包含 \(pets.count) 只宠物")
-					// 如果只有这一只宠物，删除整个记录
-					if pets.count == 1 {
-						logger.info("📊 删除整个记录 \(record.id)")
-						modelContext.delete(record)
-					} else {
-						// 如果有多只宠物，只移除这只宠物
-						logger.info("📊 从记录 \(record.id) 中移除宠物")
-						record.pets = pets.filter { $0.id != pet.id }
-					}
-				}
-				processedRecords += 1
-				
-				// 每处理10条记录打印一次进度
-				if processedRecords % 10 == 0 {
-					logger.info("📊 已处理 \(processedRecords)/\(allRecords.count) 条记录")
-				}
-			}
-			logger.info("✅ 成功处理Records的多对多关系，共处理 \(processedRecords) 条记录")
-			
-			logger.info("📊 步骤2: 开始获取所有Reminders...")
-			// 2. 手动处理Reminders的多对多关系  
-			let reminderDescriptor = FetchDescriptor<Reminder>()
-			let allReminders = try modelContext.fetch(reminderDescriptor)
-			logger.info("📊 获取到 \(allReminders.count) 条提醒")
-			
-			var processedReminders = 0
-			for reminder in allReminders {
-				guard let pets = reminder.pets else { 
-					processedReminders += 1
-					continue 
-				}
-				
-				// 检查是否包含要删除的宠物
-				if pets.contains(where: { $0.id == pet.id }) {
-					logger.info("📊 处理提醒 \(reminder.id)，包含 \(pets.count) 只宠物")
-					// 如果只有这一只宠物，删除整个提醒
-					if pets.count == 1 {
-						logger.info("📊 删除整个提醒 \(reminder.id)")
-						modelContext.delete(reminder)
-					} else {
-						// 如果有多只宠物，只移除这只宠物
-						logger.info("📊 从提醒 \(reminder.id) 中移除宠物")
-						reminder.pets = pets.filter { $0.id != pet.id }
-					}
-				}
-				processedReminders += 1
-				
-				// 每处理5条提醒打印一次进度
-				if processedReminders % 5 == 0 {
-					logger.info("📊 已处理 \(processedReminders)/\(allReminders.count) 条提醒")
-				}
-			}
-			logger.info("✅ 成功处理Reminders的多对多关系，共处理 \(processedReminders) 条提醒")
-			
-			logger.info("📊 步骤3: 准备删除宠物本身...")
-			// 3. 删除宠物本身（一对多关系会通过cascade自动删除）
-			modelContext.delete(pet)
-			logger.info("✅ 已标记宠物删除")
-			
-			logger.info("📊 步骤4: 准备保存更改...")
-			// 4. 保存更改
-			try modelContext.save()
-			logger.info("✅ 成功保存数据库更改")
-			
-			logger.info("🎉 成功删除宠物及其所有相关数据: \(pet.name)")
-			
-			// 5. 异步清理通知（避免阻塞删除操作）
-			logger.info("📊 步骤5: 开始异步清理通知...")
-			DispatchQueue.global(qos: .background).async {
-				NotificationService.removeAllPendingNotifications()
-				logger.info("✅ 已异步清理所有通知")
-			}
-		} catch {
-			logger.error("❌ 删除宠物时出错: \(error.localizedDescription)")
-			logger.error("❌ 错误详情: \(error)")
-		}
+		cascadeDeletePet(pet: pet, modelContext: modelContext)
 	}
 	
 	/// 删除所有数据

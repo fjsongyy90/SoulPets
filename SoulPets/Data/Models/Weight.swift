@@ -12,8 +12,8 @@ final class Weight {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship
-    var pet: Pet
+    @Relationship(deleteRule: .nullify)
+    var pet: Pet?
     
     // MARK: - 初始化
     init(
@@ -48,7 +48,7 @@ final class Weight {
     
     /// 根据用户偏好获取格式化的体重字符串
     func formattedWeight(unit: WeightUnit? = nil) -> String {
-        let preferredUnit = unit ?? pet.weightUnitPreference
+        let preferredUnit = unit ?? pet?.weightUnitPreference ?? .kg
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 1

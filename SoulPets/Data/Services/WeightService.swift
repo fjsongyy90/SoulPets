@@ -17,7 +17,7 @@ class WeightService {
             let allWeights = try modelContext.fetch(descriptor)
             
             // 在内存中过滤特定宠物的体重记录
-            return allWeights.filter { $0.pet.id == pet.id }
+            return allWeights.filter { $0.pet?.id == pet.id }
         } catch {
             logger.error("获取宠物体重记录时出错: \(error.localizedDescription)")
             return []
@@ -35,7 +35,7 @@ class WeightService {
             let allWeights = try modelContext.fetch(descriptor)
             
             // 在内存中过滤并获取最近的一条记录
-            return allWeights.filter { $0.pet.id == pet.id }.first
+            return allWeights.filter { $0.pet?.id == pet.id }.first
         } catch {
             logger.error("获取宠物最近体重记录时出错: \(error.localizedDescription)")
             return nil
@@ -127,7 +127,7 @@ class WeightService {
             let allWeights = try modelContext.fetch(descriptor)
             
             // 在内存中过滤特定宠物的体重记录并获取最近两条
-            let recentWeights = allWeights.filter { $0.pet.id == pet.id }.prefix(2)
+            let recentWeights = allWeights.filter { $0.pet?.id == pet.id }.prefix(2)
             
             // 需要至少有两条记录才能计算趋势
             guard recentWeights.count >= 2 else { return nil }
@@ -266,7 +266,7 @@ class WeightService {
             
             // 在内存中过滤特定宠物的体重记录并按时间范围筛选
             return allWeights.filter { 
-                $0.pet.id == pet.id && $0.date >= startDate 
+                $0.pet?.id == pet.id && $0.date >= startDate 
             }
         } catch {
             logger.error("获取体重图表数据时出错: \(error.localizedDescription)")

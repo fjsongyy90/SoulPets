@@ -14,7 +14,7 @@ final class Record {
     @Relationship(deleteRule: .nullify)
     var tag: Tag
     
-    @Relationship(deleteRule: .cascade, inverse: \RecordPhoto.record)
+    @Relationship(deleteRule: .cascade)
     var photos: [RecordPhoto]?
     
     @Relationship(deleteRule: .nullify)
@@ -49,8 +49,8 @@ final class RecordPhoto {
     var updatedAt: Date
     
     // MARK: - 关系
-    @Relationship
-    var record: Record
+    @Relationship(inverse: \Record.photos)
+    var record: Record?
     
     // MARK: - 初始化
     init(
@@ -66,4 +66,4 @@ final class RecordPhoto {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-} 
+}

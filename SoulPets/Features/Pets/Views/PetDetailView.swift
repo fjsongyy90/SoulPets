@@ -184,9 +184,9 @@ struct PetDetailView: View {
         .padding(.vertical, 4)
     }
     
-    // 删除宠物 - 使用PetService处理删除逻辑
+    // 删除宠物 - 使用级联删除方法处理关系问题
     private func deletePet() {
-        PetService.deletePet(pet: pet, modelContext: modelContext)
+        PetService.cascadeDeletePet(pet: pet, modelContext: modelContext)
         
         // 延迟关闭，确保删除操作先完成
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
