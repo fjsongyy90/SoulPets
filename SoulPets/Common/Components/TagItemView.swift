@@ -22,9 +22,11 @@ struct TagItemView: View {
     var body: some View {
         VStack(spacing: 6) {
             // 图标
-            Image(systemName: tag.iconName)
-                .font(.system(size: 18))
-                .foregroundColor(isSelected ? .white : accentColor)
+            Image(tag.iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .foregroundStyle(isSelected ? .white : accentColor)
                 .frame(width: 28, height: 28)
                 .background(
                     Circle()

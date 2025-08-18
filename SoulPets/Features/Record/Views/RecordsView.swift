@@ -452,8 +452,10 @@ struct RecordsView: View {
                                 }
                             } label: {
                                 VStack(spacing: 4) {
-                                    Image(systemName: tag.iconName)
-                                        .font(.system(size: 16))
+                                    Image(tag.iconName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
                                         .foregroundColor(selectedTag?.id == tag.id ? .white : accentColor)
                                         .frame(width: 32, height: 32)
                                         .background(
@@ -695,8 +697,10 @@ struct RecordCardView: View {
             HStack {
                 // 标签图标和名称
                 HStack(spacing: 6) {
-                    Image(systemName: record.tag.iconName)
-                        .font(.system(size: 16))
+                    Image(record.tag.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
                         .foregroundColor(.white)
                         .frame(width: 30, height: 30)
                         .background(

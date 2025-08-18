@@ -677,8 +677,10 @@ struct ReminderCardView: View {
             HStack {
                 // 标签图标和名称
                 HStack(spacing: 6) {
-                    Image(systemName: reminder.tag.iconName)
-                        .font(.system(size: 16))
+                    Image(reminder.tag.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
                         .foregroundColor(.white)
                         .frame(width: 30, height: 30)
                         .background(

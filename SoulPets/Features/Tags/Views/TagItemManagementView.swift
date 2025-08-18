@@ -18,15 +18,12 @@ struct TagItemManagementView: View {
     // MARK: - 视图
     var body: some View {
         HStack(spacing: 12) {
-            // 拖拽手柄
-            dragHandle
-            
             // 标签信息
             tagInfo
             
             Spacer()
             
-            // 控制按钮
+            // 控制按钮（右边）
             controlButtons
         }
         .padding(.vertical, 8)
@@ -40,7 +37,7 @@ struct TagItemManagementView: View {
         .opacity(isHidden ? 0.6 : 1.0)
         .onAppear {
             // 添加调试日志
-            logger.info("显示标签: \(tag.name), 图标名: \(tag.iconName), 记录次数: \(usageStats.recordCount), 提醒次数: \(usageStats.reminderCount)")
+            logger.info("显示标签: \(tag.name),编码：\(tag.code), 图标名: \(tag.iconName), 记录次数: \(usageStats.recordCount), 提醒次数: \(usageStats.reminderCount)")
         }
     }
     
@@ -82,11 +79,11 @@ struct TagItemManagementView: View {
             Circle()
                 .fill(isHidden ? Color.gray.opacity(0.2) : accentColor.opacity(0.1))
                 .frame(width: 32, height: 32)
-            
-            // 直接使用tag.iconName，它应该已经是正确的系统图标名
-            Image(systemName: tag.iconName)
-                .font(.system(size: 14))
-                .foregroundColor(isHidden ? .gray : accentColor)
+            Image(tag.iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 14,height: 14)
+                .foregroundStyle(isHidden ? .gray : accentColor)
         }
     }
     
@@ -167,7 +164,7 @@ struct TagItemManagementView: View {
         case "walk":
             return "figure.walk"
         case "training":
-            return "star"
+            return "icon_training"
         case "play":
             return "gamecontroller"
         case "milk":

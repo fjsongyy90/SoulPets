@@ -77,8 +77,10 @@ struct ReminderDetailView: View {
     private var tagInfoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: reminder.tag.iconName)
-                    .font(.title)
+                Image(reminder.tag.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 28, height: 28)
                     .foregroundColor(.accentColor)
                 
                 VStack(alignment: .leading, spacing: 4) {

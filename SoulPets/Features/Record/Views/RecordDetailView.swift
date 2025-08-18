@@ -122,8 +122,10 @@ struct RecordDetailView: View {
     private var tagInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: record.tag.iconName)
-                    .font(.system(size: 24))
+                Image(record.tag.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .foregroundColor(.white)
                     .frame(width: 50, height: 50)
                     .background(
