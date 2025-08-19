@@ -45,23 +45,25 @@ struct RemindersView: View {
                 backgroundColor.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // 筛选器和搜索栏 - 采用Record模块的设计
-                    filterAndSearchView
-                        .padding(.horizontal)
-                        .padding(.top)
-                    
-                    // 宠物选择器（展开时显示）
-                    if showingPetSelector {
-                        petSelectorView
+                    // 筛选器和搜索栏（仅在有宠物时显示）
+                    if !allPets.isEmpty {
+                        filterAndSearchView
                             .padding(.horizontal)
-                            .padding(.top, 8)
-                    }
-                    
-                    // 搜索栏（展开时显示）
-                    if showingSearchBar {
-                        searchBarView
-                            .padding(.horizontal)
-                            .padding(.top, 8)
+                            .padding(.top)
+                        
+                        // 宠物选择器（展开时显示）
+                        if showingPetSelector {
+                            petSelectorView
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                        }
+                        
+                        // 搜索栏（展开时显示）
+                        if showingSearchBar {
+                            searchBarView
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                        }
                     }
                     
                     // 主内容

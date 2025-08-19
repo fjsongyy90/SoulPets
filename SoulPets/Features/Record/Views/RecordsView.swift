@@ -44,30 +44,32 @@ struct RecordsView: View {
                 backgroundColor.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // 新的筛选器和搜索栏
-                    filterAndSearchView
-                        .padding(.horizontal)
-                        .padding(.top)
-                    
-                    // 宠物选择器（展开时显示）
-                    if showingPetSelector {
-                        petSelectorView
+                    // 筛选器和搜索栏（仅在有宠物时显示）
+                    if !pets.isEmpty {
+                        filterAndSearchView
                             .padding(.horizontal)
-                            .padding(.top, 8)
-                    }
-                    
-                    // 标签选择器（展开时显示）
-                    if showingTagSelector {
-                        tagSelectorView
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                    }
-                    
-                    // 搜索栏（展开时显示）
-                    if showingSearchBar {
-                        searchBarView
-                            .padding(.horizontal)
-                            .padding(.top, 8)
+                            .padding(.top)
+                        
+                        // 宠物选择器（展开时显示）
+                        if showingPetSelector {
+                            petSelectorView
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                        }
+                        
+                        // 标签选择器（展开时显示）
+                        if showingTagSelector {
+                            tagSelectorView
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                        }
+                        
+                        // 搜索栏（展开时显示）
+                        if showingSearchBar {
+                            searchBarView
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                        }
                     }
                     
                     // 记录列表
