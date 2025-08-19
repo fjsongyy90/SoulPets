@@ -41,13 +41,14 @@ struct PetBasicInfoView: View {
                                 Image(uiImage: petImage)
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 100, height: 100)
+                                    .frame(width: 120, height: 120)
                                     .clipShape(Circle())
                             } else {
                                 Image(viewModel.petType == .dog ? "pet_dog" : "pet_cat")
                                     .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 50, height: 50)
+                                    .scaledToFill()
+                                    .frame(width: 120, height: 120)
+                                    .clipShape(Circle())
                                     .foregroundColor(accentColor)
                             }
                             

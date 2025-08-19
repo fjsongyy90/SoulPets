@@ -204,9 +204,10 @@ class PetService {
 			
 			// 创建提醒 - 使用宠物的实际生日作为起始日期
 			// 这样年度重复算法就能正确计算每年的生日
+			let birthdayText = String(localized: "\(pet.name)'s Birthday")
 			let reminder = Reminder(
 				startDate: pet.birthday,
-				notes: "\(pet.name)的生日",
+				notes: birthdayText,
 				repeatInterval: 1,
 				repeatUnit: .yearly,
 				tag: birthdayTag,
