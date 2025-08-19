@@ -36,8 +36,13 @@ struct PetAvatarView: View {
                 } else {
                     Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: size * 0.6, height: size * 0.6)
+                        .scaledToFill()
+                        .frame(width: size, height: size)
+                        .clipShape(Circle())
+                        .background(
+                            Circle()
+                                .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                        )
                 }
                 
                 // 选中状态

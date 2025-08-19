@@ -280,6 +280,7 @@ struct WeightView: View {
                 }
             }
             .padding(.horizontal)
+            .padding(.top, 8)
         }
     }
     

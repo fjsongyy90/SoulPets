@@ -317,8 +317,9 @@ struct PetsHomeView: View {
                             
                             Image(pet.petType == .cat ? "pet_cat" : "pet_dog")
                                 .resizable()
-                                .scaledToFit()
-                                .frame(width: isLandscape ? 32 : 40, height: isLandscape ? 32 : 40)
+                                .scaledToFill()
+                                .frame(width: isLandscape ? 60 : 75, height: isLandscape ? 60 : 75)
+                                .clipShape(Circle())
                         }
                         .overlay(
                             Circle()

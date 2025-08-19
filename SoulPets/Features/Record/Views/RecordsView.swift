@@ -658,7 +658,7 @@ struct RecordsView: View {
                             accentColor: accentColor, 
                             textColor: textColor, 
                             labelColor: labelColor,
-                            showPetAvatars: viewModel.isShowingAllPets
+                            showPetAvatars: true
                         )
                         .id("\(record.id)_\(record.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                         .padding(.horizontal)
@@ -752,7 +752,7 @@ struct RecordCardView: View {
                     Image(record.tag.iconName)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 30, height: 30)
+                        .frame(width: 36, height: 36)
                         .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
@@ -808,15 +808,17 @@ struct RecordCardView: View {
                                     .frame(width: 24, height: 24)
                                     .clipShape(Circle())
                             } else {
-                                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
-                                    .padding(4)
-                                    .background(
-                                        Circle()
-                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                    )
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                        .frame(width: 24, height: 24)
+                                    
+                                    Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 18, height: 18)
+                                        .clipShape(Circle())
+                                }
                             }
                         }
                         

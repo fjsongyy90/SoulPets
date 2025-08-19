@@ -158,11 +158,15 @@ struct AddEditWeightView: View {
                 // 体重输入框
                 TextField(String(localized: "Enter weight"), text: $weightValue)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
                     .font(.title2)
                     .multilineTextAlignment(.center)
-                    .colorScheme(.light) // 强制使用浅色模式
-                    .background(Color.white) // 强制使用白色背景
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
                     .cornerRadius(8)
                 
                 // 单位选择器

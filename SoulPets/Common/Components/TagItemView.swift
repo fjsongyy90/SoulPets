@@ -25,7 +25,7 @@ struct TagItemView: View {
             Image(tag.iconName)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 28, height: 28)
+                .frame(width: 44, height: 44)
                 .clipShape(Circle())
                 .overlay(
                     Circle()
@@ -41,7 +41,7 @@ struct TagItemView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, minHeight: 80)
+        .frame(maxWidth: .infinity, minHeight: 88)
         .padding(.vertical, 8)
         .padding(.horizontal, 6)
         .background(

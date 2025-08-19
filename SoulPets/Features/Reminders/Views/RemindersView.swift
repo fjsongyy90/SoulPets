@@ -539,6 +539,7 @@ struct RemindersView: View {
                     .clipShape(Capsule())
             }
             .padding(.horizontal)
+            .padding(.top, 8)
             
             // 今日提醒使用不同的ID前缀避免冲突
             ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
@@ -730,7 +731,7 @@ struct ReminderCardView: View {
                     Image(reminder.tag.iconName)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 30, height: 30)
+                        .frame(width: 36, height: 36)
                         .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
@@ -811,15 +812,17 @@ struct ReminderCardView: View {
                                     .frame(width: 24, height: 24)
                                     .clipShape(Circle())
                             } else {
-                                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
-                                    .padding(4)
-                                    .background(
-                                        Circle()
-                                            .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                    )
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
+                                        .frame(width: 24, height: 24)
+                                    
+                                    Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 18, height: 18)
+                                        .clipShape(Circle())
+                                }
                             }
                         }
                         

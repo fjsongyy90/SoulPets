@@ -220,10 +220,15 @@ struct WeightGoalView: View {
                 // 目标体重输入框
                 TextField(String(localized: "Enter target weight"), text: $targetWeight)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
                     .font(.title2)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
                     .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
                     .cornerRadius(8)
                 
                 // 单位选择器
