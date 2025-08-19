@@ -19,8 +19,7 @@ struct PetImportantDatesView: View {
         ScrollView {
             VStack(spacing: 30) {
                 Text(LocalizedStringKey("A few more details"))
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.appTitle2)
                     .foregroundColor(textColor)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
@@ -28,7 +27,7 @@ struct PetImportantDatesView: View {
                 // 生日选择
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Birthday"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(labelColor)
                     
                     HStack {
@@ -54,7 +53,7 @@ struct PetImportantDatesView: View {
                 // 领养日选择
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Adoption Day / Gotcha Day"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(labelColor)
                     
                     HStack {
@@ -80,7 +79,7 @@ struct PetImportantDatesView: View {
                 // 初始体重输入
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Initial Weight"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(labelColor)
                     
                     HStack {
@@ -119,7 +118,7 @@ struct PetImportantDatesView: View {
                 // 体重单位偏好
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey("Weight Unit"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(labelColor)
                     
                     HStack(spacing: 15) {
@@ -152,8 +151,7 @@ struct PetImportantDatesView: View {
                     onSaveAndFinish?()
                 }) {
                     Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(.appHeadline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()

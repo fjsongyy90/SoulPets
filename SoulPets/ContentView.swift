@@ -45,11 +45,11 @@ struct ContentView: View {
                         .foregroundColor(.orange)
                     
                     Text("数据加载出错")
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.appTitle2)
                         .foregroundColor(textColor)
                     
                     Text(error)
+                        .font(.appBody)
                         .multilineTextAlignment(.center)
                         .foregroundColor(textColor)
                         .padding()
@@ -57,6 +57,7 @@ struct ContentView: View {
                     Button("重试") {
                         checkModelContext()
                     }
+                    .font(.appHeadline)
                     .padding()
                     .background(accentColor)
                     .foregroundColor(.white)

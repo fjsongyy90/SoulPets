@@ -146,10 +146,9 @@ struct PetDetailView: View {
                     )
             }
             
-            Text(pet.name)
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(textColor)
+                    Text(pet.name)
+                        .font(.appLargeTitle)
+                        .foregroundColor(textColor)
         }
     }
     

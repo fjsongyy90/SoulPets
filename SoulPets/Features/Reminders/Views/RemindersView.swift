@@ -410,12 +410,11 @@ struct RemindersView: View {
                 
                 VStack(spacing: 20) {
                     Text("Add a Pet First")
-                        .font(.title2)
-                        .fontWeight(.medium)
+                        .font(.appTitle2)
                         .foregroundColor(textColor)
                     
-                    Text("You need to create a pet profile first to track their reminders.")
-                        .font(.body)
+                    Text("You need to create a pet profile first to set up reminders.")
+                        .font(.appBody)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)

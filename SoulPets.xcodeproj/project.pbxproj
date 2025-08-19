@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0B089D552E541F54004673FB /* Nunito-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0B089D4C2E541F54004673FB /* Nunito-Regular.ttf */; };
+		0B089D5A2E541F54004673FB /* Nunito-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0B089D412E541F54004673FB /* Nunito-Bold.ttf */; };
+		0B089D5C2E541F54004673FB /* Nunito-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0B089D4D2E541F54004673FB /* Nunito-SemiBold.ttf */; };
+		0B089D6C2E542822004673FB /* Nunito-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0B089D692E542822004673FB /* Nunito-ExtraBold.ttf */; };
+		0B089D6D2E542822004673FB /* Nunito-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0B089D6A2E542822004673FB /* Nunito-Italic.ttf */; };
+		0B089D6E2E542822004673FB /* Nunito-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0B089D6B2E542822004673FB /* Nunito-Light.ttf */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0B9F767F2E1F51BC00D4A4C7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,14 +33,33 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0B089D412E541F54004673FB /* Nunito-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Nunito-Bold.ttf"; sourceTree = "<group>"; };
+		0B089D4C2E541F54004673FB /* Nunito-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Nunito-Regular.ttf"; sourceTree = "<group>"; };
+		0B089D4D2E541F54004673FB /* Nunito-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Nunito-SemiBold.ttf"; sourceTree = "<group>"; };
+		0B089D692E542822004673FB /* Nunito-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Nunito-ExtraBold.ttf"; sourceTree = "<group>"; };
+		0B089D6A2E542822004673FB /* Nunito-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Nunito-Italic.ttf"; sourceTree = "<group>"; };
+		0B089D6B2E542822004673FB /* Nunito-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Nunito-Light.ttf"; sourceTree = "<group>"; };
 		0B9F76712E1F51BA00D4A4C7 /* SoulPets.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SoulPets.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B9F767E2E1F51BC00D4A4C7 /* SoulPetsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoulPetsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B9F76882E1F51BC00D4A4C7 /* SoulPetsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoulPetsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0B089D602E541F91004673FB /* Exceptions for "SoulPets" folder in "SoulPets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0B9F76702E1F51BA00D4A4C7 /* SoulPets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0B9F76732E1F51BA00D4A4C7 /* SoulPets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0B089D602E541F91004673FB /* Exceptions for "SoulPets" folder in "SoulPets" target */,
+			);
 			path = SoulPets;
 			sourceTree = "<group>";
 		};
@@ -72,9 +100,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0B089D3E2E541F06004673FB /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				0B089D412E541F54004673FB /* Nunito-Bold.ttf */,
+				0B089D4C2E541F54004673FB /* Nunito-Regular.ttf */,
+				0B089D4D2E541F54004673FB /* Nunito-SemiBold.ttf */,
+				0B089D692E542822004673FB /* Nunito-ExtraBold.ttf */,
+				0B089D6A2E542822004673FB /* Nunito-Italic.ttf */,
+				0B089D6B2E542822004673FB /* Nunito-Light.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		0B9F76682E1F51BA00D4A4C7 = {
 			isa = PBXGroup;
 			children = (
+				0B089D3E2E541F06004673FB /* Fonts */,
 				0B9F76732E1F51BA00D4A4C7 /* SoulPets */,
 				0B9F76812E1F51BC00D4A4C7 /* SoulPetsTests */,
 				0B9F768B2E1F51BC00D4A4C7 /* SoulPetsUITests */,
@@ -212,6 +254,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B089D6C2E542822004673FB /* Nunito-ExtraBold.ttf in Resources */,
+				0B089D6D2E542822004673FB /* Nunito-Italic.ttf in Resources */,
+				0B089D6E2E542822004673FB /* Nunito-Light.ttf in Resources */,
+				0B089D552E541F54004673FB /* Nunito-Regular.ttf in Resources */,
+				0B089D5A2E541F54004673FB /* Nunito-Bold.ttf in Resources */,
+				0B089D5C2E541F54004673FB /* Nunito-SemiBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,6 +448,7 @@
 				DEVELOPMENT_TEAM = RNL8DB23YY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SoulPets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SoulPets;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -430,6 +479,7 @@
 				DEVELOPMENT_TEAM = RNL8DB23YY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SoulPets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SoulPets;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

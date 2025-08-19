@@ -586,12 +586,11 @@ struct RecordsView: View {
                 
                 VStack(spacing: 20) {
                     Text("Add a Pet First")
-                        .font(.title2)
-                        .fontWeight(.medium)
+                        .font(.appTitle2)
                         .foregroundColor(textColor)
                     
                     Text("You need to create a pet profile first to track their records.")
-                        .font(.body)
+                        .font(.appBody)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -600,7 +599,7 @@ struct RecordsView: View {
                         showingAddPet = true
                     }) {
                         Text("Go to Add Pet")
-                            .font(.headline)
+                            .font(.appHeadline)
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)

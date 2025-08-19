@@ -330,21 +330,20 @@ struct PetsHomeView: View {
                     // 宠物名字和基本信息
                     VStack(spacing: 8) {
                         Text(pet.name)
-                            .font(isLandscape ? .title2 : .title)
-                            .fontWeight(.bold)
+                            .font(isLandscape ? .appTitle2 : .appTitle)
                             .foregroundColor(textColor)
                         
                         HStack(spacing: 4) {
                             Text(pet.breed)
-                                .font(.subheadline)
+                                .font(.appSubheadline)
                                 .foregroundColor(labelColor)
                             
                             Text("•")
-                                .font(.caption)
+                                .font(.appCaption)
                                 .foregroundColor(labelColor)
                             
                             Text(pet.gender.rawValue)
-                                .font(.subheadline)
+                                .font(.appSubheadline)
                                 .foregroundColor(labelColor)
                         }
                     }
@@ -438,8 +437,7 @@ struct PetsHomeView: View {
                 }) {
                     HStack(spacing: 8) {
                         Text(String(localized: "View Profile"))
-                            .font(.headline)
-                            .fontWeight(.semibold)
+                            .font(.appHeadline)
                         
                         Image(systemName: "arrow.right")
                             .font(.system(size: 14, weight: .semibold))
@@ -519,8 +517,7 @@ struct PetsHomeView: View {
             // 文案区域 - 标题放在图片上方
             VStack(spacing: 30) {
                 Text(String(localized: "Welcome to SoulPets"))
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.appTitle2)
                     .foregroundColor(textColor)
                 
                 // 插画图标 - 主页激活状态，不降低透明度
@@ -532,7 +529,7 @@ struct PetsHomeView: View {
                 
                 VStack(spacing: 20) {
                     Text("Ready to listen to their story? Let's give their journey a digital heartbeat.")
-                        .font(.body)
+                        .font(.appBody)
                         .multilineTextAlignment(.center)
                         .foregroundColor(labelColor)
                         .padding(.horizontal, 40)
@@ -545,8 +542,7 @@ struct PetsHomeView: View {
                                 .font(.system(size: 16, weight: .semibold))
                             
                             Text(String(localized: "Add Your First Pet"))
-                                .font(.headline)
-                                .fontWeight(.semibold)
+                                .font(.appHeadline)
                         }
                         .foregroundColor(.white)
                         .padding(.vertical, 16)
@@ -563,7 +559,7 @@ struct PetsHomeView: View {
             
             // 底部隐私承诺文案
             Text("The digital heartbeat of your bond with pets.")
-                .font(.caption)
+                .font(.appCaption)
                 .foregroundColor(.gray)
                 .padding(.bottom, 20)
         }

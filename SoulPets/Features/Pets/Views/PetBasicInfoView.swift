@@ -25,8 +25,7 @@ struct PetBasicInfoView: View {
                 ScrollView {
                     VStack(spacing: 30) {
                         Text(LocalizedStringKey("Tell us about your new friend"))
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.appTitle2)
                             .foregroundColor(textColor)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
@@ -85,7 +84,7 @@ struct PetBasicInfoView: View {
                         // 名字输入
                         VStack(alignment: .leading, spacing: 8) {
                             Text(LocalizedStringKey("Name"))
-                                .font(.headline)
+                                .font(.appHeadline)
                                 .foregroundColor(labelColor)
                             
                             TextField("", text: $viewModel.name)
@@ -115,7 +114,7 @@ struct PetBasicInfoView: View {
                         // 品种/花色输入
                         VStack(alignment: .leading, spacing: 8) {
                             Text(LocalizedStringKey("Breed / Color"))
-                                .font(.headline)
+                                .font(.appHeadline)
                                 .foregroundColor(labelColor)
                             
                             HStack {
@@ -141,7 +140,7 @@ struct PetBasicInfoView: View {
                         // 性别选择
                         VStack(alignment: .leading, spacing: 8) {
                             Text(LocalizedStringKey("Gender"))
-                                .font(.headline)
+                                .font(.appHeadline)
                                 .foregroundColor(labelColor)
                             
                             HStack(spacing: 10) {
@@ -151,11 +150,11 @@ struct PetBasicInfoView: View {
                                         // 点击性别选项时收起键盘
                                         focusedField = nil
                                     }) {
-                                        Text(LocalizedStringKey(gender.rawValue))
-                                            .fontWeight(viewModel.gender == gender ? .bold : .regular)
-                                            .padding(.vertical, 10)
-                                            .padding(.horizontal, 20)
-                                            .frame(maxWidth: .infinity)
+                                Text(LocalizedStringKey(gender.rawValue))
+                                    .font(viewModel.gender == gender ? .appHeadline : .appBody)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 20)
+                                    .frame(maxWidth: .infinity)
                                     }
                                     .background(
                                         Capsule()
@@ -173,7 +172,7 @@ struct PetBasicInfoView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text(LocalizedStringKey("Neutred Spray?"))
-                                    .font(.headline)
+                                    .font(.appHeadline)
                                     .foregroundColor(labelColor)
                                 
                                 Spacer()
@@ -195,8 +194,7 @@ struct PetBasicInfoView: View {
                             viewModel.moveToNextStep()
                         }) {
                             Text(LocalizedStringKey("Next"))
-                                .font(.headline)
-                                .fontWeight(.bold)
+                                .font(.appHeadline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -211,7 +209,7 @@ struct PetBasicInfoView: View {
                         
                         // 隐私承诺文案
                         Text("Your pet's data never leaves your device.")
-                            .font(.caption)
+                            .font(.appLightCaption)
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)

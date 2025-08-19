@@ -29,8 +29,7 @@ struct PetTypeSelectionView: View {
     var body: some View {
         VStack(spacing: 30) {
             Text(LocalizedStringKey("What kind of friend are you welcoming?"))
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.appTitle2)
                 .foregroundColor(textColor)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -79,7 +78,7 @@ struct PetTypeSelectionView: View {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(accentColor)
                 Text(LocalizedStringKey("We are working hard and will support more cute friends soon!"))
-                    .font(.caption)
+                    .font(.appCaption)
                     .foregroundColor(labelColor)
                     .multilineTextAlignment(.leading)
             }
@@ -142,8 +141,7 @@ struct PetTypeImageButton: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
                 
                 Text(LocalizedStringKey(type))
-                    .font(.caption)
-                    .fontWeight(isSelected ? .bold : .medium)
+                    .font(isSelected ? .appFootnote : .appCaption)
                     .foregroundColor(isSelected ? backgroundColor : textColor)
                     .opacity(isDisabled ? 0.6 : 1.0)
             }

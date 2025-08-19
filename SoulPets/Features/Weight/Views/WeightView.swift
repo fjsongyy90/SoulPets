@@ -142,16 +142,15 @@ struct WeightView: View {
                 .opacity(0.4) // 降低透明度显示未激活状态
             
             VStack(spacing: 20) {
-                Text("Add a Pet First")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                    .foregroundColor(textColor)
-                
-                Text("You need to create a pet profile first to track their weight.")
-                    .font(.body)
-                    .foregroundColor(labelColor)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
+                    Text("Add a Pet First")
+                        .font(.appTitle2)
+                        .foregroundColor(textColor)
+                    
+                    Text("You need to create a pet profile first to track their weight.")
+                        .font(.appBody)
+                        .foregroundColor(labelColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
                 
                 Button(action: {
                     showingAddPet = true

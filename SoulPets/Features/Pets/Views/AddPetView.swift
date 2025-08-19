@@ -71,8 +71,7 @@ struct AddPetView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text(LocalizedStringKey("SoulPets"))
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(.appHeadline)
                         .foregroundColor(accentColor)
                 }
                 
