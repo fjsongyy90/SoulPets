@@ -31,6 +31,9 @@ class RecordViewModel: ObservableObject {
     // 最近使用的标签
     @Published var recentlyUsedTags: [Tag] = []
     
+    // 照片限制提示
+    @Published var showPhotoLimitAlert: Bool = false
+    
     // MARK: - 初始化
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -210,6 +213,20 @@ class RecordViewModel: ObservableObject {
             return false
         }
         
+        // 检查非会员照片数量限制
+        if !UserPreferencesService.shared.isProMember && !recordPhotos.isEmpty {
+            for pet in selectedPets {
+                let currentPhotoCount = getPhotoCountForPet(pet)
+                let newPhotoCount = currentPhotoCount + recordPhotos.count
+                
+                if newPhotoCount > UserPreferencesService.shared.maxPhotosPerPet {
+                    // 触发照片限制提示
+                    showPhotoLimitAlert = true
+                    return false
+                }
+            }
+        }
+        
         do {
             // 创建记录
             let record = Record(
@@ -361,6 +378,33 @@ class RecordViewModel: ObservableObject {
         }
         
         // 这里应该将更新后的列表保存到UserDefaults或其他持久化存储中
+    }
+    
+    /// 获取指定宠物的照片总数
+    private func getPhotoCountForPet(_ pet: Pet) -> Int {
+        do {
+            // 获取包含该宠物的所有记录
+            let descriptor = FetchDescriptor<Record>()
+            let allRecords = try modelContext.fetch(descriptor)
+            
+            // 筛选出包含该宠物的记录
+            let petRecords = allRecords.filter { record in
+                record.pets?.contains(where: { $0.id == pet.id }) == true
+            }
+            
+            // 统计所有照片数量
+            var totalPhotoCount = 0
+            for record in petRecords {
+                if let photos = record.photos {
+                    totalPhotoCount += photos.count
+                }
+            }
+            
+            return totalPhotoCount
+        } catch {
+            logger.error("获取宠物照片数量失败: \(error.localizedDescription)")
+            return 0
+        }
     }
 }
 

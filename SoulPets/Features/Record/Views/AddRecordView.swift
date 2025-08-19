@@ -74,6 +74,20 @@ struct AddRecordView: View {
             .sheet(isPresented: $showingTagManagement) {
                 TagManagementView(modelContext: viewModel.modelContext)
             }
+            .alert(
+                String(localized: "Photo Limit Reached"),
+                isPresented: $viewModel.showPhotoLimitAlert
+            ) {
+                Button(String(localized: "Learn More About Pro")) {
+                    // TODO: 打开Pro功能介绍页面
+                }
+                
+                Button(String(localized: "Maybe Later"), role: .cancel) {
+                    // 关闭弹窗，用户可以删除一些照片再保存
+                }
+            } message: {
+                Text(String(localized: "You've captured so many precious moments! The free version allows up to 50 photos per pet. To continue adding unlimited memories, please consider upgrading to SoulPets Pro."))
+            }
             .onChange(of: showingTagManagement) { oldValue, newValue in
                 // 当标签管理页面关闭后，重新加载标签数据
                 if oldValue && !newValue {
@@ -221,11 +235,27 @@ struct AddRecordView: View {
                 
                 // 照片选择器
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "Photos"))
-                        .font(.headline)
-                        .foregroundColor(textColor)
+                    HStack {
+                        Text(String(localized: "Photos"))
+                            .font(.headline)
+                            .foregroundColor(textColor)
+                        
+                        Spacer()
+                        
+                        // 显示照片限制提示
+                        if !UserPreferencesService.shared.isProMember {
+                            Text("Max \(UserPreferencesService.shared.maxPhotosPerRecord)")
+                                .font(.caption)
+                                .foregroundColor(labelColor)
+                        }
+                    }
                     
-                    PhotosPicker(selection: $selectedItems, matching: .images, photoLibrary: .shared()) {
+                    PhotosPicker(
+                        selection: $selectedItems,
+                        maxSelectionCount: UserPreferencesService.shared.maxPhotosPerRecord,
+                        matching: .images,
+                        photoLibrary: .shared()
+                    ) {
                         HStack {
                             Image(systemName: "photo")
                                 .foregroundColor(accentColor)
@@ -251,6 +281,14 @@ struct AddRecordView: View {
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
+                    
+                    // 非会员限制提示
+                    if !UserPreferencesService.shared.isProMember && viewModel.recordPhotos.count >= UserPreferencesService.shared.maxPhotosPerRecord {
+                        Text(String(localized: "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos."))
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .padding(.top, 4)
+                    }
                     
                     // 已选照片预览
                     if !viewModel.recordPhotos.isEmpty {

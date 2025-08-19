@@ -320,4 +320,11 @@
 "Welcome to SoulPets" = "Welcome to SoulPets";
 "Start by adding your first pet to create their digital profile" = "Start by adding your first pet to create their digital profile";
 "Add Your First Pet" = "Add Your First Pet";
-"Latest Weight" = "Latest Weight"; 
+"Latest Weight" = "Latest Weight";
+
+// 会员功能限制
+"Photo Limit Reached" = "Photo Limit Reached";
+"You've captured so many precious moments! The free version allows up to 50 photos per pet. To continue adding unlimited memories, please consider upgrading to SoulPets Pro." = "You've captured so many precious moments! The free version allows up to 50 photos per pet. To continue adding unlimited memories, please consider upgrading to SoulPets Pro.";
+"Learn More About Pro" = "Learn More About Pro";
+"Maybe Later" = "Maybe Later";
+"Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos." = "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos.";
