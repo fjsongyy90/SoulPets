@@ -5,12 +5,12 @@ import SwiftData
 struct PetsHomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Pet.name) private var pets: [Pet]
+    @StateObject private var appState = AppState.shared
     @State private var showingAddPetSheet = false
     @State private var selectedPetIndex: Int = 0
     @State private var showingEditPetSheet = false
     @State private var showingPetDetailSheet = false
     @State private var showingSettingsSheet = false
-    @State private var selectedPet: Pet?
     
     // 新增：专门用于详情页面的宠物引用，避免状态竞争
     // @State private var detailViewPet: Pet?  // 已改用detailViewPetID
@@ -108,7 +108,7 @@ struct PetsHomeView: View {
                 
                 if newPets.isEmpty && !oldPets.isEmpty {
                     // 宠物列表从有变成无 - 可能是SwiftData的暂时状态
-                    selectedPet = nil
+                    appState.setSelectedPet(nil)
                     selectedPetIndex = 0
                     
                     // 启动延迟检查任务，给SwiftData 1秒时间恢复
@@ -126,7 +126,7 @@ struct PetsHomeView: View {
                     }
                 } else if newPets.isEmpty {
                     // 列表一直为空的情况
-                    selectedPet = nil
+                    appState.setSelectedPet(nil)
                     selectedPetIndex = 0
                 } else {
                     // 有宠物的正常情况
@@ -138,7 +138,7 @@ struct PetsHomeView: View {
                     // 更新选中的宠物
                     if selectedPetIndex < newPets.count {
                         let newSelectedPet = newPets[selectedPetIndex]
-                        selectedPet = newSelectedPet
+                        appState.setSelectedPet(newSelectedPet)
                         
                         // 🔧 只有当detailViewPetID对应的宠物确实被删除时才清理
                         if let currentDetailPetID = detailViewPetID,
@@ -146,7 +146,7 @@ struct PetsHomeView: View {
                             detailViewPetID = nil
                         }
                     } else if let firstPet = newPets.first {
-                        selectedPet = firstPet
+                        appState.setSelectedPet(firstPet)
                         selectedPetIndex = 0
                     }
                 }
@@ -155,7 +155,7 @@ struct PetsHomeView: View {
                 // 确保索引有效并更新选中的宠物
                 
                 if newIndex < pets.count {
-                    selectedPet = pets[newIndex]
+                    appState.setSelectedPet(pets[newIndex])
                 }
                 
             }
@@ -165,8 +165,15 @@ struct PetsHomeView: View {
                     if selectedPetIndex >= pets.count {
                         selectedPetIndex = 0
                     }
-                    if selectedPet == nil || !pets.contains(where: { $0.id == selectedPet?.id }) {
-                        selectedPet = pets[selectedPetIndex < pets.count ? selectedPetIndex : 0]
+                    if appState.selectedPet == nil || !pets.contains(where: { $0.id == appState.selectedPet?.id }) {
+                        let petToSelect = pets[selectedPetIndex < pets.count ? selectedPetIndex : 0]
+                        appState.setSelectedPet(petToSelect)
+                    } else {
+                        // 如果全局状态中有选中的宠物，同步到本地索引
+                        if let selectedPet = appState.selectedPet,
+                           let index = pets.firstIndex(where: { $0.id == selectedPet.id }) {
+                            selectedPetIndex = index
+                        }
                     }
                 }
             }
@@ -212,7 +219,7 @@ struct PetsHomeView: View {
                 }
             }
             // 🔧 备用逻辑：如果detailViewPetID为nil，使用当前选中的宠物
-            else if detailViewPetID == nil, let pet = selectedPet {
+            else if detailViewPetID == nil, let pet = appState.selectedPet {
                 NavigationStack {
                     PetDetailView(pet: pet)
                         .navigationBarTitleDisplayMode(.large)
@@ -506,51 +513,50 @@ struct PetsHomeView: View {
     
     // 无宠物时的视图
     private var noPetsView: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: 0) {
             Spacer()
             
-            // 插画图标
-            ZStack {
-                Circle()
-                    .fill(accentColor.opacity(0.1))
-                    .frame(width: 140, height: 140)
-                
-                Image(systemName: "pawprint.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(accentColor)
-            }
-            
-            VStack(spacing: 12) {
+            // 文案区域 - 标题放在图片上方
+            VStack(spacing: 30) {
                 Text(String(localized: "Welcome to SoulPets"))
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(textColor)
                 
-                Text(String(localized: "Start by adding your first pet to create their digital profile"))
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(labelColor)
-                    .padding(.horizontal, 40)
-            }
-            
-            Button(action: {
-                showingAddPetSheet = true
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .semibold))
+                // 插画图标 - 主页激活状态，不降低透明度
+                Image("empty_pet")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 180)
+                    .clipShape(Circle())
+                
+                VStack(spacing: 20) {
+                    Text("Ready to listen to their story? Let's give their journey a digital heartbeat.")
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(labelColor)
+                        .padding(.horizontal, 40)
                     
-                    Text(String(localized: "Add Your First Pet"))
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                    Button(action: {
+                        showingAddPetSheet = true
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Text(String(localized: "Add Your First Pet"))
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(accentColor)
+                        )
+                    }
                 }
-                .foregroundColor(.white)
-                .padding(.vertical, 16)
-                .padding(.horizontal, 32)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(accentColor)
-                )
             }
             
             Spacer()

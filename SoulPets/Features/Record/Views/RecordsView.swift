@@ -5,9 +5,10 @@ import SwiftData
 struct RecordsView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject var viewModel: RecordViewModel
+    @StateObject private var appState = AppState.shared
     @State private var showingAddRecordSheet = false
+    @State private var showingAddPet = false
     @State private var searchText = ""
-    @State private var currentPet: Pet?
     
     // 新增状态管理
     @State private var showingPetSelector = false
@@ -28,7 +29,12 @@ struct RecordsView: View {
     
     init(modelContext: ModelContext, currentPet: Pet? = nil) {
         _viewModel = StateObject(wrappedValue: RecordViewModel(modelContext: modelContext))
-        _currentPet = State(initialValue: currentPet)
+        // 如果传入了当前宠物，设置到全局状态中
+        if let currentPet = currentPet {
+            Task { @MainActor in
+                AppState.shared.setSelectedPet(currentPet)
+            }
+        }
     }
     
     var body: some View {
@@ -85,12 +91,24 @@ struct RecordsView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddRecordSheet, onDismiss: {
-                // 当添加记录的sheet关闭时，重新加载记录
-                viewModel.loadRecords()
-            }) {
-                AddRecordView(modelContext: modelContext)
-            }
+        .sheet(isPresented: $showingAddRecordSheet, onDismiss: {
+            // 当添加记录的sheet关闭时，重新加载记录
+            viewModel.loadRecords()
+        }) {
+            AddRecordView(modelContext: modelContext)
+        }
+        .sheet(isPresented: $showingAddPet) {
+            AddPetView(modelContext: modelContext)
+                .onDisappear {
+                    // 添加宠物后切换到主页tab
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController {
+                            tabBarController.selectedIndex = 0 // 切换到主页
+                        }
+                    }
+                }
+        }
             .navigationDestination(item: $selectedRecord) { record in
                 RecordDetailView(record: record)
             }
@@ -114,14 +132,18 @@ struct RecordsView: View {
                 filterRecords()
             }
             .onAppear {
-                // 如果传入了当前宠物，设置为当前宠物
-                if let currentPet = currentPet {
-                    viewModel.setCurrentPet(currentPet)
+                // 使用全局状态中的选中宠物
+                if let selectedPet = appState.selectedPet {
+                    viewModel.setCurrentPet(selectedPet)
+                    viewModel.isShowingAllPets = false
+                } else if !pets.isEmpty {
+                    // 如果全局状态没有选中宠物，选择第一只宠物
+                    let firstPet = pets.first!
+                    appState.setSelectedPet(firstPet)
+                    viewModel.setCurrentPet(firstPet)
+                    viewModel.isShowingAllPets = false
                 }
-                // 如果没有传入当前宠物，但viewModel已经自动设置了（只有一只宠物的情况），同步状态
-                else if let vmCurrentPet = viewModel.currentPet {
-                    currentPet = vmCurrentPet
-                }
+                viewModel.loadRecords()
             }
             .onReceive(NotificationCenter.default.publisher(for: .recordCreated)) { _ in
                 // 收到记录创建通知，刷新记录列表
@@ -146,21 +168,21 @@ struct RecordsView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    if let currentPet = currentPet {
+                    if let selectedPet = appState.selectedPet {
                         // 显示当前选中宠物的头像
-                        if let avatarData = currentPet.avatar, let uiImage = UIImage(data: avatarData) {
+                        if let avatarData = selectedPet.avatar, let uiImage = UIImage(data: avatarData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(currentPet.petType == .dog ? "pet_dog" : "pet_cat")
+                            Image(selectedPet.petType == .dog ? "pet_dog" : "pet_cat")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
                         }
-                        Text(currentPet.name)
+                        Text(selectedPet.name)
                             .font(.caption)
                             .fontWeight(.medium)
                             .lineLimit(1)
@@ -283,7 +305,7 @@ struct RecordsView: View {
             HStack(spacing: 12) {
                 // "All Pets" 选项
                 Button {
-                    currentPet = nil
+                    appState.setSelectedPet(nil)
                     viewModel.currentPet = nil
                     viewModel.isShowingAllPets = true
                     viewModel.loadRecords()
@@ -294,24 +316,24 @@ struct RecordsView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "pawprint.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(currentPet == nil ? .white : accentColor)
+                            .foregroundColor(appState.selectedPet == nil ? .white : accentColor)
                             .frame(width: 40, height: 40)
                             .background(
                                 Circle()
-                                    .fill(currentPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                                    .fill(appState.selectedPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
                             )
                         
                         Text(String(localized: "All"))
                             .font(.caption)
-                            .foregroundColor(currentPet == nil ? accentColor : textColor)
-                            .fontWeight(currentPet == nil ? .semibold : .regular)
+                            .foregroundColor(appState.selectedPet == nil ? accentColor : textColor)
+                            .fontWeight(appState.selectedPet == nil ? .semibold : .regular)
                     }
                 }
                 
                 // 各个宠物选项
                 ForEach(pets) { pet in
                     Button {
-                        currentPet = pet
+                        appState.setSelectedPet(pet)
                         viewModel.setCurrentPet(pet)
                         viewModel.isShowingAllPets = false
                         viewModel.loadRecords()
@@ -328,7 +350,7 @@ struct RecordsView: View {
                                     .clipShape(Circle())
                                     .overlay(
                                         Circle()
-                                            .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
                                 Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
@@ -337,14 +359,14 @@ struct RecordsView: View {
                                     .frame(width: 40, height: 40)
                                     .overlay(
                                         Circle()
-                                            .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             }
                             
                             Text(pet.name)
                                 .font(.caption)
-                                .foregroundColor(currentPet?.id == pet.id ? accentColor : textColor)
-                                .fontWeight(currentPet?.id == pet.id ? .semibold : .regular)
+                                .foregroundColor(appState.selectedPet?.id == pet.id ? accentColor : textColor)
+                                .fontWeight(appState.selectedPet?.id == pet.id ? .semibold : .regular)
                                 .lineLimit(1)
                         }
                     }
@@ -551,34 +573,78 @@ struct RecordsView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 70))
-                .foregroundColor(accentColor.opacity(0.7))
-            
-            Text(String(localized: "No Records"))
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(textColor)
-            
-            Text(String(localized: "Add your first record to start tracking your pet's journey."))
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .foregroundColor(labelColor)
-                .padding(.horizontal, 40)
-            
-            Button {
-                showingAddRecordSheet = true
-            } label: {
-                Text(String(localized: "Add Record"))
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(accentColor)
-                    )
+            if pets.isEmpty {
+                // 未添加宠物状态
+                Image("empty_record")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 180)
+                    .clipShape(Circle())
+                    .opacity(0.4) // 降低透明度显示未激活状态
+                
+                VStack(spacing: 20) {
+                    Text("Add a Pet First")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .foregroundColor(textColor)
+                    
+                    Text("You need to create a pet profile first to track their records.")
+                        .font(.body)
+                        .foregroundColor(labelColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    Button(action: {
+                        showingAddPet = true
+                    }) {
+                        Text("Go to Add Pet")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(accentColor)
+                            )
+                    }
+                }
+                .padding(.top, 40)
+            } else {
+                // 有宠物但无记录状态
+                Image("empty_record")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 180)
+                    .clipShape(Circle()) // 裁剪成圆形
+                
+                VStack(spacing: 20) {
+                    Text("No Records Yet")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .foregroundColor(textColor)
+                    
+                    Text("Give your bond a digital heartbeat. Add the first record.")
+                        .font(.body)
+                        .foregroundColor(labelColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    Button(action: {
+                        showingAddRecordSheet = true
+                    }) {
+                        Text("Add First Record")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(accentColor)
+                            )
+                    }
+                }
+                .padding(.top, 40)
             }
-            .padding(.top, 10)
             
             Spacer()
         }

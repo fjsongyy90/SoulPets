@@ -4,11 +4,13 @@ import OSLog
 
 struct RemindersView: View {
     @Environment(\.modelContext) private var modelContext
+    @StateObject private var appState = AppState.shared
     @State private var viewModel: RemindersViewModel
     @State private var showingAddReminder = false
     @State private var showingEditReminder = false
     @State private var showingReminderToRecordAlert = false
     @State private var showingDeleteAlert = false
+    @State private var showingAddPet = false
     @State private var selectedReminderForRecord: Reminder?
     @State private var reminderToEdit: Reminder?
     @State private var reminderToDelete: Reminder?
@@ -17,7 +19,6 @@ struct RemindersView: View {
     @State private var showingPetSelector = false
     @State private var showingSearchBar = false
     @State private var searchText = ""
-    @State private var currentPet: Pet?
     
     @Query private var allPets: [Pet]
     
@@ -90,6 +91,18 @@ struct RemindersView: View {
                         viewModel.loadReminders(from: modelContext)
                     }
             }
+            .sheet(isPresented: $showingAddPet) {
+                AddPetView(modelContext: modelContext)
+                    .onDisappear {
+                        // 添加宠物后切换到主页tab
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController {
+                                tabBarController.selectedIndex = 0 // 切换到主页
+                            }
+                        }
+                    }
+            }
             .sheet(isPresented: $showingEditReminder) {
                 if let reminder = reminderToEdit {
                     AddEditReminderView(reminderToEdit: reminder)
@@ -138,14 +151,16 @@ struct RemindersView: View {
                 viewModel.loadReminders(from: modelContext)
             }
             .onAppear {
-                // 首次加载时设置默认宠物筛选
-                if viewModel.selectedPetFilter.isAll && !allPets.isEmpty {
-                    // 选择第一只宠物作为默认筛选
-                    if let firstPet = allPets.first {
-                        currentPet = firstPet
-                        viewModel.setPetFilter(.specific(firstPet))
-                        logger.info("🐾 提醒页面默认选中第一只宠物: \(firstPet.name)")
-                    }
+                // 使用全局状态中的选中宠物
+                if let selectedPet = appState.selectedPet {
+                    viewModel.setPetFilter(.specific(selectedPet))
+                    logger.info("🐾 提醒页面使用全局选中的宠物: \(selectedPet.name)")
+                } else if !allPets.isEmpty {
+                    // 如果全局状态没有选中宠物，选择第一只宠物
+                    let firstPet = allPets.first!
+                    appState.setSelectedPet(firstPet)
+                    viewModel.setPetFilter(.specific(firstPet))
+                    logger.info("🐾 提醒页面设置默认宠物: \(firstPet.name)")
                 }
                 viewModel.loadReminders(from: modelContext)
             }
@@ -170,21 +185,21 @@ struct RemindersView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    if let currentPet = currentPet {
+                    if let selectedPet = appState.selectedPet {
                         // 显示当前选中宠物的头像
-                        if let avatarData = currentPet.avatar, let uiImage = UIImage(data: avatarData) {
+                        if let avatarData = selectedPet.avatar, let uiImage = UIImage(data: avatarData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(currentPet.petType == .dog ? "pet_dog" : "pet_cat")
+                            Image(selectedPet.petType == .dog ? "pet_dog" : "pet_cat")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
                         }
-                        Text(currentPet.name)
+                        Text(selectedPet.name)
                             .font(.caption)
                             .fontWeight(.medium)
                             .lineLimit(1)
@@ -261,7 +276,7 @@ struct RemindersView: View {
             HStack(spacing: 12) {
                 // "All Pets" 选项
                 Button {
-                    currentPet = nil
+                    appState.setSelectedPet(nil)
                     viewModel.setPetFilter(.all)
                     withAnimation {
                         showingPetSelector = false
@@ -270,24 +285,24 @@ struct RemindersView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "pawprint.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(currentPet == nil ? .white : accentColor)
+                            .foregroundColor(appState.selectedPet == nil ? .white : accentColor)
                             .frame(width: 40, height: 40)
                             .background(
                                 Circle()
-                                    .fill(currentPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                                    .fill(appState.selectedPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
                             )
                         
                         Text(String(localized: "All"))
                             .font(.caption)
-                            .foregroundColor(currentPet == nil ? accentColor : textColor)
-                            .fontWeight(currentPet == nil ? .semibold : .regular)
+                            .foregroundColor(appState.selectedPet == nil ? accentColor : textColor)
+                            .fontWeight(appState.selectedPet == nil ? .semibold : .regular)
                     }
                 }
                 
                 // 各个宠物选项
                 ForEach(allPets) { pet in
                     Button {
-                        currentPet = pet
+                        appState.setSelectedPet(pet)
                         viewModel.setPetFilter(.specific(pet))
                         withAnimation {
                             showingPetSelector = false
@@ -302,7 +317,7 @@ struct RemindersView: View {
                                     .clipShape(Circle())
                                     .overlay(
                                         Circle()
-                                            .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
                                 Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
@@ -311,14 +326,14 @@ struct RemindersView: View {
                                     .frame(width: 40, height: 40)
                                     .overlay(
                                         Circle()
-                                            .stroke(currentPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             }
                             
                             Text(pet.name)
                                 .font(.caption)
-                                .foregroundColor(currentPet?.id == pet.id ? accentColor : textColor)
-                                .fontWeight(currentPet?.id == pet.id ? .semibold : .regular)
+                                .foregroundColor(appState.selectedPet?.id == pet.id ? accentColor : textColor)
+                                .fontWeight(appState.selectedPet?.id == pet.id ? .semibold : .regular)
                                 .lineLimit(1)
                         }
                     }
@@ -382,35 +397,79 @@ struct RemindersView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            Image(systemName: viewModel.selectedFilter == .upcoming ? "bell" : "checkmark.circle")
-                .font(.system(size: 70))
-                .foregroundColor(accentColor.opacity(0.7))
-            
-            Text(emptyStateTitle)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(textColor)
-            
-            Text(emptyStateMessage)
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .foregroundColor(labelColor)
-                .padding(.horizontal, 40)
-            
-            if viewModel.selectedFilter == .upcoming {
-                Button {
-                    showingAddReminder = true
-                } label: {
-                    Text(String(localized: "Add Reminder"))
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(accentColor)
-                        )
+            if allPets.isEmpty {
+                // 未添加宠物状态
+                Image("empty_reminder")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 180)
+                    .clipShape(Circle())
+                    .opacity(0.4) // 降低透明度显示未激活状态
+                
+                VStack(spacing: 20) {
+                    Text("Add a Pet First")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .foregroundColor(textColor)
+                    
+                    Text("You need to create a pet profile first to track their reminders.")
+                        .font(.body)
+                        .foregroundColor(labelColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    Button(action: {
+                        showingAddPet = true
+                    }) {
+                        Text("Go to Add Pet")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(accentColor)
+                            )
+                    }
                 }
-                .padding(.top, 10)
+                .padding(.top, 40)
+            } else {
+                // 有宠物但无提醒状态
+                Image("empty_reminder")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 180)
+                    .clipShape(Circle()) // 裁剪成圆形
+                
+                VStack(spacing: 20) {
+                    Text(emptyStateTitle)
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .foregroundColor(textColor)
+                    
+                    Text(emptyStateMessage)
+                        .font(.body)
+                        .foregroundColor(labelColor)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    if viewModel.selectedFilter == .upcoming {
+                        Button(action: {
+                            showingAddReminder = true
+                        }) {
+                            Text("Add First Reminder")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(accentColor)
+                                )
+                        }
+                    }
+                }
+                .padding(.top, 40)
             }
             
             Spacer()
@@ -429,7 +488,7 @@ struct RemindersView: View {
     private var emptyStateMessage: String {
         switch viewModel.selectedFilter {
         case .upcoming:
-            return String(localized: "Create your first reminder to stay on top of your pet's care schedule.")
+            return String(localized: "The digital heartbeat is peaceful. Time to enjoy the real one.")
         case .completed:
             return String(localized: "Completed reminders will appear here once you mark them as done.")
         }

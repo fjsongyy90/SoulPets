@@ -7,6 +7,7 @@ import OSLog
 struct WeightView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = WeightViewModel()
+    @StateObject private var appState = AppState.shared
     @Query private var allPets: [Pet]
     
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "WeightView")
@@ -14,6 +15,7 @@ struct WeightView: View {
     @State private var showingAddWeight = false
     @State private var showingWeightGoal = false
     @State private var showingDeleteAlert = false
+    @State private var showingAddPet = false
     @State private var weightToEdit: Weight?
     @State private var weightToDelete: Weight?
     
@@ -74,6 +76,18 @@ struct WeightView: View {
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
+            .sheet(isPresented: $showingAddPet) {
+                AddPetView(modelContext: modelContext)
+                    .onDisappear {
+                        // 添加宠物后切换到主页tab
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController {
+                                tabBarController.selectedIndex = 0 // 切换到主页
+                            }
+                        }
+                    }
+            }
             .customConfirmAlert(
                 title: String(localized: "Delete Weight Record"),
                 message: String(localized: "This action cannot be undone."),
@@ -88,8 +102,15 @@ struct WeightView: View {
                 isDestructive: true
             )
             .onAppear {
-                if let firstPet = allPets.first, viewModel.selectedPet == nil {
+                // 使用全局状态中的选中宠物
+                if let selectedPet = appState.selectedPet {
+                    viewModel.loadWeightData(for: selectedPet, modelContext: modelContext)
+                    logger.info("🐾 体重页面使用全局选中的宠物: \(selectedPet.name)")
+                } else if let firstPet = allPets.first {
+                    // 如果全局状态没有选中宠物，选择第一只宠物
+                    appState.setSelectedPet(firstPet)
                     viewModel.loadWeightData(for: firstPet, modelContext: modelContext)
+                    logger.info("🐾 体重页面设置默认宠物: \(firstPet.name)")
                 }
             }
         }
@@ -110,20 +131,45 @@ struct WeightView: View {
     
     /// 无宠物状态视图
     private var noPetsView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "pawprint")
-                .font(.system(size: 60))
-                .foregroundColor(labelColor)
+        VStack(spacing: 0) {
+            Spacer()
             
-            Text(String(localized: "No Pets Found"))
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(textColor)
+            Image("empty_weight")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 180, height: 180)
+                .clipShape(Circle())
+                .opacity(0.4) // 降低透明度显示未激活状态
             
-            Text(String(localized: "Add your first pet to start tracking weight"))
-                .multilineTextAlignment(.center)
-                .foregroundColor(labelColor)
-                .padding(.horizontal)
+            VStack(spacing: 20) {
+                Text("Add a Pet First")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(textColor)
+                
+                Text("You need to create a pet profile first to track their weight.")
+                    .font(.body)
+                    .foregroundColor(labelColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                
+                Button(action: {
+                    showingAddPet = true
+                }) {
+                    Text("Go to Add Pet")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(accentColor)
+                        )
+                }
+            }
+            .padding(.top, 40)
+            
+            Spacer()
         }
     }
     
@@ -142,42 +188,49 @@ struct WeightView: View {
     
     /// 空状态视图
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            // 宠物选择器
-            petSelectorView
-                .padding(.horizontal)
+        VStack(spacing: 0) {
+            // 宠物选择器（仅在有宠物时显示）
+            if !allPets.isEmpty {
+                petSelectorView
+                    .padding(.horizontal)
+            }
             
             Spacer()
             
             // 空状态插画和文案
-            VStack(spacing: 16) {
-                Image(systemName: "scalemass")
-                    .font(.system(size: 60))
-                    .foregroundColor(labelColor)
-                
-                Text(String(localized: "No Weight Records"))
+            Image("empty_weight")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 180, height: 180)
+                .clipShape(Circle()) // 裁剪成圆形
+            
+            VStack(spacing: 20) {
+                Text("No Weight Records")
                     .font(.title2)
-                    .fontWeight(.semibold)
+                    .fontWeight(.medium)
                     .foregroundColor(textColor)
                 
-                Text(String(localized: "Start tracking your pet's weight to monitor their health"))
+                Text("The first beat of their digital heartbeat is weight. Let's start tracking.")
+                    .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundColor(labelColor)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 40)
                 
                 Button {
                     showingAddWeight = true
                 } label: {
-                    Text(String(localized: "Add First Weight Record"))
-                        .fontWeight(.semibold)
+                    Text("Add First Weight Record")
+                        .font(.headline)
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
-                        .background(accentColor)
-                        .cornerRadius(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(accentColor)
+                        )
                 }
-                .padding(.top)
             }
+            .padding(.top, 40)
             
             Spacer()
         }
@@ -220,7 +273,10 @@ struct WeightView: View {
                         size: 60
                     )
                     .onTapGesture {
+                        // 更新全局状态
+                        appState.setSelectedPet(pet)
                         viewModel.loadWeightData(for: pet, modelContext: modelContext)
+                        logger.info("🐾 体重页面切换到宠物: \(pet.name)")
                     }
                 }
             }
