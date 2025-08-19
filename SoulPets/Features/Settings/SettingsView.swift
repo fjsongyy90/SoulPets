@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var showingResetOptionsSheet = false
     @State private var selectedResetOptions: Set<SettingsService.ResetDataOption> = []
     @State private var showingResetSuccessAlert = false
+    @State private var showingPrivacyPromiseSheet = false
     
     // 颜色定义
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15) // #E5B487
@@ -40,6 +41,9 @@ struct SettingsView: View {
                     
                     // MARK: - 支持与反馈卡片
                     supportFeedbackCard
+
+                    // MARK: - 数据与隐私卡片
+                    dataPrivacyCard
                     
                     // MARK: - Debug卡片（仅Debug模式）
                     if SettingsService.isDebugMode {
@@ -94,6 +98,9 @@ struct SettingsView: View {
             Button(String(localized: "common.ok"), role: .cancel) { }
         } message: {
             Text(String(localized: "settings.debug.reset.success.message"))
+        }
+        .sheet(isPresented: $showingPrivacyPromiseSheet) {
+            privacyPromiseView
         }
     }
     
@@ -308,6 +315,140 @@ struct SettingsView: View {
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
     
+    // MARK: - 数据与隐私卡片
+    private var dataPrivacyCard: some View {
+        VStack(spacing: 0) {
+            // 卡片标题
+            HStack {
+                Image(systemName: "shield.fill")
+                    .font(.title3)
+                    .foregroundColor(adaptiveAccentColor)
+                Text(String(localized: "settings.privacy.title"))
+                    .font(.appHeadline)
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+            
+            // 核心口号
+            HStack {
+                Text(String(localized: "settings.privacy.slogan"))
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, 12)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            
+            Divider()
+                .padding(.leading, 16)
+            
+            // 我们的隐私承诺
+            SettingsRowView(
+                icon: "lock.shield",
+                title: String(localized: "settings.privacy.promise"),
+                showChevron: true,
+                action: {
+                    showingPrivacyPromiseSheet = true
+                }
+            )
+            
+            Divider()
+                .padding(.leading, 52)
+            
+            // 隐私政策
+            SettingsRowView(
+                icon: "doc.text",
+                title: String(localized: "settings.about.privacy_policy"),
+                showChevron: true,
+                action: {
+                    SettingsService.openPrivacyPolicy()
+                }
+            )
+            .padding(.bottom, 16)
+        }
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+    
+    // MARK: - 隐私承诺详情页
+    private var privacyPromiseView: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // 引言
+                    Text(String(localized: "settings.privacy.promise.intro"))
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                    
+                    // 100% 本地存储
+                    privacyPromiseItem(
+                        icon: "📱🔒",
+                        title: String(localized: "settings.privacy.promise.local_storage.title"),
+                        description: String(localized: "settings.privacy.promise.local_storage.description")
+                    )
+                    
+                    // 没有账号，没有追踪
+                    privacyPromiseItem(
+                        icon: "👤🚫",
+                        title: String(localized: "settings.privacy.promise.no_tracking.title"),
+                        description: String(localized: "settings.privacy.promise.no_tracking.description")
+                    )
+                    
+                    // iCloud 是您的私人保险箱
+                    privacyPromiseItem(
+                        icon: "☁️✔️",
+                        title: String(localized: "settings.privacy.promise.icloud.title"),
+                        description: String(localized: "settings.privacy.promise.icloud.description")
+                    )
+                    
+                    // 离线可用
+                    privacyPromiseItem(
+                        icon: "🌐🔌",
+                        title: String(localized: "settings.privacy.promise.offline.title"),
+                        description: String(localized: "settings.privacy.promise.offline.description")
+                    )
+                }
+                .padding(.vertical)
+            }
+            .navigationTitle(String(localized: "settings.privacy.promise.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(String(localized: "common.done")) {
+                        showingPrivacyPromiseSheet = false
+                    }
+                    .foregroundColor(adaptiveAccentColor)
+                }
+            }
+        }
+    }
+    
+    // 隐私承诺项目
+    private func privacyPromiseItem(icon: String, title: String, description: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 12) {
+                Text(icon)
+                    .font(.title)
+                
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+            }
+            
+            Text(description)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal)
+    }
+    
     // MARK: - 关于卡片
     private var aboutCard: some View {
         VStack(spacing: 0) {
@@ -324,19 +465,6 @@ struct SettingsView: View {
             
             // 设置项列表
             VStack(spacing: 1) {
-                // 隐私政策
-                SettingsRowView(
-                    icon: "hand.raised",
-                    title: String(localized: "settings.about.privacy_policy"),
-                    showChevron: true,
-                    action: {
-                        SettingsService.openPrivacyPolicy()
-                    }
-                )
-                
-                Divider()
-                    .padding(.leading, 52)
-                
                 // 服务条款
                 SettingsRowView(
                     icon: "doc.text",

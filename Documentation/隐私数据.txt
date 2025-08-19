@@ -1,0 +1,158 @@
+=========中文==============
+我们不在原有的“关于”卡片里只增加一行字，而是在设置页创建一个全新的、专属的“数据与隐私”卡片。这样做可以极大地提升这个核心承诺的权重，让用户第一眼就能看到。
+
+第一步：在设置页创建专属卡片
+在设置页 (Settings) 的顶部或一个显眼的位置，添加一个新的卡片。
+
+卡片设计：
+
+卡片标题: 数据与隐私 (Data & Privacy)
+
+卡片图标: 在标题旁边放置一个盾牌 🛡️ 或带锁 🔒 的图标，直观传达安全感。
+
+卡片内容:
+
+核心口号 (Slogan)：
+
+将 "Your pet's data never leaves your device."  作为一行
+
+静态文本，放在卡片最上方。这行字不可点击，仅作为醒目的展示。
+
+了解更多 (Learn More)：
+
+在口号下方，设置一个可点击的行项目。
+
+左侧标题: 我们的隐私承诺 (Our Privacy Promise)
+
+右侧指示: 使用一个 > 箭头，暗示用户可以点击查看详情。
+
+官方隐私政策 (Official Policy)：
+
+将原“关于”卡片中的“隐私政策”链接移到这里，保持信息的聚合。
+
+左侧标题: 隐私政策 (Privacy Policy)
+
+右侧指示: 使用一个 > 箭头或“链接”图标。
+
+视觉效果模拟:
+
+┌──────────────────────────────────┐
+│ 🛡️ 数据与隐私 (Data & Privacy)   │
+├──────────────────────────────────┤
+│                                  │
+│  "Your pet's data never leaves   │
+│   your device."          │
+│                                  │
+├──────────────────────────────────┤
+│ 我们的隐私承诺                  >  │
+├──────────────────────────────────┤
+│ 隐私政策                        >  │
+└──────────────────────────────────┘
+第二步：设计详细说明页面
+当用户点击 我们的隐私承诺 后，会弹出一个独立的页面（或底部抽屉 Sheet），用更通俗易懂的方式解释你们的隐私保护措施。这个页面的设计要符合应用的“情感化治愈感”风格。
+
+页面标题: 这是您与爱宠的私密空间
+
+页面内容 (图文并茂):
+
+引言:
+
+我们坚信，您与爱宠的每一个瞬间都无比珍贵且完全属于您自己。SoulPets 的设计基石就是保护您的隐私，以下是我们的承诺：
+
+(图标 + 文字) 列表:
+
+图标: 📱🔒 (手机+锁)
+
+标题: 100% 本地存储
+
+说明: 您的所有数据，包括宠物的档案、照片和每一个记录，都只安全地存储在您自己的设备上。我们作为开发者，永远无法访问它们。
+
+图标: 👤🚫 (用户+禁止符号)
+
+标题: 没有账号，没有追踪
+
+说明: SoulPets 无需注册或登录即可使用。我们不会收集您的个人信息，也不会追踪您的任何使用行为。
+
+图标: ☁️✔️ (iCloud+勾)
+
+标题: iCloud 是您的私人保险箱
+
+
+说明: 我们使用 iCloud 只是为了方便您在自己的多台苹果设备（如 iPhone 和 iPad）之间同步数据。这个过程由苹果公司加密保护，它完全是您自己的私有行为，我们无法触碰其中的任何内容。这是 SoulPets 的核心优势之一 。
+
+图标: 🌐🔌 (地球+拔掉的插头)
+
+标题: 离线可用
+
+说明: 应用的核心功能在没有网络连接的情况下也能正常工作。您可以在任何地方，随时记录和查看爱宠的生活。
+=========英文============
+Part 1: The Settings Page Card
+在设置页 (Settings) 创建的新卡片中，将使用以下英文文案：
+
+Card Title: Data & Privacy
+
+Card Content:
+
+Core Slogan (Static Text):
+
+
+"Your pet's data never leaves your device." 
+
+Learn More (Clickable Row):
+
+Our Privacy Promise
+
+Official Policy (Clickable Row):
+
+Privacy Policy
+
+Simulated Visual Layout:
+
+┌──────────────────────────────────┐
+│ 🛡️ Data & Privacy                │
+├──────────────────────────────────┤
+│                                  │
+│  "Your pet's data never leaves   │
+│   your device."                  │
+│                                  │
+├──────────────────────────────────┤
+│ Our Privacy Promise             >  │
+├──────────────────────────────────┤
+│ Privacy Policy                  >  │
+└──────────────────────────────────┘
+Part 2: The Detailed Explanation Page
+当用户点击 Our Privacy Promise 后，展示的详细说明页面的英文文案如下：
+
+Page Title: A Private Space for You and Your Pet
+
+Page Content:
+
+Introduction:
+
+We believe every moment with your pet is precious and belongs entirely to you. Protecting your privacy is the cornerstone of SoulPets' design. Here is our promise:
+
+(Icon + Text) List:
+
+Icon: 📱🔒 (Phone + Lock)
+
+Title: 100% Local Storage
+
+Description: All of your data, including your pet's profiles, photos, and every record, is stored securely and exclusively on your own device. As the developers, we can never access it.
+
+Icon: 👤🚫 (User + Prohibition Sign)
+
+Title: No Account, No Tracking
+
+Description: SoulPets works without needing an account or login. We do not collect your personal information or track your activity.
+
+Icon: ☁️✔️ (iCloud + Checkmark)
+
+Title: iCloud is Your Private Safe
+
+Description: We use iCloud only to help you sync data between your own Apple devices (like your iPhone and iPad). This process is encrypted and secured by Apple. It is your own private action, and we have no access to its contents.
+
+Icon: 🌐🔌 (Globe + Unplugged)
+
+Title: Works Offline
+
+Description: The app's core features work perfectly without an internet connection. You can log and view your pet's life anytime, anywhere.

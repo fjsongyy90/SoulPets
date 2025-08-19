@@ -144,6 +144,63 @@ struct PetImportantDatesView: View {
                 }
                 .padding(.horizontal)
                 
+                // 性格描述输入
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(LocalizedStringKey("Personality"))
+                        .font(.appHeadline)
+                        .foregroundColor(labelColor)
+                    
+                    HStack {
+                        Image(systemName: "heart.text.square.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(accentColor)
+                            .padding(.leading)
+                        
+                        TextField(LocalizedStringKey("Describe your pet's personality"), text: Binding(
+                            get: { viewModel.personality ?? "" },
+                            set: { viewModel.personality = $0.isEmpty ? nil : $0 }
+                        ))
+                        .foregroundColor(textColor)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 8)
+                    }
+                    .padding(.trailing)
+                    .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                    .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                
+                // 故事输入
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(LocalizedStringKey("Story with Owner"))
+                        .font(.appHeadline)
+                        .foregroundColor(labelColor)
+                    
+                    VStack {
+                        HStack {
+                            Image(systemName: "book.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(accentColor)
+                                .padding(.leading)
+                            
+                            Spacer()
+                        }
+                        
+                        TextEditor(text: Binding(
+                            get: { viewModel.story ?? "" },
+                            set: { viewModel.story = $0.isEmpty ? nil : $0 }
+                        ))
+                        .foregroundColor(textColor)
+                        .frame(height: 100)
+                        .padding(.horizontal)
+                        .background(Color.clear)
+                    }
+                    .padding(.vertical, 8)
+                    .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                    .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                
                 Spacer(minLength: 100) // 增加底部空间，防止键盘遮挡
                 
                 // Finish按钮

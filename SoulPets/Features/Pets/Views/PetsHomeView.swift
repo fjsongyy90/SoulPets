@@ -420,6 +420,15 @@ struct PetsHomeView: View {
                             title: String(localized: "Latest Weight"),
                             value: latestWeightText(for: pet)
                         )
+                        
+                        // 性格描述（如果有）
+                        if let personality = pet.personality, !personality.isEmpty {
+                            infoRow(
+                                icon: "heart.text.square.fill",
+                                title: String(localized: "Personality"),
+                                value: personality.count > 15 ? String(personality.prefix(15)) + "..." : personality
+                            )
+                        }
                     }
                     .padding(.horizontal, 20)
                 }

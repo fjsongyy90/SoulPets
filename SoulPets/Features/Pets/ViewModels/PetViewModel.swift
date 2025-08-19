@@ -23,6 +23,8 @@ class PetViewModel: ObservableObject {
     @Published var insurancePolicyNo: String = ""
     @Published var weightUnitPreference: WeightUnit = .kg
     @Published var initialWeight: String = ""
+    @Published var personality: String?
+    @Published var story: String?
     
     // 表单验证
     @Published var nameError: String?
@@ -111,7 +113,9 @@ class PetViewModel: ObservableObject {
                 adoptionDay: adoptionDay,
                 microchipID: microchipID,
                 insurancePolicyNo: insurancePolicyNo,
-                weightUnitPreference: self.weightUnitPreference
+                weightUnitPreference: self.weightUnitPreference,
+                personality: personality?.trimmingCharacters(in: .whitespacesAndNewlines),
+                story: story?.trimmingCharacters(in: .whitespacesAndNewlines)
             )
             
             // 保存到数据库
@@ -159,6 +163,8 @@ class PetViewModel: ObservableObject {
             pet.microchipID = microchipID
             pet.insurancePolicyNo = insurancePolicyNo
             pet.weightUnitPreference = self.weightUnitPreference
+            pet.personality = personality?.trimmingCharacters(in: .whitespacesAndNewlines)
+            pet.story = story?.trimmingCharacters(in: .whitespacesAndNewlines)
             pet.updatedAt = Date()
             
             try modelContext.save()
@@ -201,6 +207,8 @@ class PetViewModel: ObservableObject {
         microchipID = pet.microchipID
         insurancePolicyNo = pet.insurancePolicyNo
         self.weightUnitPreference = pet.weightUnitPreference
+        personality = pet.personality
+        story = pet.story
     }
     
     /// 重置表单
@@ -217,6 +225,8 @@ class PetViewModel: ObservableObject {
         insurancePolicyNo = ""
         self.weightUnitPreference = .kg
         initialWeight = ""
+        personality = nil
+        story = nil
         currentStep = .selectType
     }
     

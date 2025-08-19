@@ -32,6 +32,7 @@ struct EditPetView: View {
                         basicInfoCard
                         importantDatesCard  
                         healthInfoCard
+                        personalityStoryCard
                         privacyText
                     }
                     .padding(.horizontal, 16)
@@ -250,6 +251,58 @@ struct EditPetView: View {
         .background(Color.white)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+    }
+    
+    // 新增：性格和故事卡片
+    private var personalityStoryCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(String(localized: "Personality & Story"))
+                .font(.appTitle3)
+                .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+            
+            personalityField
+            storyField
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+    }
+    
+    // 性格输入框 - 单行
+    private var personalityField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Personality"))
+                .font(.appSubheadline)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            TextField(String(localized: "Describe your pet's personality"), text: Binding(
+                get: { viewModel.personality ?? "" },
+                set: { viewModel.personality = $0.isEmpty ? nil : $0 }
+            ))
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
+    }
+    
+    // 故事输入框 - 多行
+    private var storyField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Story with Owner"))
+                .font(.appSubheadline)
+                .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
+            
+            TextEditor(text: Binding(
+                get: { viewModel.story ?? "" },
+                set: { viewModel.story = $0.isEmpty ? nil : $0 }
+            ))
+            .frame(minHeight: 100)
+            .padding(4)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color(UIColor.systemGray4), lineWidth: 1)
+            )
+            .cornerRadius(8)
+        }
     }
     
     private var weightUnitField: some View {

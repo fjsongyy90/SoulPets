@@ -36,6 +36,10 @@ final class Pet {
     var microchipID: String
     var insurancePolicyNo: String
     var weightUnitPreference: WeightUnit
+    /// 宠物的性格描述
+    var personality: String?
+    /// 与主人的故事
+    var story: String?
     var createdAt: Date
     var updatedAt: Date
     
@@ -66,6 +70,8 @@ final class Pet {
         microchipID: String = "",
         insurancePolicyNo: String = "",
         weightUnitPreference: WeightUnit = .kg,
+        personality: String? = nil,
+        story: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -81,6 +87,8 @@ final class Pet {
         self.microchipID = microchipID
         self.insurancePolicyNo = insurancePolicyNo
         self.weightUnitPreference = weightUnitPreference
+        self.personality = personality
+        self.story = story
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

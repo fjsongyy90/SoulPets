@@ -292,6 +292,23 @@
 // 设置页面 - 分享应用
 "settings.support.share_app.text" = "Check out SoulPets - the perfect app for managing your pet's life with complete privacy!";
 
+// 设置页面 - 数据与隐私卡片
+"settings.privacy.title" = "Data & Privacy";
+"settings.privacy.slogan" = "Your pet's data never leaves your device.";
+"settings.privacy.promise" = "Our Privacy Promise";
+
+// 设置页面 - 隐私承诺详情页
+"settings.privacy.promise.title" = "A Private Space for You and Your Pet";
+"settings.privacy.promise.intro" = "We believe every moment with your pet is precious and belongs entirely to you. Protecting your privacy is the cornerstone of SoulPets' design. Here is our promise:";
+"settings.privacy.promise.local_storage.title" = "100% Local Storage";
+"settings.privacy.promise.local_storage.description" = "All of your data, including your pet's profiles, photos, and every record, is stored securely and exclusively on your own device. As the developers, we can never access it.";
+"settings.privacy.promise.no_tracking.title" = "No Account, No Tracking";
+"settings.privacy.promise.no_tracking.description" = "SoulPets works without needing an account or login. We do not collect your personal information or track your activity.";
+"settings.privacy.promise.icloud.title" = "iCloud is Your Private Safe";
+"settings.privacy.promise.icloud.description" = "We use iCloud only to help you sync data between your own Apple devices (like your iPhone and iPad). This process is encrypted and secured by Apple. It is your own private action, and we have no access to its contents.";
+"settings.privacy.promise.offline.title" = "Works Offline";
+"settings.privacy.promise.offline.description" = "The app's core features work perfectly without an internet connection. You can log and view your pet's life anytime, anywhere.";
+
 // 设置页面 - 关于卡片
 "settings.about.title" = "About";
 "settings.about.privacy_policy" = "Privacy Policy";

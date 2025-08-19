@@ -202,11 +202,32 @@ class PetService {
 				return
 			}
 			
-			// 创建提醒 - 使用宠物的实际生日作为起始日期
-			// 这样年度重复算法就能正确计算每年的生日
+			// 计算今年或明年的生日日期
+			let calendar = Calendar.current
+			let currentYear = calendar.component(.year, from: Date())
+			let birthdayMonth = calendar.component(.month, from: pet.birthday)
+			let birthdayDay = calendar.component(.day, from: pet.birthday)
+			
+			// 创建今年的生日日期
+			guard let thisYearBirthday = calendar.date(from: DateComponents(year: currentYear, month: birthdayMonth, day: birthdayDay)) else {
+				logger.error("无法计算今年的生日日期")
+				return
+			}
+			
+			// 如果今年的生日已经过了，设置为明年的生日
+			var nextBirthday = thisYearBirthday
+			if thisYearBirthday < Date() {
+				guard let nextYearBirthday = calendar.date(byAdding: .year, value: 1, to: thisYearBirthday) else {
+					logger.error("无法计算明年的生日日期")
+					return
+				}
+				nextBirthday = nextYearBirthday
+			}
+			
+			// 创建提醒 - 使用下一个生日日期作为起始日期
 			let birthdayText = String(localized: "\(pet.name)'s Birthday")
 			let reminder = Reminder(
-				startDate: pet.birthday,
+				startDate: nextBirthday,
 				notes: birthdayText,
 				repeatInterval: 1,
 				repeatUnit: .yearly,
