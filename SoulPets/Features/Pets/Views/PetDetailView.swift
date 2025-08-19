@@ -5,6 +5,7 @@ import SwiftData
 struct PetDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var appState = AppState.shared
     
     let pet: Pet
     @State private var showingEditSheet = false
@@ -91,13 +92,13 @@ struct PetDetailView: View {
                     Button(action: {
                         showingEditSheet = true
                     }) {
-                        Label(String(localized: "Edit"), systemImage: "pencil")
+                        Label("Edit Pet", systemImage: "pencil")
                     }
                     
                     Button(role: .destructive, action: {
                         showingDeleteAlert = true
                     }) {
-                        Label(String(localized: "Delete"), systemImage: "trash")
+                        Label("Delete Pet", systemImage: "trash")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -156,7 +157,7 @@ struct PetDetailView: View {
     private func infoCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title)
-                .font(.headline)
+                .font(.appHeadline)
                 .foregroundColor(accentColor)
                 .padding(.bottom, 4)
             
@@ -174,10 +175,11 @@ struct PetDetailView: View {
     private func infoRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
+                .font(.appBody)
                 .foregroundColor(labelColor)
             Spacer()
             Text(value)
-                .fontWeight(.medium)
+                .font(.appCallout)
                 .foregroundColor(textColor)
         }
         .padding(.vertical, 4)

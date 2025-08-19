@@ -103,7 +103,7 @@ struct SettingsView: View {
             // 卡片标题
             HStack {
                 Text(String(localized: "settings.general.title"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(.primary)
                 Spacer()
             }
@@ -210,7 +210,7 @@ struct SettingsView: View {
             // 卡片标题
             HStack {
                 Text(String(localized: "settings.support.title"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(.primary)
                 Spacer()
             }
@@ -269,7 +269,7 @@ struct SettingsView: View {
             // 卡片标题
             HStack {
                 Text(String(localized: "settings.debug.title"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(.primary)
                 Spacer()
             }
@@ -314,7 +314,7 @@ struct SettingsView: View {
             // 卡片标题
             HStack {
                 Text(String(localized: "settings.about.title"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(.primary)
                 Spacer()
             }

@@ -70,7 +70,7 @@ struct EditPetView: View {
     private var avatarSection: some View {
         VStack(spacing: 16) {
             Text(String(localized: "Pet Avatar"))
-                .font(.headline)
+                .font(.appHeadline)
                 .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.3))
             
             CircleImagePicker(image: $viewModel.avatar, size: 120)
@@ -81,8 +81,7 @@ struct EditPetView: View {
     private var basicInfoCard: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text(String(localized: "Basic Information"))
-                .font(.title3)
-                .fontWeight(.semibold)
+                .font(.appTitle3)
                 .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
             
             nameField
@@ -100,8 +99,7 @@ struct EditPetView: View {
     private var nameField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Name"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             TextField(String(localized: "Name"), text: $viewModel.name)
@@ -121,8 +119,7 @@ struct EditPetView: View {
     private var petTypeField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Pet Type"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             Picker(String(localized: "Pet Type"), selection: $viewModel.petType) {
@@ -137,8 +134,7 @@ struct EditPetView: View {
     private var breedField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Breed / Color"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             TextField(String(localized: "Breed / Color"), text: $viewModel.breed)
@@ -149,8 +145,7 @@ struct EditPetView: View {
     private var genderField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Gender"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             Picker(String(localized: "Gender"), selection: $viewModel.gender) {
@@ -165,8 +160,7 @@ struct EditPetView: View {
     private var neuteredField: some View {
         HStack {
             Text(String(localized: "Neutered / Spayed"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             Spacer()
@@ -180,8 +174,7 @@ struct EditPetView: View {
     private var importantDatesCard: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text(String(localized: "Important Dates"))
-                .font(.title3)
-                .fontWeight(.semibold)
+                .font(.appTitle3)
                 .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
             
             birthdayField
@@ -196,8 +189,7 @@ struct EditPetView: View {
     private var birthdayField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Birthday"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             HStack {
@@ -222,8 +214,7 @@ struct EditPetView: View {
     private var adoptionDayField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Adoption / Gotcha Day"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             HStack {
@@ -248,8 +239,7 @@ struct EditPetView: View {
     private var healthInfoCard: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text(String(localized: "Health Information"))
-                .font(.title3)
-                .fontWeight(.semibold)
+                .font(.appTitle3)
                 .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
             
             weightUnitField
@@ -265,8 +255,7 @@ struct EditPetView: View {
     private var weightUnitField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Weight Unit"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             Picker(String(localized: "Weight Unit"), selection: $viewModel.weightUnitPreference) {
@@ -281,8 +270,7 @@ struct EditPetView: View {
     private var microchipField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Microchip ID (Optional)"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             TextField(String(localized: "Microchip ID (Optional)"), text: $viewModel.microchipID)
@@ -293,8 +281,7 @@ struct EditPetView: View {
     private var insuranceField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Insurance Policy No. (Optional)"))
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
             TextField(String(localized: "Insurance Policy No. (Optional)"), text: $viewModel.insurancePolicyNo)
@@ -304,7 +291,7 @@ struct EditPetView: View {
     
     private var privacyText: some View {
         Text("Your pet's data never leaves your device.")
-            .font(.caption)
+            .font(.appCaption)
             .foregroundColor(.gray)
             .multilineTextAlignment(.center)
             .padding(.horizontal)

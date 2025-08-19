@@ -108,7 +108,7 @@ struct AddEditReminderView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // 宠物选择器
                 Text(String(localized: "Select Pets"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(textColor)
                     .padding(.horizontal)
                 
@@ -132,7 +132,7 @@ struct AddEditReminderView: View {
                 // 验证提示
                 if viewModel.selectedPets.isEmpty {
                     Text(String(localized: "Select at least one pet"))
-                        .font(.caption)
+                        .font(.appCaption)
                         .foregroundColor(.red)
                         .padding(.horizontal)
                 }
@@ -140,7 +140,7 @@ struct AddEditReminderView: View {
                 // 标签选择器标题和管理按钮
                 HStack {
                     Text(String(localized: "Select Event Type"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(textColor)
                     
                     Spacer()
@@ -153,7 +153,7 @@ struct AddEditReminderView: View {
                             Image(systemName: "gear")
                                 .font(.caption)
                             Text(String(localized: "Manage Tags"))
-                                .font(.caption)
+                                .font(.appCaption)
                         }
                         .foregroundColor(accentColor)
                     }
@@ -167,7 +167,7 @@ struct AddEditReminderView: View {
                     if !filteredTags.isEmpty {
                         VStack(alignment: .leading) {
                             Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
-                                .font(.subheadline)
+                                .font(.appSubheadline)
                                 .foregroundColor(labelColor)
                                 .padding(.horizontal)
                             
@@ -188,7 +188,7 @@ struct AddEditReminderView: View {
                 // 日期和时间选择器
                 VStack(alignment: .leading, spacing: 8) {
                     Text(String(localized: "Date & Time"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(textColor)
                     
                     DatePicker("", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
@@ -210,13 +210,14 @@ struct AddEditReminderView: View {
                 // 重复设置
                 VStack(alignment: .leading, spacing: 8) {
                     Text(String(localized: "Repeat Settings"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(textColor)
                     
                     VStack(spacing: 16) {
                         // 重复开关
                         HStack {
                             Text(String(localized: "Repeat"))
+                                .font(.appBody)
                                 .foregroundColor(textColor)
                             Spacer()
                             Toggle("", isOn: $viewModel.isRepeating)
@@ -227,6 +228,7 @@ struct AddEditReminderView: View {
                         if viewModel.isRepeating {
                             HStack {
                                 Text(String(localized: "Every"))
+                                    .font(.appBody)
                                     .foregroundColor(textColor)
                                 
                                 Spacer()
@@ -253,7 +255,7 @@ struct AddEditReminderView: View {
                             // 重复规则预览
                             if !viewModel.repeatRuleText.isEmpty {
                                 Text(viewModel.repeatRuleText)
-                                    .font(.caption)
+                                    .font(.appCaption)
                                     .foregroundColor(labelColor)
                                     .padding(.top, 4)
                             }
@@ -271,7 +273,7 @@ struct AddEditReminderView: View {
                 // 备注输入框
                 VStack(alignment: .leading, spacing: 8) {
                     Text(String(localized: "Notes"))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(textColor)
                     
                     TextEditor(text: $viewModel.notes)

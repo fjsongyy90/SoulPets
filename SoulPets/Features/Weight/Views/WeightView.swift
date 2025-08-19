@@ -124,6 +124,7 @@ struct WeightView: View {
             ProgressView()
                 .scaleEffect(1.5)
             Text(String(localized: "Loading..."))
+                .font(.appBody)
                 .foregroundColor(labelColor)
                 .padding(.top)
         }
@@ -175,10 +176,9 @@ struct WeightView: View {
     /// 选择宠物视图
     private var selectPetView: some View {
         VStack(spacing: 20) {
-            Text(String(localized: "Select a Pet"))
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(textColor)
+                Text(String(localized: "Select a Pet"))
+                    .font(.appTitle2)
+                    .foregroundColor(textColor)
             
             petSelectorView
         }
@@ -288,7 +288,7 @@ struct WeightView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(String(localized: "Weight Trend"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(textColor)
                 
                 Spacer()
@@ -299,6 +299,7 @@ struct WeightView: View {
             
             if viewModel.chartData.isEmpty {
                 Text(String(localized: "Not enough data for chart"))
+                    .font(.appBody)
                     .foregroundColor(labelColor)
                     .frame(height: 200)
                     .frame(maxWidth: .infinity)
@@ -344,8 +345,7 @@ struct WeightView: View {
                     viewModel.selectedTimeRange = range
                 } label: {
                     Text(range.localizedString)
-                        .font(.caption)
-                        .fontWeight(.medium)
+                        .font(.appCaption)
                         .foregroundColor(viewModel.selectedTimeRange == range ? .white : textColor)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -380,22 +380,20 @@ struct WeightView: View {
     private var currentWeightCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Current Weight"))
-                .font(.caption)
+                .font(.appCaption)
                 .foregroundColor(labelColor)
             
             if let latestWeight = viewModel.latestWeight {
                 Text(latestWeight.formattedWeight())
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.appTitle2)
                     .foregroundColor(textColor)
                 
                 Text(latestWeight.date, style: .date)
-                    .font(.caption)
+                    .font(.appCaption)
                     .foregroundColor(labelColor)
             } else {
                 Text("--")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.appTitle2)
                     .foregroundColor(textColor)
             }
         }
@@ -410,12 +408,11 @@ struct WeightView: View {
     private var weightChangeCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Weight Change"))
-                .font(.caption)
+                .font(.appCaption)
                 .foregroundColor(labelColor)
             
             Text(viewModel.formattedWeightTrend)
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.appTitle2)
                 .foregroundColor(viewModel.weightTrend == nil ? textColor : 
                                 (viewModel.weightTrend! > 0 ? .orange : .green))
         }
@@ -431,7 +428,7 @@ struct WeightView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(String(localized: "Weight Goal"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(textColor)
                 
                 Spacer()
@@ -443,7 +440,7 @@ struct WeightView: View {
                     Text(viewModel.activeWeightGoal == nil ? 
                          String(localized: "Set Goal") : 
                          String(localized: "Edit Goal"))
-                        .font(.caption)
+                        .font(.appCaption)
                         .foregroundColor(accentColor)
                 }
             }
@@ -451,17 +448,20 @@ struct WeightView: View {
             if let goal = viewModel.activeWeightGoal {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(goal.formattedGoal)
+                        .font(.appBody)
                         .foregroundColor(textColor)
                     
                     HStack {
                         Text(String(localized: "Progress:"))
+                            .font(.appBody)
                             .foregroundColor(labelColor)
                         Text(viewModel.formattedGoalProgress())
+                            .font(.appBody)
                             .fontWeight(.semibold)
                             .foregroundColor(accentColor)
                         Spacer()
                         Text("\(goal.remainingDays) days left")
-                            .font(.caption)
+                            .font(.appCaption)
                             .foregroundColor(labelColor)
                     }
                     
@@ -474,6 +474,7 @@ struct WeightView: View {
                 }
             } else {
                 Text(String(localized: "Set a weight goal to track progress"))
+                    .font(.appBody)
                     .foregroundColor(labelColor)
                     .onAppear {
                         logger.debug("❌ 无活跃体重目标，显示设置提示")
@@ -493,7 +494,7 @@ struct WeightView: View {
     private var weightHistoryList: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Weight History"))
-                .font(.headline)
+                .font(.appHeadline)
                 .foregroundColor(textColor)
             
             LazyVStack(spacing: 8) {
@@ -514,7 +515,7 @@ struct WeightView: View {
                     .foregroundColor(textColor)
                 
                 Text(weight.date, style: .date)
-                    .font(.caption)
+                    .font(.appCaption)
                     .foregroundColor(labelColor)
             }
             

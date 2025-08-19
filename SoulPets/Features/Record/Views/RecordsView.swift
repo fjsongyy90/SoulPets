@@ -185,15 +185,13 @@ struct RecordsView: View {
                                 .frame(width: 20, height: 20)
                         }
                         Text(selectedPet.name)
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.appCaption)
                             .lineLimit(1)
                     } else {
                         Image(systemName: "pawprint.fill")
                             .font(.system(size: 12))
                         Text(String(localized: "All"))
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.appCaption)
                     }
                     
                     Image(systemName: showingPetSelector ? "chevron.up" : "chevron.down")
@@ -225,8 +223,7 @@ struct RecordsView: View {
                             .lineLimit(1)
                     } else {
                         Text(String(localized: "Date"))
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.appCaption)
                     }
                 }
                 .foregroundColor(selectedDate != nil ? accentColor : textColor)
@@ -259,8 +256,7 @@ struct RecordsView: View {
                             .lineLimit(1)
                     } else {
                         Text(String(localized: "Tag"))
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.appCaption)
                     }
                     
                     Image(systemName: showingTagSelector ? "chevron.up" : "chevron.down")
@@ -326,7 +322,7 @@ struct RecordsView: View {
                             )
                         
                         Text(String(localized: "All"))
-                            .font(.caption)
+                            .font(.appCaption)
                             .foregroundColor(appState.selectedPet == nil ? accentColor : textColor)
                             .fontWeight(appState.selectedPet == nil ? .semibold : .regular)
                     }
@@ -366,7 +362,7 @@ struct RecordsView: View {
                             }
                             
                             Text(pet.name)
-                                .font(.caption)
+                                .font(.appCaption)
                                 .foregroundColor(appState.selectedPet?.id == pet.id ? accentColor : textColor)
                                 .fontWeight(appState.selectedPet?.id == pet.id ? .semibold : .regular)
                                 .lineLimit(1)
@@ -440,7 +436,7 @@ struct RecordsView: View {
                             )
                         
                         Text(String(localized: "All Tags"))
-                            .font(.subheadline)
+                            .font(.appSubheadline)
                             .foregroundColor(selectedTag == nil ? accentColor : textColor)
                             .fontWeight(selectedTag == nil ? .semibold : .regular)
                     }
@@ -491,10 +487,10 @@ struct RecordsView: View {
                     .padding(.horizontal, 4)
                 }
             } else {
-                Text(String(localized: "No tags used yet"))
-                    .font(.caption)
-                    .foregroundColor(labelColor)
-                    .padding(.horizontal, 8)
+                    Text(String(localized: "No tags used yet"))
+                        .font(.appCaption)
+                        .foregroundColor(labelColor)
+                        .padding(.horizontal, 8)
             }
         }
         .padding(.vertical, 12)
@@ -760,7 +756,7 @@ struct RecordCardView: View {
                         .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(textColor)
                 }
                 
@@ -768,14 +764,14 @@ struct RecordCardView: View {
                 
                 // 时间戳（移到原来宠物头像的位置）
                 Text(formattedDate)
-                    .font(.subheadline)
+                    .font(.appSubheadline)
                     .foregroundColor(labelColor)
             }
             
             // 备注
             if let notes = record.notes, !notes.isEmpty {
                 Text(notes)
-                    .font(.body)
+                    .font(.appBody)
                     .foregroundColor(textColor)
                     .lineLimit(3)
             }

@@ -335,7 +335,7 @@ struct PetsHomeView: View {
                         
                         HStack(spacing: 4) {
                             Text(pet.breed)
-                                .font(.appSubheadline)
+                                .font(.appCallout)
                                 .foregroundColor(labelColor)
                             
                             Text("•")
@@ -343,7 +343,7 @@ struct PetsHomeView: View {
                                 .foregroundColor(labelColor)
                             
                             Text(pet.gender.rawValue)
-                                .font(.appSubheadline)
+                                .font(.appCallout)
                                 .foregroundColor(labelColor)
                         }
                     }

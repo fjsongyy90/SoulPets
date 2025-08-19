@@ -734,7 +734,7 @@ struct ReminderCardView: View {
                         .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
-                        .font(.headline)
+                        .font(.appHeadline)
                         .foregroundColor(textColor)
                 }
                 
@@ -743,7 +743,7 @@ struct ReminderCardView: View {
                 // 时间显示（所有提醒都显示时间）
                 HStack(spacing: 4) {
                     Text(formattedDate)
-                        .font(.subheadline)
+                        .font(.appSubheadline)
                         .foregroundColor(labelColor)
                     
                     // 如果是明天的提醒，显示"Tomorrow"标签
@@ -767,7 +767,7 @@ struct ReminderCardView: View {
                 // 备注（如果有的话）
                 if let notes = reminder.notes, !notes.isEmpty {
                     Text(notes)
-                        .font(.body)
+                        .font(.appBody)
                         .foregroundColor(textColor)
                         .lineLimit(3)
                 } else {
@@ -794,7 +794,7 @@ struct ReminderCardView: View {
                 // 重复规则
                 if let repeatRule = reminder.repeatRuleText {
                     Text(repeatRule)
-                        .font(.caption)
+                        .font(.appCaption)
                         .foregroundColor(labelColor)
                 }
                 

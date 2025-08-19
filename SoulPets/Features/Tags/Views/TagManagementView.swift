@@ -65,6 +65,7 @@ struct TagManagementView: View {
             ProgressView()
                 .scaleEffect(1.2)
             Text(String(localized: "Loading tags..."))
+                .font(.appBody)
                 .foregroundColor(.secondary)
         }
     }
@@ -94,7 +95,7 @@ struct TagManagementView: View {
     private var petTypeSelector: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Select Pet Type"))
-                .font(.headline)
+                .font(.appHeadline)
                 .foregroundColor(.primary)
             
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
@@ -119,8 +120,7 @@ struct TagManagementView: View {
                     .scaledToFit()
                     .frame(width: 24, height: 24)
                 Text(petType.rawValue)
-                    .font(.body)
-                    .fontWeight(.medium)
+                    .font(.appBody)
                 Spacer()
                 if viewModel.selectedPetType == petType {
                     Image(systemName: "checkmark.circle.fill")
@@ -153,13 +153,13 @@ struct TagManagementView: View {
             // 分类标题
             HStack {
                 Text(viewModel.getCategoryTitle(category))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(.primary)
                 
                 Spacer()
                 
                 Text("\(viewModel.tagsByCategory[category]?.count ?? 0) tags")
-                    .font(.caption)
+                    .font(.appCaption)
                     .foregroundColor(.secondary)
             }
             .padding(.horizontal)
@@ -210,11 +210,11 @@ struct TagManagementView: View {
                 .foregroundColor(.gray)
             
             Text(String(localized: "No Tags Available"))
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.appTitle2)
                 .foregroundColor(.primary)
             
             Text(String(localized: "Please add some pets first to see their tags"))
+                .font(.appBody)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
@@ -230,8 +230,7 @@ struct TagManagementView: View {
                 Image(systemName: "plus.circle")
                     .font(.title2)
                 Text(String(localized: "Add Custom Tag (Pro)"))
-                    .font(.body)
-                    .fontWeight(.medium)
+                    .font(.appBody)
                 Spacer()
                 Image(systemName: "crown.fill")
                     .foregroundColor(.yellow)
