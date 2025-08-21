@@ -181,10 +181,17 @@ extension Reminder {
             
             // 检查是否是同一个月日
             if startMonth == targetMonth && startDay == targetDay {
-                // 再检查年份间隔是否符合要求
-                let components = calendar.dateComponents([.year], from: startDate, to: date)
-                guard let years = components.year, years >= 0 else { return false }
-                return years % interval == 0
+                // 🔧 修复：对于年度重复，只要月日匹配且目标日期不早于起始日期即可
+                // 不需要严格按年份间隔计算，因为生日每年都应该提醒
+                let startYear = calendar.component(.year, from: startDate)
+                let targetYear = calendar.component(.year, from: date)
+                
+                // 目标年份必须大于等于起始年份
+                if targetYear >= startYear {
+                    // 计算年份差
+                    let yearDifference = targetYear - startYear
+                    return yearDifference % interval == 0
+                }
             }
             
             return false

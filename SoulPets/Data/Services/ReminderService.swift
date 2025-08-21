@@ -42,7 +42,7 @@ class ReminderService {
         }
     }
     
-    /// 获取未来的提醒（除今天外的未来7天）
+    /// 获取未来的提醒（除今天外的未来7天，以及年度重复提醒）
     static func getUpcomingReminders(modelContext: ModelContext, daysAhead: Int = 7) -> [Reminder] {
         let calendar = Calendar.current
         let today = Date()
@@ -66,21 +66,32 @@ class ReminderService {
                     let needsReminder = reminder.needsReminderOn(date: futureDate)
                     let isNotCompletedOnThatDay = !reminder.isCompletedOn(date: futureDate)
                     
-                    // 特别为生日提醒添加详细日志
-                    if reminder.tag.code == "planning.birthday" && needsReminder {
-                        logger.info("🎂 未来生日提醒检查: \(reminder.tag.name)")
-                        logger.info("  - 检查日期: \(futureDate)")
-                        logger.info("  - 需要提醒: \(needsReminder)")
-                        logger.info("  - 未完成: \(isNotCompletedOnThatDay)")
-                    }
-                    
                     return needsReminder && isNotCompletedOnThatDay
                 }
                 
                 upcomingReminders.append(contentsOf: remindersForDay)
             }
             
-            // 🔧 新增：对于今天已完成的重复提醒，立即显示它们的下一个周期
+            // 🔧 新增：特别处理年度重复提醒（如生日、领养纪念日）
+            let yearlyReminders = allReminders.filter { reminder in
+                guard let repeatUnit = reminder.repeatUnit else { return false }
+                return repeatUnit == .yearly && !reminder.isCompletedToday
+            }
+            
+            for reminder in yearlyReminders {
+                // 计算下一个年度提醒日期
+                if let nextYearlyDate = calculateNextYearlyReminderDate(for: reminder, from: today) {
+                    // 如果这个年度提醒还没有在upcomingReminders中，就添加它
+                    let notAlreadyIncluded = !upcomingReminders.contains { $0.id == reminder.id }
+                    
+                    if notAlreadyIncluded {
+                        upcomingReminders.append(reminder)
+                        logger.info("🎂 添加年度提醒: \(reminder.tag.name)，下次日期: \(nextYearlyDate)")
+                    }
+                }
+            }
+            
+            // 🔧 对于今天已完成的重复提醒，立即显示它们的下一个周期
             let todayCompletedReminders = allReminders.filter { reminder in
                 // 检查是否是重复提醒且今天已完成
                 let isRepeating = reminder.repeatInterval != nil && reminder.repeatUnit != nil
@@ -114,6 +125,30 @@ class ReminderService {
         } catch {
             logger.error("获取未来提醒失败: \(error.localizedDescription)")
             return []
+        }
+    }
+    
+    /// 计算年度重复提醒的下一个提醒日期
+    private static func calculateNextYearlyReminderDate(for reminder: Reminder, from date: Date) -> Date? {
+        guard reminder.repeatUnit == .yearly else { return nil }
+        
+        let calendar = Calendar.current
+        let currentYear = calendar.component(.year, from: date)
+        
+        // 获取提醒的月日
+        let startComponents = calendar.dateComponents([.month, .day], from: reminder.startDate)
+        guard let month = startComponents.month, let day = startComponents.day else { return nil }
+        
+        // 计算今年的提醒日期
+        guard let thisYearDate = calendar.date(from: DateComponents(year: currentYear, month: month, day: day)) else {
+            return nil
+        }
+        
+        // 如果今年的日期还没过，返回今年的日期；否则返回明年的日期
+        if thisYearDate > date {
+            return thisYearDate
+        } else {
+            return calendar.date(from: DateComponents(year: currentYear + 1, month: month, day: day))
         }
     }
     

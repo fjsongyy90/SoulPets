@@ -187,6 +187,9 @@ class PetService {
 	
 	/// 为宠物生日创建提醒
 	static func createBirthdayReminder(pet: Pet, modelContext: ModelContext) {
+		logger.info("🎂 开始为\(pet.name)创建生日提醒")
+		logger.info("📅 宠物生日: \(pet.birthday)")
+		
 		// 寻找生日标签
 		let tagDescriptor = FetchDescriptor<Tag>(
 			predicate: #Predicate<Tag> { tag in
@@ -202,32 +205,14 @@ class PetService {
 				return
 			}
 			
-			// 计算今年或明年的生日日期
+			// 🔧 修复：使用宠物的实际生日作为起始日期，而不是计算下一个生日
+			// 这样年度重复提醒会从宠物的生日开始，每年重复
 			let calendar = Calendar.current
-			let currentYear = calendar.component(.year, from: Date())
-			let birthdayMonth = calendar.component(.month, from: pet.birthday)
-			let birthdayDay = calendar.component(.day, from: pet.birthday)
 			
-			// 创建今年的生日日期
-			guard let thisYearBirthday = calendar.date(from: DateComponents(year: currentYear, month: birthdayMonth, day: birthdayDay)) else {
-				logger.error("无法计算今年的生日日期")
-				return
-			}
-			
-			// 如果今年的生日已经过了，设置为明年的生日
-			var nextBirthday = thisYearBirthday
-			if thisYearBirthday < Date() {
-				guard let nextYearBirthday = calendar.date(byAdding: .year, value: 1, to: thisYearBirthday) else {
-					logger.error("无法计算明年的生日日期")
-					return
-				}
-				nextBirthday = nextYearBirthday
-			}
-			
-			// 创建提醒 - 使用下一个生日日期作为起始日期
+			// 创建提醒 - 使用宠物的实际生日作为起始日期
 			let birthdayText = String(localized: "\(pet.name)'s Birthday")
 			let reminder = Reminder(
-				startDate: nextBirthday,
+				startDate: pet.birthday,
 				notes: birthdayText,
 				repeatInterval: 1,
 				repeatUnit: .yearly,
