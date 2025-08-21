@@ -78,35 +78,13 @@ struct PetDetailView: View {
                     infoRow(label: String(localized: "Weight Unit"), value: pet.weightUnitPreference.rawValue)
                 }
                 
-                // 性格和故事卡片
-                if (pet.personality != nil && !pet.personality!.isEmpty) || (pet.story != nil && !pet.story!.isEmpty) {
-                    infoCard(title: String(localized: "Personality & Story")) {
-                        if let personality = pet.personality, !personality.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(String(localized: "Personality"))
-                                    .font(.appBody)
-                                    .foregroundColor(labelColor)
-                                
-                                Text(personality)
-                                    .font(.appCallout)
-                                    .foregroundColor(textColor)
-                                    .padding(.vertical, 4)
-                            }
-                        }
-                        
-                        if let story = pet.story, !story.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(String(localized: "Story with Owner"))
-                                    .font(.appBody)
-                                    .foregroundColor(labelColor)
-                                
-                                Text(story)
-                                    .font(.appCallout)
-                                    .foregroundColor(textColor)
-                                    .padding(.vertical, 4)
-                            }
-                        }
-                    }
+                // 性格和故事卡片 - 始终显示
+                infoCard(title: String(localized: "Personality & Story")) {
+                    // 性格部分
+                    infoRow(label: String(localized: "Personality"), value: pet.personality?.isEmpty ?? true ? String(localized: "Not set") : pet.personality ?? "")
+                    
+                    // 故事部分
+                    infoRow(label: String(localized: "Story with Owner"), value: pet.story?.isEmpty ?? true ? String(localized: "Not set") : pet.story ?? "")
                 }
             }
             .padding()

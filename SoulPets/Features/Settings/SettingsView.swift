@@ -320,9 +320,6 @@ struct SettingsView: View {
         VStack(spacing: 0) {
             // 卡片标题
             HStack {
-                Image(systemName: "shield.fill")
-                    .font(.title3)
-                    .foregroundColor(adaptiveAccentColor)
                 Text(String(localized: "settings.privacy.title"))
                     .font(.appHeadline)
                     .foregroundColor(.primary)

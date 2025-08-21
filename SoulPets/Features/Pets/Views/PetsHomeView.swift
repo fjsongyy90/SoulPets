@@ -49,7 +49,7 @@ struct PetsHomeView: View {
                             }
                             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                         }
-                        .frame(height: min(480, UIScreen.main.bounds.height * 0.6))
+                        .frame(height: min(520, UIScreen.main.bounds.height * 0.65))
                         .padding(.top, 10)
                         
                         // 页面指示器
@@ -282,7 +282,7 @@ struct PetsHomeView: View {
     // 优化的宠物卡片设计 - 支持响应式布局
     private func petCard(pet: Pet, geometry: GeometryProxy) -> some View {
         let isLandscape = geometry.size.width > geometry.size.height
-        let cardHeight = isLandscape ? min(geometry.size.height - 40, 400) : min(geometry.size.height - 40, 480)
+        let cardHeight = isLandscape ? min(geometry.size.height - 40, 440) : min(geometry.size.height - 40, 520)
         
         return VStack(spacing: 0) {
             // 卡片主体
@@ -648,5 +648,4 @@ struct RoundedCorner: Shape {
     
     return PetsHomeView()
         .modelContainer(container)
-} 
-
+}
