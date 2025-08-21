@@ -134,18 +134,43 @@ struct RecordsView: View {
                 filterRecords()
             }
             .onAppear {
-                // 使用全局状态中的选中宠物
-                if let selectedPet = appState.selectedPet {
-                    viewModel.setCurrentPet(selectedPet)
-                    viewModel.isShowingAllPets = false
-                } else if !pets.isEmpty {
-                    // 如果全局状态没有选中宠物，选择第一只宠物
-                    let firstPet = pets.first!
-                    appState.setSelectedPet(firstPet)
-                    viewModel.setCurrentPet(firstPet)
+                // 🔧 修复：如果用户没有手动修改过筛选，则同步Home页的最新状态
+                if !appState.recordsFilterManuallyChanged {
+                    appState.syncFiltersWithHomePage()
+                }
+                
+                // 使用AppState的宠物筛选同步机制
+                let filterState = appState.getRecordsPageFilter()
+                
+                switch filterState {
+                case .all:
+                    viewModel.currentPet = nil
+                    viewModel.isShowingAllPets = true
+                case .specific(let pet):
+                    viewModel.setCurrentPet(pet)
                     viewModel.isShowingAllPets = false
                 }
+                
                 viewModel.loadRecords()
+            }
+            .onChange(of: appState.selectedPet) { oldPet, newPet in
+                // 🔧 关键修复：监听Home页宠物变化，如果用户没有手动修改过筛选，则自动同步
+                if !appState.recordsFilterManuallyChanged {
+                    let newFilter: PetFilterState = newPet != nil ? .specific(newPet!) : .all
+                    appState.recordsPageFilter = newFilter // 直接更新，不标记为手动修改
+                    
+                    // 更新ViewModel状态
+                    switch newFilter {
+                    case .all:
+                        viewModel.currentPet = nil
+                        viewModel.isShowingAllPets = true
+                    case .specific(let pet):
+                        viewModel.setCurrentPet(pet)
+                        viewModel.isShowingAllPets = false
+                    }
+                    
+                    viewModel.loadRecords()
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: .recordCreated)) { _ in
                 // 收到记录创建通知，刷新记录列表
@@ -170,28 +195,30 @@ struct RecordsView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    if let selectedPet = appState.selectedPet {
+                    let currentFilter = appState.getRecordsPageFilter()
+                    switch currentFilter {
+                    case .all:
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 12))
+                        Text(String(localized: "All"))
+                            .font(.appCaption)
+                    case .specific(let pet):
                         // 显示当前选中宠物的头像
-                        if let avatarData = selectedPet.avatar, let uiImage = UIImage(data: avatarData) {
+                        if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(selectedPet.petType == .dog ? "pet_dog" : "pet_cat")
+                            Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
                         }
-                        Text(selectedPet.name)
+                        Text(pet.name)
                             .font(.appCaption)
                             .lineLimit(1)
-                    } else {
-                        Image(systemName: "pawprint.fill")
-                            .font(.system(size: 12))
-                        Text(String(localized: "All"))
-                            .font(.appCaption)
                     }
                     
                     Image(systemName: showingPetSelector ? "chevron.up" : "chevron.down")
@@ -303,7 +330,8 @@ struct RecordsView: View {
             HStack(spacing: 12) {
                 // "All Pets" 选项
                 Button {
-                    appState.setSelectedPet(nil)
+                    // 设置记录页面的筛选状态为All（用户主动操作）
+                    appState.setRecordsPageFilter(.all)
                     viewModel.currentPet = nil
                     viewModel.isShowingAllPets = true
                     viewModel.loadRecords()
@@ -311,27 +339,30 @@ struct RecordsView: View {
                         showingPetSelector = false
                     }
                 } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: "pawprint.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(appState.selectedPet == nil ? .white : accentColor)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .fill(appState.selectedPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
-                            )
-                        
-                        Text(String(localized: "All"))
-                            .font(.appCaption)
-                            .foregroundColor(appState.selectedPet == nil ? accentColor : textColor)
-                            .fontWeight(appState.selectedPet == nil ? .semibold : .regular)
-                    }
+                        VStack(spacing: 4) {
+                            let currentFilter = appState.getRecordsPageFilter()
+                            let isAllSelected = (currentFilter == .all)
+                            
+                            Image(systemName: "pawprint.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(isAllSelected ? .white : accentColor)
+                                .frame(width: 40, height: 40)
+                                .background(
+                                    Circle()
+                                        .fill(isAllSelected ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                                )
+                            
+                            Text(String(localized: "All"))
+                                .font(.appCaption)
+                                .foregroundColor(isAllSelected ? accentColor : textColor)
+                                .fontWeight(isAllSelected ? .semibold : .regular)
+                        }
                 }
                 
                 // 各个宠物选项
                 ForEach(pets) { pet in
                     Button {
-                        appState.setSelectedPet(pet)
+                        appState.setRecordsPageFilter(.specific(pet))
                         viewModel.setCurrentPet(pet)
                         viewModel.isShowingAllPets = false
                         viewModel.loadRecords()
@@ -340,6 +371,9 @@ struct RecordsView: View {
                         }
                     } label: {
                         VStack(spacing: 4) {
+                            let currentFilter = appState.getRecordsPageFilter()
+                            let isSelected = (currentFilter == .specific(pet))
+                            
                             if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
                                 Image(uiImage: uiImage)
                                     .resizable()
@@ -348,7 +382,7 @@ struct RecordsView: View {
                                     .clipShape(Circle())
                                     .overlay(
                                         Circle()
-                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
                                 Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
@@ -357,14 +391,14 @@ struct RecordsView: View {
                                     .frame(width: 40, height: 40)
                                     .overlay(
                                         Circle()
-                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             }
                             
                             Text(pet.name)
                                 .font(.appCaption)
-                                .foregroundColor(appState.selectedPet?.id == pet.id ? accentColor : textColor)
-                                .fontWeight(appState.selectedPet?.id == pet.id ? .semibold : .regular)
+                                .foregroundColor(isSelected ? accentColor : textColor)
+                                .fontWeight(isSelected ? .semibold : .regular)
                                 .lineLimit(1)
                         }
                     }

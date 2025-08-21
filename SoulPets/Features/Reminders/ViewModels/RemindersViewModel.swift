@@ -52,10 +52,14 @@ class RemindersViewModel {
     
     // MARK: - 初始化
     init() {
-        loadReminders()
+        // 延迟加载，避免并发问题
+        DispatchQueue.main.async {
+            // 初始化时不加载数据，等待modelContext传入
+        }
     }
     
     // MARK: - 数据加载
+    @MainActor
     func loadReminders(from modelContext: ModelContext? = nil) {
         guard let context = modelContext else { return }
         
@@ -107,18 +111,19 @@ class RemindersViewModel {
     }
     
     // MARK: - 设置默认宠物筛选
+    @MainActor
     private func setupDefaultPetFilter(modelContext: ModelContext) {
-        let descriptor = FetchDescriptor<Pet>(sortBy: [SortDescriptor(\.name)])
+        // 使用AppState的宠物筛选同步机制
+        let appState = AppState.shared
+        let filterState = appState.getRemindersPageFilter()
         
-        do {
-            let pets = try modelContext.fetch(descriptor)
-            if let firstPet = pets.first {
-                selectedPetFilter = .specific(firstPet)
-                logger.info("🐾 提醒模块默认选中宠物: \(firstPet.name)")
-            }
-        } catch {
-            logger.error("获取宠物列表失败: \(error.localizedDescription)")
-            // 如果获取失败，保持默认的 .all 设置
+        switch filterState {
+        case .all:
+            selectedPetFilter = .all
+            logger.info("🐾 提醒模块同步选择: 所有宠物")
+        case .specific(let pet):
+            selectedPetFilter = .specific(pet)
+            logger.info("🐾 提醒模块同步选择宠物: \(pet.name)")
         }
     }
     
@@ -209,8 +214,18 @@ class RemindersViewModel {
         selectedFilter = filter
     }
     
+    @MainActor
     func setPetFilter(_ filter: PetFilter) {
         selectedPetFilter = filter
+        
+        // 用户主动更改筛选，更新AppState
+        let appState = AppState.shared
+        switch filter {
+        case .all:
+            appState.setRemindersPageFilter(.all)
+        case .specific(let pet):
+            appState.setRemindersPageFilter(.specific(pet))
+        }
     }
     
     // MARK: - 提醒完成后创建记录
@@ -232,4 +247,16 @@ class RemindersViewModel {
     var todayReminderCount: Int {
         filteredTodayReminders.count
     }
-} 
+}
+
+// MARK: - PetFilter Extension
+extension RemindersViewModel.PetFilter {
+    var isAll: Bool {
+        switch self {
+        case .all:
+            return true
+        case .specific:
+            return false
+        }
+    }
+}

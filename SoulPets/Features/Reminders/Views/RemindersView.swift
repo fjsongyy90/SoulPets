@@ -153,18 +153,43 @@ struct RemindersView: View {
                 viewModel.loadReminders(from: modelContext)
             }
             .onAppear {
-                // 使用全局状态中的选中宠物
-                if let selectedPet = appState.selectedPet {
-                    viewModel.setPetFilter(.specific(selectedPet))
-                    logger.info("🐾 提醒页面使用全局选中的宠物: \(selectedPet.name)")
-                } else if !allPets.isEmpty {
-                    // 如果全局状态没有选中宠物，选择第一只宠物
-                    let firstPet = allPets.first!
-                    appState.setSelectedPet(firstPet)
-                    viewModel.setPetFilter(.specific(firstPet))
-                    logger.info("🐾 提醒页面设置默认宠物: \(firstPet.name)")
+                // 🔧 修复：如果用户没有手动修改过筛选，则同步Home页的最新状态
+                if !appState.remindersFilterManuallyChanged {
+                    appState.syncFiltersWithHomePage()
                 }
+                
+                // 使用AppState的宠物筛选同步机制
+                let filterState = appState.getRemindersPageFilter()
+                
+                switch filterState {
+                case .all:
+                    viewModel.setPetFilter(.all)
+                    logger.info("🐾 提醒页面恢复筛选状态: 所有宠物")
+                case .specific(let pet):
+                    viewModel.setPetFilter(.specific(pet))
+                    logger.info("🐾 提醒页面恢复筛选状态: \(pet.name)")
+                }
+                
                 viewModel.loadReminders(from: modelContext)
+            }
+            .onChange(of: appState.selectedPet) { oldPet, newPet in
+                // 🔧 关键修复：监听Home页宠物变化，如果用户没有手动修改过筛选，则自动同步
+                if !appState.remindersFilterManuallyChanged {
+                    let newFilter: PetFilterState = newPet != nil ? .specific(newPet!) : .all
+                    appState.remindersPageFilter = newFilter // 直接更新，不标记为手动修改
+                    
+                    // 更新ViewModel状态
+                    switch newFilter {
+                    case .all:
+                        viewModel.setPetFilter(.all)
+                        logger.info("🔧 提醒页面自动同步: 所有宠物")
+                    case .specific(let pet):
+                        viewModel.setPetFilter(.specific(pet))
+                        logger.info("🔧 提醒页面自动同步: \(pet.name)")
+                    }
+                    
+                    viewModel.loadReminders(from: modelContext)
+                }
             }
             .refreshable {
                 viewModel.loadReminders(from: modelContext)
@@ -187,30 +212,32 @@ struct RemindersView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    if let selectedPet = appState.selectedPet {
+                    let currentFilter = appState.getRemindersPageFilter()
+                    switch currentFilter {
+                    case .all:
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 12))
+                        Text(String(localized: "All"))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    case .specific(let pet):
                         // 显示当前选中宠物的头像
-                        if let avatarData = selectedPet.avatar, let uiImage = UIImage(data: avatarData) {
+                        if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(selectedPet.petType == .dog ? "pet_dog" : "pet_cat")
+                            Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
                         }
-                        Text(selectedPet.name)
+                        Text(pet.name)
                             .font(.caption)
                             .fontWeight(.medium)
                             .lineLimit(1)
-                    } else {
-                        Image(systemName: "pawprint.fill")
-                            .font(.system(size: 12))
-                        Text(String(localized: "All"))
-                            .font(.caption)
-                            .fontWeight(.medium)
                     }
                     
                     Image(systemName: showingPetSelector ? "chevron.up" : "chevron.down")
@@ -278,39 +305,46 @@ struct RemindersView: View {
             HStack(spacing: 12) {
                 // "All Pets" 选项
                 Button {
-                    appState.setSelectedPet(nil)
+                    // 设置提醒页面的筛选状态为All（用户主动操作）
+                    appState.setRemindersPageFilter(.all)
                     viewModel.setPetFilter(.all)
                     withAnimation {
                         showingPetSelector = false
                     }
                 } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: "pawprint.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(appState.selectedPet == nil ? .white : accentColor)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .fill(appState.selectedPet == nil ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
-                            )
-                        
-                        Text(String(localized: "All"))
-                            .font(.caption)
-                            .foregroundColor(appState.selectedPet == nil ? accentColor : textColor)
-                            .fontWeight(appState.selectedPet == nil ? .semibold : .regular)
-                    }
+                        VStack(spacing: 4) {
+                            let currentFilter = appState.getRemindersPageFilter()
+                            let isAllSelected = (currentFilter == .all)
+                            
+                            Image(systemName: "pawprint.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(isAllSelected ? .white : accentColor)
+                                .frame(width: 40, height: 40)
+                                .background(
+                                    Circle()
+                                        .fill(isAllSelected ? accentColor : Color(red: 0.97, green: 0.90, blue: 0.83))
+                                )
+                            
+                            Text(String(localized: "All"))
+                                .font(.caption)
+                                .foregroundColor(isAllSelected ? accentColor : textColor)
+                                .fontWeight(isAllSelected ? .semibold : .regular)
+                        }
                 }
                 
                 // 各个宠物选项
                 ForEach(allPets) { pet in
                     Button {
-                        appState.setSelectedPet(pet)
+                        appState.setRemindersPageFilter(.specific(pet))
                         viewModel.setPetFilter(.specific(pet))
                         withAnimation {
                             showingPetSelector = false
                         }
                     } label: {
                         VStack(spacing: 4) {
+                            let currentFilter = appState.getRemindersPageFilter()
+                            let isSelected = (currentFilter == .specific(pet))
+                            
                             if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
                                 Image(uiImage: uiImage)
                                     .resizable()
@@ -319,7 +353,7 @@ struct RemindersView: View {
                                     .clipShape(Circle())
                                     .overlay(
                                         Circle()
-                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
                                 Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
@@ -328,14 +362,14 @@ struct RemindersView: View {
                                     .frame(width: 40, height: 40)
                                     .overlay(
                                         Circle()
-                                            .stroke(appState.selectedPet?.id == pet.id ? accentColor : Color.clear, lineWidth: 2)
+                                            .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             }
                             
                             Text(pet.name)
                                 .font(.caption)
-                                .foregroundColor(appState.selectedPet?.id == pet.id ? accentColor : textColor)
-                                .fontWeight(appState.selectedPet?.id == pet.id ? .semibold : .regular)
+                                .foregroundColor(isSelected ? accentColor : textColor)
+                                .fontWeight(isSelected ? .semibold : .regular)
                                 .lineLimit(1)
                         }
                     }
@@ -892,11 +926,6 @@ struct ReminderCardView: View {
 
 // MARK: - PetFilter 扩展
 extension RemindersViewModel.PetFilter {
-    var isAll: Bool {
-        if case .all = self { return true }
-        return false
-    }
-    
     func isSpecific(pet: Pet) -> Bool {
         if case .specific(let selectedPet) = self {
             return selectedPet.id == pet.id

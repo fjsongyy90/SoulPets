@@ -38,24 +38,50 @@ class RecordViewModel: ObservableObject {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         
-        // 如果只有一只宠物，自动设置为当前宠物
-        let descriptor = FetchDescriptor<Pet>()
-        if let pets = try? modelContext.fetch(descriptor), pets.count == 1 {
-            self.currentPet = pets.first
+        // 延迟初始化，避免并发问题
+        DispatchQueue.main.async {
+            // 使用AppState的宠物筛选同步机制
+            let appState = AppState.shared
+            let filterState = appState.getRecordsPageFilter()
+            
+            switch filterState {
+            case .all:
+                self.isShowingAllPets = true
+                self.currentPet = nil
+            case .specific(let pet):
+                self.isShowingAllPets = false
+                self.currentPet = pet
+            }
+            
+            self.loadRecords()
+            self.loadRecentlyUsedTags()
         }
-        
-        loadRecords()
-        loadRecentlyUsedTags()
     }
     
     // MARK: - 公共方法
     
-    /// 设置当前宠物
+    /// 设置当前宠物（用户主动选择）
+    @MainActor
     func setCurrentPet(_ pet: Pet) {
+        // 用户主动更改筛选，更新AppState
+        let appState = AppState.shared
+        appState.setRecordsPageFilter(.specific(pet))
+        
         currentPet = pet
-        if !isShowingAllPets {
-            loadRecords()
-        }
+        isShowingAllPets = false
+        loadRecords()
+    }
+    
+    /// 设置显示所有宠物（用户主动选择）
+    @MainActor
+    func setShowAllPets() {
+        // 用户主动更改筛选，更新AppState
+        let appState = AppState.shared
+        appState.setRecordsPageFilter(.all)
+        
+        isShowingAllPets = true
+        currentPet = nil
+        loadRecords()
     }
     
     /// 加载标签数据（用于标签管理后刷新）

@@ -105,7 +105,14 @@ class WeightViewModel: ObservableObject {
     }
     
     // MARK: - 初始化
-    init() {}
+    init() {
+        // 延迟初始化，避免并发问题
+        Task { @MainActor in
+            // 使用AppState的宠物筛选同步机制
+            let appState = AppState.shared
+            selectedPet = appState.getWeightPageFilter()
+        }
+    }
     
     // MARK: - 数据加载
     
@@ -137,6 +144,16 @@ class WeightViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    /// 设置选中的宠物（用户主动选择）
+    func setSelectedPet(_ pet: Pet, modelContext: ModelContext) {
+        // 用户主动更改筛选，更新AppState
+        let appState = AppState.shared
+        appState.setWeightPageFilter(pet)
+        
+        // 加载新宠物的数据
+        loadWeightData(for: pet, modelContext: modelContext)
     }
     
     /// 刷新当前宠物的体重数据
