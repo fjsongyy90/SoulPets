@@ -157,7 +157,6 @@ class AppState: ObservableObject {
     func getRecordsPageFilter() -> PetFilterState {
         // 如果用户已经手动修改过，直接返回当前筛选
         if recordsFilterManuallyChanged, let filter = recordsPageFilter {
-            logger.info("📖 Records页面返回手动设置的筛选: \(filter.displayName)")
             return filter
         }
         
@@ -165,11 +164,13 @@ class AppState: ObservableObject {
         let filter: PetFilterState = selectedPet != nil ? .specific(selectedPet!) : .all
         
         // 🔧 关键修复：直接设置属性，不调用set方法，避免标记为手动修改
-        DispatchQueue.main.async { [weak self] in
-            self?.recordsPageFilter = filter
+        // 移除重复的日志输出，只在状态真正改变时记录
+        if recordsPageFilter != filter {
+            DispatchQueue.main.async { [weak self] in
+                self?.recordsPageFilter = filter
+            }
         }
         
-        logger.info("📖 Records页面同步Home页筛选: \(filter.displayName)")
         return filter
     }
     
@@ -187,7 +188,6 @@ class AppState: ObservableObject {
     func getRemindersPageFilter() -> PetFilterState {
         // 如果用户已经手动修改过，直接返回当前筛选
         if remindersFilterManuallyChanged, let filter = remindersPageFilter {
-            logger.info("🔔 Reminders页面返回手动设置的筛选: \(filter.displayName)")
             return filter
         }
         
@@ -195,11 +195,13 @@ class AppState: ObservableObject {
         let filter: PetFilterState = selectedPet != nil ? .specific(selectedPet!) : .all
         
         // 🔧 关键修复：直接设置属性，不调用set方法，避免标记为手动修改
-        DispatchQueue.main.async { [weak self] in
-            self?.remindersPageFilter = filter
+        // 移除重复的日志输出，只在状态真正改变时记录
+        if remindersPageFilter != filter {
+            DispatchQueue.main.async { [weak self] in
+                self?.remindersPageFilter = filter
+            }
         }
         
-        logger.info("🔔 Reminders页面同步Home页筛选: \(filter.displayName)")
         return filter
     }
     

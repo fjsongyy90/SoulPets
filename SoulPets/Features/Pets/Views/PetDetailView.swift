@@ -10,6 +10,7 @@ struct PetDetailView: View {
     let pet: Pet
     @State private var showingEditSheet = false
     @State private var showingDeleteAlert = false
+    @State private var showingPhotosSheet = false
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -60,6 +61,9 @@ struct PetDetailView: View {
                     // 下个生日
                     infoRow(label: String(localized: "Next Birthday"), value: "In \(pet.daysToNextBirthday) days")
                 }
+                
+                // 照片卡片
+                photosCard
                 
                 // 健康信息卡片
                 infoCard(title: String(localized: "Health Information")) {
@@ -118,6 +122,9 @@ struct PetDetailView: View {
         }
         .sheet(isPresented: $showingEditSheet) {
             EditPetView(pet: pet)
+        }
+        .sheet(isPresented: $showingPhotosSheet) {
+            PetPhotosView(pet: pet)
         }
         .customConfirmAlert(
             title: String(localized: "delete_pet.title"),
@@ -194,6 +201,85 @@ struct PetDetailView: View {
         .padding(.vertical, 4)
     }
     
+    // 照片卡片
+    private var photosCard: some View {
+        let petPhotos = getAllPhotosForPet()
+        let photoCount = petPhotos.count
+        let latestPhotos = Array(petPhotos.prefix(3))
+        
+        return infoCard(title: String(localized: "Photos")) {
+            if photoCount == 0 {
+                // 无照片状态
+                HStack {
+                    Image(systemName: "photo")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 20))
+                    
+                    Text("No photos yet")
+                        .font(.appBody)
+                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            } else {
+                // 显示最新的3张照片
+                HStack(spacing: 12) {
+                    // 照片缩略图
+                    ForEach(latestPhotos, id: \.id) { photo in
+                        if let uiImage = UIImage(data: photo.photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                    }
+                    
+                    // 如果照片不足3张，用占位符填充
+                    ForEach(0..<(3 - latestPhotos.count), id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(.gray.opacity(0.5))
+                                    .font(.system(size: 20))
+                            )
+                    }
+                    
+                    Spacer()
+                    
+                    // 照片数量和箭头
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("\(photoCount) 张")
+                            .font(.appCallout)
+                            .foregroundColor(textColor)
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(accentColor)
+                            .font(.system(size: 14))
+                    }
+                }
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    showingPhotosSheet = true
+                }
+            }
+        }
+    }
+    
+    // 获取宠物的所有照片
+    private func getAllPhotosForPet() -> [RecordPhoto] {
+        guard let records = pet.records else { return [] }
+        
+        return records.compactMap { record in
+            record.photos ?? []
+        }.flatMap { $0 }
+        .sorted { $0.createdAt > $1.createdAt }
+    }
+    
     // 删除宠物 - 使用级联删除方法处理关系问题
     private func deletePet() {
         PetService.cascadeDeletePet(pet: pet, modelContext: modelContext)
@@ -203,4 +289,4 @@ struct PetDetailView: View {
             dismiss()
         }
     }
-} 
+}
