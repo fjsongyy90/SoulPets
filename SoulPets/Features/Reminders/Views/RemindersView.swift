@@ -153,43 +153,48 @@ struct RemindersView: View {
                 viewModel.loadReminders(from: modelContext)
             }
             .onAppear {
-                // 🔧 修复：如果用户没有手动修改过筛选，则同步Home页的最新状态
-                if !appState.remindersFilterManuallyChanged {
-                    appState.syncFiltersWithHomePage()
-                }
+                logger.info("📱 Reminders页面onAppear开始")
                 
-                // 使用AppState的宠物筛选同步机制
+                // 🔧 修复：避免重复标记为手动修改，只获取筛选状态
                 let filterState = appState.getRemindersPageFilter()
+                logger.info("📱 Reminders页面获取筛选状态: \(filterState.displayName)")
                 
                 switch filterState {
                 case .all:
-                    viewModel.setPetFilter(.all)
+                    viewModel.setPetFilter(.all, updateAppState: false)
                     logger.info("🐾 提醒页面恢复筛选状态: 所有宠物")
                 case .specific(let pet):
-                    viewModel.setPetFilter(.specific(pet))
+                    viewModel.setPetFilter(.specific(pet), updateAppState: false)
                     logger.info("🐾 提醒页面恢复筛选状态: \(pet.name)")
                 }
                 
                 viewModel.loadReminders(from: modelContext)
+                logger.info("📱 Reminders页面onAppear完成")
             }
-            .onChange(of: appState.selectedPet) { oldPet, newPet in
-                // 🔧 关键修复：监听Home页宠物变化，如果用户没有手动修改过筛选，则自动同步
-                if !appState.remindersFilterManuallyChanged {
-                    let newFilter: PetFilterState = newPet != nil ? .specific(newPet!) : .all
-                    appState.remindersPageFilter = newFilter // 直接更新，不标记为手动修改
-                    
-                    // 更新ViewModel状态
-                    switch newFilter {
-                    case .all:
-                        viewModel.setPetFilter(.all)
-                        logger.info("🔧 提醒页面自动同步: 所有宠物")
-                    case .specific(let pet):
-                        viewModel.setPetFilter(.specific(pet))
-                        logger.info("🔧 提醒页面自动同步: \(pet.name)")
-                    }
-                    
-                    viewModel.loadReminders(from: modelContext)
+            .onChange(of: appState.remindersPageFilter) { oldFilter, newFilter in
+                // 🔧 关键修复：监听remindersPageFilter的变化，而不是selectedPet
+                // 这样可以确保当AppState同步更新筛选状态时，UI能正确响应
+                let oldName = oldFilter?.displayName ?? "nil"
+                let newName = newFilter?.displayName ?? "nil"
+                logger.info("📱 Reminders页面监听到筛选变化: \(oldName) -> \(newName)")
+                
+                guard let newFilter = newFilter else { 
+                    logger.warning("⚠️ Reminders页面收到nil筛选，忽略")
+                    return 
                 }
+                
+                // 更新ViewModel状态
+                switch newFilter {
+                case .all:
+                    viewModel.setPetFilter(.all, updateAppState: false)
+                    logger.info("🔄 Reminders页面切换到所有宠物")
+                case .specific(let pet):
+                    viewModel.setPetFilter(.specific(pet), updateAppState: false)
+                    logger.info("🔄 Reminders页面切换到宠物: \(pet.name)")
+                }
+                
+                viewModel.loadReminders(from: modelContext)
+                logger.info("✅ Reminders页面筛选更新完成")
             }
             .refreshable {
                 viewModel.loadReminders(from: modelContext)
@@ -306,8 +311,7 @@ struct RemindersView: View {
                 // "All Pets" 选项
                 Button {
                     // 设置提醒页面的筛选状态为All（用户主动操作）
-                    appState.setRemindersPageFilter(.all)
-                    viewModel.setPetFilter(.all)
+                    viewModel.setPetFilter(.all, updateAppState: true)
                     withAnimation {
                         showingPetSelector = false
                     }
@@ -335,8 +339,7 @@ struct RemindersView: View {
                 // 各个宠物选项
                 ForEach(allPets) { pet in
                     Button {
-                        appState.setRemindersPageFilter(.specific(pet))
-                        viewModel.setPetFilter(.specific(pet))
+                        viewModel.setPetFilter(.specific(pet), updateAppState: true)
                         withAnimation {
                             showingPetSelector = false
                         }

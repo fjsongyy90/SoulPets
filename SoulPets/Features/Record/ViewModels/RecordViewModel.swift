@@ -60,27 +60,33 @@ class RecordViewModel: ObservableObject {
     
     // MARK: - 公共方法
     
-    /// 设置当前宠物（用户主动选择）
+    /// 设置当前宠物
     @MainActor
-    func setCurrentPet(_ pet: Pet) {
-        // 用户主动更改筛选，更新AppState
-        let appState = AppState.shared
-        appState.setRecordsPageFilter(.specific(pet))
-        
+    func setCurrentPet(_ pet: Pet, updateAppState: Bool = false) {
         currentPet = pet
         isShowingAllPets = false
+        
+        // 🔧 关键修复：只有在用户主动操作时才更新AppState
+        if updateAppState {
+            let appState = AppState.shared
+            appState.setRecordsPageFilter(.specific(pet))
+        }
+        
         loadRecords()
     }
     
-    /// 设置显示所有宠物（用户主动选择）
+    /// 设置显示所有宠物
     @MainActor
-    func setShowAllPets() {
-        // 用户主动更改筛选，更新AppState
-        let appState = AppState.shared
-        appState.setRecordsPageFilter(.all)
-        
+    func setShowAllPets(updateAppState: Bool = false) {
         isShowingAllPets = true
         currentPet = nil
+        
+        // 🔧 关键修复：只有在用户主动操作时才更新AppState
+        if updateAppState {
+            let appState = AppState.shared
+            appState.setRecordsPageFilter(.all)
+        }
+        
         loadRecords()
     }
     

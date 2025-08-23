@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 /// 宠物筛选状态枚举
 enum PetFilterState: Equatable {
@@ -39,6 +40,8 @@ enum PetFilterState: Equatable {
 /// 应用全局状态管理
 @MainActor
 class AppState: ObservableObject {
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AppState")
     /// Home页当前选中的宠物
     @Published var selectedPet: Pet?
     
@@ -61,19 +64,43 @@ class AppState: ObservableObject {
     
     /// 设置Home页当前选中的宠物
     func setSelectedPet(_ pet: Pet?) {
+        let petName = pet?.name ?? "nil"
+        logger.info("🏠 Home页设置选中宠物: \(petName)")
+        
         selectedPet = pet
         
         // 🔧 关键修复：当Home页宠物变化时，自动同步未手动修改的页面
-        if !recordsFilterManuallyChanged {
-            recordsPageFilter = pet != nil ? .specific(pet!) : .all
-        }
-        
-        if !remindersFilterManuallyChanged {
-            remindersPageFilter = pet != nil ? .specific(pet!) : .all
-        }
-        
-        if !weightFilterManuallyChanged {
-            weightPageFilter = pet
+        // 使用 DispatchQueue.main.async 确保状态更新能被正确观察到
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            logger.info("📊 检查各页面筛选状态:")
+            logger.info("  - Records手动修改: \(self.recordsFilterManuallyChanged)")
+            logger.info("  - Reminders手动修改: \(self.remindersFilterManuallyChanged)")
+            logger.info("  - Weight手动修改: \(self.weightFilterManuallyChanged)")
+            
+            if !self.recordsFilterManuallyChanged {
+                let newFilter: PetFilterState = pet != nil ? .specific(pet!) : .all
+                self.recordsPageFilter = newFilter
+                logger.info("🔄 Records页面筛选同步为: \(newFilter.displayName)")
+            } else {
+                logger.info("⏭️ Records页面已手动修改，跳过同步")
+            }
+            
+            if !self.remindersFilterManuallyChanged {
+                let newFilter: PetFilterState = pet != nil ? .specific(pet!) : .all
+                self.remindersPageFilter = newFilter
+                logger.info("🔄 Reminders页面筛选同步为: \(newFilter.displayName)")
+            } else {
+                logger.info("⏭️ Reminders页面已手动修改，跳过同步")
+            }
+            
+            if !self.weightFilterManuallyChanged {
+                self.weightPageFilter = pet
+                logger.info("🔄 Weight页面筛选同步为: \(petName)")
+            } else {
+                logger.info("⏭️ Weight页面已手动修改，跳过同步")
+            }
         }
     }
     
@@ -120,52 +147,60 @@ class AppState: ObservableObject {
     
     /// 设置记录页面的宠物筛选（用户主动操作）
     func setRecordsPageFilter(_ filter: PetFilterState) {
+        logger.info("👆 用户主动设置Records页面筛选: \(filter.displayName)")
         recordsPageFilter = filter
         recordsFilterManuallyChanged = true
+        logger.info("✅ Records页面标记为手动修改")
     }
     
     /// 获取记录页面的宠物筛选，如果未设置则使用Home页的选择
     func getRecordsPageFilter() -> PetFilterState {
-        if let filter = recordsPageFilter {
+        // 如果用户已经手动修改过，直接返回当前筛选
+        if recordsFilterManuallyChanged, let filter = recordsPageFilter {
+            logger.info("📖 Records页面返回手动设置的筛选: \(filter.displayName)")
             return filter
         }
         
-        // 首次访问，同步Home页的选择
-        if let selectedPet = selectedPet {
-            let filter = PetFilterState.specific(selectedPet)
-            recordsPageFilter = filter
-            return filter
-        } else {
-            let filter = PetFilterState.all
-            recordsPageFilter = filter
-            return filter
+        // 如果没有手动修改过，总是同步Home页的选择
+        let filter: PetFilterState = selectedPet != nil ? .specific(selectedPet!) : .all
+        
+        // 🔧 关键修复：直接设置属性，不调用set方法，避免标记为手动修改
+        DispatchQueue.main.async { [weak self] in
+            self?.recordsPageFilter = filter
         }
+        
+        logger.info("📖 Records页面同步Home页筛选: \(filter.displayName)")
+        return filter
     }
     
     // MARK: - 提醒页面筛选管理
     
     /// 设置提醒页面的宠物筛选（用户主动操作）
     func setRemindersPageFilter(_ filter: PetFilterState) {
+        logger.info("👆 用户主动设置Reminders页面筛选: \(filter.displayName)")
         remindersPageFilter = filter
         remindersFilterManuallyChanged = true
+        logger.info("✅ Reminders页面标记为手动修改")
     }
     
     /// 获取提醒页面的宠物筛选，如果未设置则使用Home页的选择
     func getRemindersPageFilter() -> PetFilterState {
-        if let filter = remindersPageFilter {
+        // 如果用户已经手动修改过，直接返回当前筛选
+        if remindersFilterManuallyChanged, let filter = remindersPageFilter {
+            logger.info("🔔 Reminders页面返回手动设置的筛选: \(filter.displayName)")
             return filter
         }
         
-        // 首次访问，同步Home页的选择
-        if let selectedPet = selectedPet {
-            let filter = PetFilterState.specific(selectedPet)
-            remindersPageFilter = filter
-            return filter
-        } else {
-            let filter = PetFilterState.all
-            remindersPageFilter = filter
-            return filter
+        // 如果没有手动修改过，总是同步Home页的选择
+        let filter: PetFilterState = selectedPet != nil ? .specific(selectedPet!) : .all
+        
+        // 🔧 关键修复：直接设置属性，不调用set方法，避免标记为手动修改
+        DispatchQueue.main.async { [weak self] in
+            self?.remindersPageFilter = filter
         }
+        
+        logger.info("🔔 Reminders页面同步Home页筛选: \(filter.displayName)")
+        return filter
     }
     
     // MARK: - 体重页面筛选管理

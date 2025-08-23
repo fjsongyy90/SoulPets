@@ -215,16 +215,18 @@ class RemindersViewModel {
     }
     
     @MainActor
-    func setPetFilter(_ filter: PetFilter) {
+    func setPetFilter(_ filter: PetFilter, updateAppState: Bool = false) {
         selectedPetFilter = filter
         
-        // 用户主动更改筛选，更新AppState
-        let appState = AppState.shared
-        switch filter {
-        case .all:
-            appState.setRemindersPageFilter(.all)
-        case .specific(let pet):
-            appState.setRemindersPageFilter(.specific(pet))
+        // 🔧 关键修复：只有在用户主动操作时才更新AppState
+        if updateAppState {
+            let appState = AppState.shared
+            switch filter {
+            case .all:
+                appState.setRemindersPageFilter(.all)
+            case .specific(let pet):
+                appState.setRemindersPageFilter(.specific(pet))
+            }
         }
     }
     

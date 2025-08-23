@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 /// 记录主视图
 struct RecordsView: View {
@@ -20,6 +21,9 @@ struct RecordsView: View {
     @State private var selectedRecord: Record?
     @Query private var pets: [Pet]
     @Query private var allTags: [Tag]
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RecordView")
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -134,43 +138,46 @@ struct RecordsView: View {
                 filterRecords()
             }
             .onAppear {
-                // 🔧 修复：如果用户没有手动修改过筛选，则同步Home页的最新状态
-                if !appState.recordsFilterManuallyChanged {
-                    appState.syncFiltersWithHomePage()
-                }
+                logger.info("📱 Records页面onAppear开始")
                 
                 // 使用AppState的宠物筛选同步机制
                 let filterState = appState.getRecordsPageFilter()
+                logger.info("📱 Records页面获取筛选状态: \(filterState.displayName)")
                 
                 switch filterState {
                 case .all:
-                    viewModel.currentPet = nil
-                    viewModel.isShowingAllPets = true
+                    viewModel.setShowAllPets(updateAppState: false)
                 case .specific(let pet):
-                    viewModel.setCurrentPet(pet)
-                    viewModel.isShowingAllPets = false
+                    viewModel.setCurrentPet(pet, updateAppState: false)
                 }
                 
                 viewModel.loadRecords()
+                logger.info("📱 Records页面onAppear完成")
             }
-            .onChange(of: appState.selectedPet) { oldPet, newPet in
-                // 🔧 关键修复：监听Home页宠物变化，如果用户没有手动修改过筛选，则自动同步
-                if !appState.recordsFilterManuallyChanged {
-                    let newFilter: PetFilterState = newPet != nil ? .specific(newPet!) : .all
-                    appState.recordsPageFilter = newFilter // 直接更新，不标记为手动修改
-                    
-                    // 更新ViewModel状态
-                    switch newFilter {
-                    case .all:
-                        viewModel.currentPet = nil
-                        viewModel.isShowingAllPets = true
-                    case .specific(let pet):
-                        viewModel.setCurrentPet(pet)
-                        viewModel.isShowingAllPets = false
-                    }
-                    
-                    viewModel.loadRecords()
+            .onChange(of: appState.recordsPageFilter) { oldFilter, newFilter in
+                // 🔧 关键修复：监听recordsPageFilter的变化，而不是selectedPet
+                // 这样可以确保当AppState同步更新筛选状态时，UI能正确响应
+                let oldName = oldFilter?.displayName ?? "nil"
+                let newName = newFilter?.displayName ?? "nil"
+                logger.info("📱 Records页面监听到筛选变化: \(oldName) -> \(newName)")
+                
+                guard let newFilter = newFilter else { 
+                    logger.warning("⚠️ Records页面收到nil筛选，忽略")
+                    return 
                 }
+                
+                // 更新ViewModel状态
+                switch newFilter {
+                case .all:
+                    logger.info("🔄 Records页面切换到所有宠物")
+                    viewModel.setShowAllPets(updateAppState: false)
+                case .specific(let pet):
+                    logger.info("🔄 Records页面切换到宠物: \(pet.name)")
+                    viewModel.setCurrentPet(pet, updateAppState: false)
+                }
+                
+                viewModel.loadRecords()
+                logger.info("✅ Records页面筛选更新完成")
             }
             .onReceive(NotificationCenter.default.publisher(for: .recordCreated)) { _ in
                 // 收到记录创建通知，刷新记录列表
@@ -331,10 +338,7 @@ struct RecordsView: View {
                 // "All Pets" 选项
                 Button {
                     // 设置记录页面的筛选状态为All（用户主动操作）
-                    appState.setRecordsPageFilter(.all)
-                    viewModel.currentPet = nil
-                    viewModel.isShowingAllPets = true
-                    viewModel.loadRecords()
+                    viewModel.setShowAllPets(updateAppState: true)
                     withAnimation {
                         showingPetSelector = false
                     }
@@ -362,10 +366,7 @@ struct RecordsView: View {
                 // 各个宠物选项
                 ForEach(pets) { pet in
                     Button {
-                        appState.setRecordsPageFilter(.specific(pet))
-                        viewModel.setCurrentPet(pet)
-                        viewModel.isShowingAllPets = false
-                        viewModel.loadRecords()
+                        viewModel.setCurrentPet(pet, updateAppState: true)
                         withAnimation {
                             showingPetSelector = false
                         }
