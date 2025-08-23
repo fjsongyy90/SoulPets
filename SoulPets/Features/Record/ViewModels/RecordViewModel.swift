@@ -33,6 +33,9 @@ class RecordViewModel: ObservableObject {
     
     // 照片限制提示
     @Published var showPhotoLimitAlert: Bool = false
+    @Published var photoLimitAlertPet: Pet?
+    @Published var photoLimitExceededCount: Int = 0
+    @Published var showPetPhotosManagement: Bool = false
     
     // MARK: - 初始化
     init(modelContext: ModelContext) {
@@ -393,6 +396,7 @@ class RecordViewModel: ObservableObject {
     }
     
     /// 更新最近使用的标签
+    /// 更新最近使用的标签
     private func updateRecentlyUsedTag(_ tag: Tag) {
         // 检查标签是否已在列表中
         if let index = recentlyUsedTags.firstIndex(where: { $0.id == tag.id }) {
@@ -410,6 +414,28 @@ class RecordViewModel: ObservableObject {
         }
         
         // 这里应该将更新后的列表保存到UserDefaults或其他持久化存储中
+    }
+    
+    /// 重新尝试保存记录（在照片管理后调用）
+    func retryRecordSave() -> Bool {
+        // 重新检查照片限制
+        if !UserPreferencesService.shared.isProMember && !recordPhotos.isEmpty {
+            for pet in selectedPets {
+                let currentPhotoCount = getPhotoCountForPet(pet)
+                let newPhotoCount = currentPhotoCount + recordPhotos.count
+                
+                if newPhotoCount > UserPreferencesService.shared.maxPhotosPerPet {
+                    // 仍然超出限制
+                    photoLimitAlertPet = pet
+                    photoLimitExceededCount = newPhotoCount - UserPreferencesService.shared.maxPhotosPerPet
+                    showPhotoLimitAlert = true
+                    return false
+                }
+            }
+        }
+        
+        // 如果通过检查，直接保存
+        return saveRecord()
     }
     
     /// 获取指定宠物的照片总数

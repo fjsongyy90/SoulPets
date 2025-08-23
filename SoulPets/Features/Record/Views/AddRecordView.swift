@@ -15,6 +15,10 @@ struct AddRecordView: View {
     // 标签管理状态
     @State private var showingTagManagement = false
     
+    // 照片限制弹窗状态
+    @State private var showingPhotoLimitActionSheet = false
+    @State private var showingProInfoAlert = false
+    
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
     private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
@@ -74,19 +78,63 @@ struct AddRecordView: View {
             .sheet(isPresented: $showingTagManagement) {
                 TagManagementView(modelContext: viewModel.modelContext)
             }
-            .alert(
+            .confirmationDialog(
                 String(localized: "Photo Limit Reached"),
-                isPresented: $viewModel.showPhotoLimitAlert
+                isPresented: $viewModel.showPhotoLimitAlert,
+                titleVisibility: .visible
             ) {
-                Button(String(localized: "Learn More About Pro")) {
-                    // TODO: 打开Pro功能介绍页面
+                // 管理相册以释放空间
+                Button(String(localized: "Manage Photos to Free Up Space")) {
+                    viewModel.showPetPhotosManagement = true
                 }
                 
-                Button(String(localized: "Maybe Later"), role: .cancel) {
-                    // 关闭弹窗，用户可以删除一些照片再保存
+                // 返回编辑本次照片
+                Button(String(localized: "Edit Photos for This Record")) {
+                    // 关闭弹窗，用户可以在当前页面删除一些照片
+                }
+                
+                // 了解 SoulPets Pro
+                Button(String(localized: "Learn About SoulPets Pro (Coming Soon)")) {
+                    showingProInfoAlert = true
+                }
+                .foregroundColor(.secondary)
+                
+                // 取消
+                Button(String(localized: "Cancel"), role: .cancel) {
+                    // 关闭弹窗，不做任何操作
                 }
             } message: {
-                Text(String(localized: "You've captured so many precious moments! The free version allows up to 50 photos per pet. To continue adding unlimited memories, please consider upgrading to SoulPets Pro."))
+                if let pet = viewModel.photoLimitAlertPet {
+                    Text(String(localized: "\"\(pet.name)\"'s album has reached the 50-photo limit for the free version. To save this record, you can:"))
+                } else {
+                    Text(String(localized: "Photo limit reached. To save this record, you can:"))
+                }
+            }
+            .sheet(isPresented: $viewModel.showPetPhotosManagement) {
+                if let pet = viewModel.photoLimitAlertPet {
+                    PetPhotosView(pet: pet)
+                }
+            }
+            .onChange(of: viewModel.showPetPhotosManagement) { oldValue, newValue in
+                // 当照片管理页面关闭后，重新尝试保存记录
+                if oldValue && !newValue {
+                    // 延迟一点时间确保数据已更新
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        if viewModel.retryRecordSave() {
+                            dismiss()
+                        }
+                    }
+                }
+            }
+            .alert(
+                String(localized: "SoulPets Pro"),
+                isPresented: $showingProInfoAlert
+            ) {
+                Button(String(localized: "OK")) {
+                    // 关闭弹窗
+                }
+            } message: {
+                Text(String(localized: "With Pro features, you can track all expenses and generate annual reports."))
             }
             .onChange(of: showingTagManagement) { oldValue, newValue in
                 // 当标签管理页面关闭后，重新加载标签数据
@@ -321,9 +369,22 @@ struct AddRecordView: View {
                 
                 // 花费输入框（为未来功能预留）
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "Cost"))
-                        .font(.headline)
-                        .foregroundColor(textColor)
+                    HStack {
+                        Text(String(localized: "Cost"))
+                            .font(.headline)
+                            .foregroundColor(textColor)
+                        
+                        Button(action: {
+                            showingProInfoAlert = true
+                        }) {
+                            Image(systemName: "info.circle")
+                                .font(.caption)
+                                .foregroundColor(accentColor)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        Spacer()
+                    }
                     
                     TextField("0.00", text: $viewModel.recordCost)
                         .keyboardType(.decimalPad)
