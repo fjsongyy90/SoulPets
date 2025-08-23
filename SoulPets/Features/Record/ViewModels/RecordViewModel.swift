@@ -255,7 +255,9 @@ class RecordViewModel: ObservableObject {
                 let newPhotoCount = currentPhotoCount + recordPhotos.count
                 
                 if newPhotoCount > UserPreferencesService.shared.maxPhotosPerPet {
-                    // 触发照片限制提示
+                    // 设置触发限制的宠物信息
+                    photoLimitAlertPet = pet
+                    photoLimitExceededCount = newPhotoCount - UserPreferencesService.shared.maxPhotosPerPet
                     showPhotoLimitAlert = true
                     return false
                 }

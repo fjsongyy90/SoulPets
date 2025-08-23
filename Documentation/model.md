@@ -44,6 +44,8 @@ erDiagram
 | 芯片ID | `microchipID` | String | 可选，为海外用户设计。 |
 | 保险单号 | `insurancePolicyNo` | String | 可选，为海外用户设计。 |
 | 体重单位偏好 | `weightUnitPreference`| Enum | `kg`, `lbs`。 |
+| 性格 | `personality` | String | 可选，性格。 |
+| 与主人故事 | `story` | String | 可选，与主人故事。 |
 | 创建时间 | `createdAt` | Date | |
 | 最后更新时间 | `updatedAt` | Date | |
 
