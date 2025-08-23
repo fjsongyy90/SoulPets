@@ -32,6 +32,6 @@ class UserPreferencesService {
     
     /// 每只宠物最大照片总数
     var maxPhotosPerPet: Int {
-        return isProMember ? Int.max : 5    
+        return isProMember ? Int.max : 50
     }
 }
