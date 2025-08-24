@@ -11,6 +11,7 @@ import OSLog
 
 @main
 struct SoulPetsApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
     private let startTime = Date()
     
@@ -64,24 +65,28 @@ struct SoulPetsApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .modelContainer(sharedModelContainer)
-                .onAppear {
-                    // 记录启动时间
-                    let launchTime = Date().timeIntervalSince(startTime)
-                    logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
-                    
-                    // 应用保存的外观设置
-                    UserSettings.shared.applyCurrentAppearance()
-                    
-                    // 请求通知权限
-                    requestNotificationPermission()
-                    
-                    // 在后台线程初始化数据库
-                    Task {
-                        try? await initializeDatabase()
+            if hasCompletedOnboarding {
+                ContentView()
+                    .modelContainer(sharedModelContainer)
+                    .onAppear {
+                        // 记录启动时间
+                        let launchTime = Date().timeIntervalSince(startTime)
+                        logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
+                        
+                        // 应用保存的外观设置
+                        UserSettings.shared.applyCurrentAppearance()
+                        
+                        // 请求通知权限
+                        requestNotificationPermission()
+                        
+                        // 在后台线程初始化数据库
+                        Task {
+                            try? await initializeDatabase()
+                        }
                     }
-                }
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            }
         }
     }
     
