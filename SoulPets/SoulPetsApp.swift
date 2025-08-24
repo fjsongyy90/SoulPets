@@ -12,6 +12,7 @@ import OSLog
 @main
 struct SoulPetsApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var showSplash = true
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
     private let startTime = Date()
     
@@ -65,7 +66,9 @@ struct SoulPetsApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
+            if showSplash {
+                SplashView(showSplash: $showSplash)
+            } else if hasCompletedOnboarding {
                 ContentView()
                     .modelContainer(sharedModelContainer)
                     .onAppear {
