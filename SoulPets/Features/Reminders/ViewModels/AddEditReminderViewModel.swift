@@ -219,6 +219,9 @@ class AddEditReminderViewModel {
                 }
                 
                 try modelContext.save()
+                
+                // 更新应用角标
+                NotificationService.updateApplicationBadge(modelContext: modelContext)
             }
             
             await MainActor.run {

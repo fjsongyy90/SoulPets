@@ -197,6 +197,9 @@ class RemindersViewModel {
                 modelContext.delete(reminder)
                 try modelContext.save()
                 
+                // 更新应用角标
+                NotificationService.updateApplicationBadge(modelContext: modelContext)
+                
                 // 重新加载数据
                 self.loadReminders(from: modelContext)
                 

@@ -292,4 +292,35 @@ class ReminderService {
             return nil
         }
     }
+    
+    /// 完成提醒
+    static func completeReminder(_ reminder: Reminder, context: ModelContext) {
+        // 创建完成记录
+        let completion = ReminderCompletion(completionDate: Date(), reminder: reminder)
+        context.insert(completion)
+        
+        // 如果是重复提醒，计算下一次提醒时间
+        if let repeatInterval = reminder.repeatInterval, let repeatUnit = reminder.repeatUnit {
+            // 计算下一次提醒时间
+            if let nextDate = Calendar.current.date(byAdding: repeatUnit.calendarComponent, value: repeatInterval, to: reminder.startDate) {
+                // 更新提醒的下一次到期日期
+                reminder.startDate = nextDate
+                
+                // 为新的提醒日期创建通知
+                if let pets = reminder.pets, !pets.isEmpty {
+                    for pet in pets {
+                        NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
+                    }
+                }
+            }
+        }
+        
+        do {
+            try context.save()
+            // 更新应用角标
+            NotificationService.updateApplicationBadge(modelContext: context)
+        } catch {
+            logger.error("完成提醒时保存失败: \(error)")
+        }
+    }
 } 

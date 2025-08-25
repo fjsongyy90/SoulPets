@@ -1,5 +1,7 @@
 import Foundation
 import UserNotifications
+import UIKit
+import SwiftData
 import OSLog
 import UIKit
 
@@ -58,7 +60,7 @@ class NotificationService {
         }
             
             content.sound = .default
-            content.badge = NSNumber(value: UIApplication.shared.applicationIconBadgeNumber + 1)
+            // 不再直接设置角标数量，而是在收到通知时更新
             
             // 为通知设置唯一标识符
             let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)"
@@ -129,7 +131,7 @@ class NotificationService {
         }
         
         content.sound = .default
-        content.badge = NSNumber(value: UIApplication.shared.applicationIconBadgeNumber + 1)
+        // 不再直接设置角标数量，而是在收到通知时更新
         
         // 为通知设置唯一标识符（包含实例索引）
         let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)-\(instanceIndex)"
@@ -191,6 +193,81 @@ class NotificationService {
         }
         
         return localizedText
+    }
+    
+    /// 更新应用角标数量 - 显示今日未完成的待办数量
+    static func updateApplicationBadge(modelContext: ModelContext) {
+        Task {
+            do {
+                // 获取今天未完成的待办数量
+                let uncompletedCount = getTodayUncompletedRemindersCount(modelContext: modelContext)
+                
+                // 在主线程更新应用角标
+                await MainActor.run {
+                    // 使用UNUserNotificationCenter设置角标数量，替代已弃用的applicationIconBadgeNumber
+                    UNUserNotificationCenter.current().setBadgeCount(uncompletedCount) { error in
+                        if let error = error {
+                            logger.error("设置角标数量失败: \(error.localizedDescription)")
+                        } else {
+                            logger.info("更新应用角标数量: \(uncompletedCount) (今日未完成待办)")
+                        }
+                    }
+                }
+                
+                // 保存最后更新角标的日期
+                UserDefaults.standard.set(Date(), forKey: "lastBadgeUpdateDate")
+            } catch {
+                logger.error("更新应用角标时出错: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    /// 获取今天未完成的提醒数量
+    static func getTodayUncompletedRemindersCount(modelContext: ModelContext) -> Int {
+        let today = Calendar.current.startOfDay(for: Date())
+        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: today)!.addingTimeInterval(-1)
+        
+        // 获取所有提醒
+        let allRemindersDescriptor = FetchDescriptor<Reminder>()
+        
+        do {
+            // 获取所有提醒
+            let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            
+            // 筛选出今天需要执行但尚未完成的提醒
+            let todayReminders = allReminders.filter { reminder in
+                let needsReminder = reminder.needsReminderOn(date: today)
+                let isCompleted = reminder.isCompletedToday
+                
+                return needsReminder && !isCompleted
+            }
+            
+            return todayReminders.count
+        } catch {
+            logger.error("获取今日提醒失败: \(error.localizedDescription)")
+            return 0
+        }
+    }
+    
+    /// 检查是否需要更新角标（基于日期变化）
+    static func checkAndUpdateBadgeIfNeeded(modelContext: ModelContext) {
+        // 获取当前日期（只保留日期部分）
+        let currentDate = Calendar.current.startOfDay(for: Date())
+        
+        // 获取上次进入应用的日期
+        if let lastAppEntryDate = UserPreferencesService.shared.lastAppEntryDate {
+            // 如果日期不同，则更新角标
+            if !Calendar.current.isDate(lastAppEntryDate, inSameDayAs: currentDate) {
+                logger.info("检测到日期变化，更新应用角标")
+                updateApplicationBadge(modelContext: modelContext)
+            }
+        } else {
+            // 如果没有记录，则更新角标
+            updateApplicationBadge(modelContext: modelContext)
+        }
+        
+        // 更新上次进入应用的日期
+        UserPreferencesService.shared.saveAppEntryDate()
     }
     
     /// 获取所有待处理的通知（用于调试）

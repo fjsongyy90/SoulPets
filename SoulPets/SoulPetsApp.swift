@@ -82,6 +82,9 @@ struct SoulPetsApp: App {
                         // 请求通知权限
                         requestNotificationPermission()
                         
+                        // 更新应用角标
+                        NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
+                        
                         // 在后台线程初始化数据库
                         Task {
                             try? await initializeDatabase()
