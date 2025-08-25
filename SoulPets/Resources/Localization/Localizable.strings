@@ -171,6 +171,58 @@
 "common.cancel" = "Cancel";
 "This action cannot be undone." = "This action cannot be undone.";
 
+// 通知文案 - 按标签类型
+"notification.reminder_body" = "It's time for %@'s %@";
+
+// 日常生活
+"notification.tag.daily.food" = "It's time to fill that cute little tummy!";
+"notification.tag.daily.water" = "Remember to refresh their water for a lively day.";
+"notification.tag.daily.treats_wet_food" = "Happy treat time! Be a good and happy baby today.";
+"notification.tag.daily.treats" = "Good boy/girl! Time for a little treat.";
+"notification.tag.daily.walk" = "The world outside is calling, let's go on an adventure!";
+"notification.tag.daily.training" = "Learning new tricks, so we can be a better team.";
+"notification.tag.daily.play" = "Step away from the busy-ness, enjoy your playtime.";
+"notification.tag.daily.milk_feed" = "An important boost of nutrients. Each sip is love for growth.";
+
+// 日常保健
+"notification.tag.health.medication" = "For a healthy life, let's do this together! You are so brave.";
+"notification.tag.health.supplements" = "Today's health investment is for a longer companionship.";
+"notification.tag.health.deworm_flea_tick" = "Pesky bugs go away! So our baby can play freely.";
+"notification.tag.health.vaccine" = "A tiny shot for a big health shield.";
+
+// 美容清洁
+"notification.tag.grooming.brushing" = "Every brush stroke is an expression of our love.";
+"notification.tag.grooming.teeth_brushing" = "For fresh breath, get ready for a closer snuggle.";
+"notification.tag.grooming.nail_trim" = "No more \"click-clack\", let's have quiet walks on the floor.";
+"notification.tag.grooming.ear_cleaning" = "Clean ears to hear every \"I love you\".";
+"notification.tag.grooming.bath" = "Are you ready to become a fresh and clean baby?";
+"notification.tag.grooming.anal_gland_express" = "A small grooming task for great comfort.";
+
+// 家居用品
+"notification.tag.supplies.buy_supplies" = "Food/litter/treats are running low, time to restock!";
+"notification.tag.supplies.wash_bowls" = "Clean bowls make everything taste better.";
+"notification.tag.supplies.supplies_refill" = "Check the feeder/water fountain to ensure their supplies are ready.";
+"notification.tag.supplies.scoop_litterbox" = "A clean bathroom makes them love you even more.";
+"notification.tag.supplies.change_litter" = "It's time to give them a fresh and clean bathroom.";
+"notification.tag.supplies.wash_litterbox" = "A deep clean for a five-star bathroom experience.";
+"notification.tag.supplies.wash_bed_tree" = "Wash away dust and fluff, let them have sweet dreams in a clean bed.";
+"notification.tag.supplies.wash_bed" = "Fill their bed with the smell of sunshine.";
+"notification.tag.supplies.wash_crate_pen" = "Give them a clean and tidy private space.";
+"notification.tag.supplies.wash_toys" = "Clean their favorite toys for worry-free playtime.";
+
+// 医疗护理
+"notification.tag.medical.check_up" = "A comprehensive check-up is the most reassuring gift.";
+"notification.tag.medical.grooming_appointment" = "Book an appointment for beauty, let them shine like a star.";
+"notification.tag.medical.antibody_titer" = "Check their antibody levels to scientifically protect their health.";
+
+// 计划与纪念日
+"notification.tag.planning.pet_sitter" = "Confirm the pet sitter's schedule to ensure they're well cared for while I'm away.";
+"notification.tag.planning.boarding" = "Check boarding preparations to ensure they're at ease while away from home.";
+"notification.tag.planning.license_renewal" = "Time to renew their important ID, be a good and lawful citizen.";
+"notification.tag.planning.insurance_renewal" = "New year's health protection, so our love has no worries.";
+"notification.tag.planning.birthday" = "It's a special day, don't forget to prepare a surprise!";
+"notification.tag.planning.adoption_gotcha_day" = "A day to celebrate our meeting, thank you for coming into my life.";
+
 // 标签管理模块
 "Tag Management" = "Tag Management";
 "Tags for" = "Tags for";

@@ -16,50 +16,48 @@ SoulPets是一款面向海外宠物主的iOS应用，专注于提供全面的宠
 
 标签系统 (Tag System) - 最终整合版
 
-该列表将猫和狗的所有标签进行整合，并注明每个标签适用的宠物类型。
-类别	标签名称 (中/英)	可用于提醒	适用宠物
-日常生活	吃饭 (Dinner/Food)	✓	猫 & 狗
-	喝水 (Water)	✓	猫 & 狗
-	零食/罐头 (Treats/Wet Food)	✓	猫
-	零食 (Treats)	✓	狗
-	散步 (Walk)	✓	狗
-	训练 (Training)	✓	狗
-	玩耍 (Play)	✓	猫 & 狗
-	喂奶 (Milk Feed)	✓	猫 & 狗
-	尿便 (Potty)	✕	猫 & 狗
-日常保健	喂药 (Medication)	✓	猫 & 狗
-	喂保健品 (Supplements)	✓	猫 & 狗
-	驱虫 (Deworm/Flea & Tick)	✓	猫 & 狗
-	打疫苗 (Vaccine)	✓	猫 & 狗
-清洁洗护	梳毛 (Brushing/Grooming)	✓	猫 & 狗
-	刷牙 (Teeth Brushing)	✓	猫 & 狗
-	剪指甲 (Nail Trim)	✓	猫 & 狗
-	洗耳朵 (Ear Cleaning)	✓	猫 & 狗
-	洗澡 (Bath)	✓	猫 & 狗
-	挤肛门腺 (Anal Gland Express)	✓	狗
-居家与采购	购买耗材 (Buy Supplies)	✓	猫 & 狗
-	铲屎 (Scoop Litterbox)	✓	猫
-	洗餐具 (Wash Bowls)	✓	猫 & 狗
-	更换耗材 (Supplies Refill)	✓	猫 & 狗
-	换猫砂 (Change Litter)	✓	猫
-	洗猫砂盆 (Wash Litterbox)	✓	猫
-	洗猫窝/猫爬架 (Wash Bed/Tree)	✓	猫
-	洗狗窝/床 (Wash Bed)	✓	狗
-	洗笼子/围栏 (Wash Crate/Pen)	✓	狗
-	洗玩具 (Wash Toys)	✓	猫 & 狗
-医疗护理	体检 (Check-up)	✓	猫 & 狗
-	美容预约 (Grooming Appointment)	✓	猫 & 狗
-	抗体水平 (Antibody Titer)	✓	猫 & 狗
-	异常情况 (Abnormal Condition)	✕	猫 & 狗
-	手术 (Surgery)	✕	猫 & 狗
-	住院 (Hospitalization)	✕	猫 & 狗
-计划与纪念日	宠物保姆 (Pet Sitter)	✓	猫 & 狗
-	寄宿 (Boarding)	✓	猫 & 狗
-	牌照续约 (License Renewal)	✓	猫 & 狗
-	保险续约 (Insurance Renewal)	✓	猫 & 狗
-	生日 (Birthday)	✓	猫 & 狗
-	领养日 (Adoption/Gotcha Day)	✓	猫 & 狗
-
+类别	标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+日常生活	吃饭 (Dinner/Food)	✓	猫 & 狗	是时候填饱可爱的小肚子啦！ / It's time to fill that cute little tummy!
+	喝水 (Water)	✓	猫 & 狗	记得换上新鲜的水，保持活力一整天。 / Remember to refresh their water for a lively day.
+	零食/罐头 (Treats/Wet Food)	✓	猫	幸福的味蕾时间到，今天也要开心哦！ / Happy treat time! Be a good and happy baby today.
+	零食 (Treats)	✓	狗	表现真棒！来点小奖励吧！ / Good boy/girl! Time for a little treat.
+	散步 (Walk)	✓	狗	外面的世界在召唤，一起去探险吧！ / The world outside is calling, let's go on an adventure!
+	训练 (Training)	✓	狗	学习新技能，让我们变得更默契。 / Learning new tricks, so we can be a better team.
+	玩耍 (Play)	✓	猫 & 狗	放下忙碌，享受只属于你们的快乐时光。 / Step away from the busy-ness, enjoy your playtime.
+	喂奶 (Milk Feed)	✓	猫 & 狗	重要的营养补给，每一口都是成长的爱。 / An important boost of nutrients. Each sip is love for growth.
+	尿便 (Potty)	✕	猫 & 狗	不适用 / N/A
+日常保健	喂药 (Medication)	✓	猫 & 狗	为了健康，我们一起加油！你真勇敢。 / For a healthy life, let's do this together! You are so brave.
+	喂保健品 (Supplements)	✓	猫 & 狗	今天的健康投资，是为了更长久的陪伴。 / Today's health investment is for a longer companionship.
+	驱虫 (Deworm/Flea & Tick)	✓	猫 & 狗	讨厌的虫虫快走开，让宝贝自在玩耍！ / Pesky bugs go away! So our baby can play freely.
+	打疫苗 (Vaccine)	✓	猫 & 狗	小小的保护针，给你大大的健康护盾。 / A tiny shot for a big health shield.
+美容清洁	梳毛 (Brushing)	✓	猫 & 狗	梳理每一寸毛发，都是爱意的表达。 / Every brush stroke is an expression of our love.
+	刷牙 (Teeth Brushing)	✓	猫 & 狗	保持口气清新，给你一个更亲密的贴贴。 / For fresh breath, get ready for a closer snuggle.
+	剪指甲 (Nail Trim)	✓	猫 & 狗	告别“哒哒”声，在地板上安静地漫步吧。 / No more "click-clack", let's have quiet walks on the floor.
+	洗耳朵 (Ear Cleaning)	✓	猫 & 狗	清洁小耳朵，听清我说的每一句“我爱你”。 / Clean ears to hear every "I love you".
+	洗澡 (Bath)	✓	猫 & 狗	准备好变身香喷喷的小宝贝了吗？ / Are you ready to become a fresh and clean baby?
+	挤肛门腺 (Anal Gland Express)	✓	狗	一点小小的护理，带来大大的舒适。 / A small grooming task for great comfort.
+家居用品	购买耗材 (Buy Supplies)	✓	猫 & 狗	TA的口粮/猫砂/零食快见底啦，该补货咯！ / Food/litter/treats are running low, time to restock!
+	洗餐具 (Wash Bowls)	✓	猫 & 狗	干净的碗碗，才能吃得更香哦。 / Clean bowls make everything taste better.
+	更换耗材 (Supplies Refill)	✓	猫 & 狗	检查一下自动喂食器/饮水机，确保TA的补给充足。 / Check the feeder/water fountain to ensure their supplies are ready.
+	铲屎 (Scoop Litterbox)	✓	猫	保持厕所干净，TA会更爱你哦。 / A clean bathroom makes them love you even more.
+	换猫砂 (Change Litter)	✓	猫	是时候给TA一个全新的、洁净的如厕环境了。 / It's time to give them a fresh and clean bathroom.
+	洗猫砂盆 (Wash Litterbox)	✓	猫	彻底清洁，告别异味，给TA五星级的厕所体验。 / A deep clean for a five-star bathroom experience.
+	洗猫窝/猫爬架 (Wash Bed/Tree)	✓	猫	洗掉尘螨和浮毛，在干净的小窝里做个好梦吧。 / Wash away dust and fluff, let them have sweet dreams in a clean bed.
+	洗狗窝/床 (Wash Bed)	✓	狗	让TA的小窝充满阳光的味道。 / Fill their bed with the smell of sunshine.
+	洗笼子/围栏 (Wash Crate/Pen)	✓	狗	给TA一个干净整洁的私人空间。 / Give them a clean and tidy private space.
+	洗玩具 (Wash Toys)	✓	猫 & 狗	清洁心爱的玩具，让玩耍更安心。 / Clean their favorite toys for worry-free playtime.
+医疗护理	体检 (Check-up)	✓	猫 & 狗	全面的健康检查，是给TA最安心的礼物。 / A comprehensive check-up is the most reassuring gift.
+	美容预约 (Grooming Appointment)	✓	猫 & 狗	预约美丽，让TA成为最闪亮的宝贝。 / Book an appointment for beauty, let them shine like a star.
+	抗体水平 (Antibody Titer)	✓	猫 & 狗	检查一下保护力是否足够，科学守护TA的健康。 / Check their antibody levels to scientifically protect their health.
+	异常情况 (Abnormal Condition)	✕	猫 & 狗	不适用 / N/A
+	手术 (Surgery)	✕	猫 & 狗	不适用 / N/A
+	住院 (Hospitalization)	✕	猫 & 狗	不适用 / N/A
+计划与纪念日	宠物保姆 (Pet Sitter)	✓	猫 & 狗	确认一下保姆日程，确保我不在时TA也能被妥善照顾。 / Confirm the pet sitter's schedule to ensure they're well cared for while I'm away.
+	寄宿 (Boarding)	✓	猫 & 狗	检查寄宿的准备事项，让TA在外也能安心。 / Check boarding preparations to ensure they're at ease while away from home.
+	牌照续约 (License Renewal)	✓	猫 & 狗	重要的“身份证”该更新啦，做个遵纪守法的好公民。 / Time to renew their important ID, be a good and lawful citizen.
+	保险续约 (Insurance Renewal)	✓	猫 & 狗	新一年的健康保障，让爱没有后顾之忧。 / New year's health protection, so our love has no worries.
+	生日 (Birthday)	✓	猫 & 狗	特别的日子，别忘了准备一份惊喜！ / It's a special day, don't forget to prepare a surprise!
+	领养日 (Adoption/Gotcha Day)	✓	猫 & 狗	纪念我们相遇的日子，感谢你来到我身边。 / A day to celebrate our meeting, thank you for coming into my life.
 
 功能权益
 基础权益

@@ -1,6 +1,7 @@
 import Foundation
 import UserNotifications
 import OSLog
+import UIKit
 
 /// 通知服务，负责处理应用的本地通知功能
 class NotificationService {
@@ -50,13 +51,14 @@ class NotificationService {
             let content = UNMutableNotificationContent()
             content.title = "\(pet.name): \(tagName)"
             
-            if let notes = reminder.notes, !notes.isEmpty {
-                content.body = notes
-            } else {
-                content.body = String(localized: "notification.reminder_body", defaultValue: "是时候给\(pet.name)进行\(tagName)了")
-            }
+        if let notes = reminder.notes, !notes.isEmpty {
+            content.body = notes
+        } else {
+            content.body = getNotificationBodyForTag(tag: reminder.tag, petName: pet.name)
+        }
             
             content.sound = .default
+            content.badge = NSNumber(value: UIApplication.shared.applicationIconBadgeNumber + 1)
             
             // 为通知设置唯一标识符
             let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)"
@@ -127,6 +129,7 @@ class NotificationService {
         }
         
         content.sound = .default
+        content.badge = NSNumber(value: UIApplication.shared.applicationIconBadgeNumber + 1)
         
         // 为通知设置唯一标识符（包含实例索引）
         let identifier = "reminder-\(reminder.id.uuidString)-\(pet.id.uuidString)-\(instanceIndex)"
@@ -174,6 +177,20 @@ class NotificationService {
     static func removeAllPendingNotifications() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         logger.info("移除了所有待处理的通知")
+    }
+    
+    /// 根据标签获取通知文案
+    static func getNotificationBodyForTag(tag: Tag, petName: String) -> String {
+        // 根据标签的code获取对应的本地化文案
+        let localizationKey = "notification.tag.\(tag.code)"
+        let localizedText = String(localized: LocalizedStringResource(stringLiteral: localizationKey))
+        
+        // 如果找不到特定标签的文案，则使用默认文案
+        if localizedText == localizationKey {
+            return String(localized: "notification.reminder_body", defaultValue: "是时候给\(petName)进行\(tag.name)了")
+        }
+        
+        return localizedText
     }
     
     /// 获取所有待处理的通知（用于调试）
