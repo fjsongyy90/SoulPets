@@ -25,31 +25,11 @@ struct SplashView: View {
                 
                 // 中央Logo区域
                 VStack(spacing: 20) {
-                    // Logo占位图
+                    // Logo图片
                     Image("soulpets_logo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 120, height: 120)
-                        .background(
-                            // 临时占位Logo
-                            ZStack {
-                                Circle()
-                                    .fill(Color(hex: "#E5B487").opacity(0.2))
-                                    .frame(width: 120, height: 120)
-                                
-                                // 爪印图标
-                                Image(systemName: "pawprint.fill")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(Color(hex: "#E5B487"))
-                                    .overlay(
-                                        // 心形镂空效果
-                                        Image(systemName: "heart.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: "#FDFBF8"))
-                                            .offset(y: -5)
-                                    )
-                            }
-                        )
                         .scaleEffect(logoScale)
                         .opacity(logoOpacity)
                     
