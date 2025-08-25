@@ -314,6 +314,8 @@
 "settings.about.privacy_policy" = "Privacy Policy";
 "settings.about.terms_of_service" = "Terms of Service";
 "settings.about.version" = "Version";
+"settings.about.privacy_policy_url" = "https://fjsongyy90.github.io/SoulPets-Legal/privacy_english";
+"settings.about.terms_of_service_url" = "https://fjsongyy90.github.io/SoulPets-Legal/terms_english";
 
 // 设置页面 - Debug功能（仅Debug模式）
 "settings.debug.title" = "Debug Tools";

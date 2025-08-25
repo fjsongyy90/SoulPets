@@ -17,6 +17,11 @@ final class SettingsService {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return "1.0.0"
         }
+        // 确保版本号格式为x.y.z
+        let components = version.components(separatedBy: ".")
+        if components.count == 2 {
+            return "\(version).0"  // 如果是x.y格式，添加.0
+        }
         return version
     }
     
@@ -309,13 +314,13 @@ final class SettingsService {
     
     /// 打开隐私政策
     static func openPrivacyPolicy() {
-        let urlString = "https://soulpets.app/privacy-policy"
+        let urlString = String(localized: "settings.about.privacy_policy_url")
         openWebURL(urlString)
     }
     
     /// 打开服务条款
     static func openTermsOfService() {
-        let urlString = "https://soulpets.app/terms-of-service"
+        let urlString = String(localized: "settings.about.terms_of_service_url")
         openWebURL(urlString)
     }
     
