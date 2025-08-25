@@ -14,14 +14,18 @@ final class SettingsService {
     
     /// 获取应用版本号
     static var appVersion: String {
+        // 首先尝试从UserDefaults获取保存的版本号
+        if let savedVersion = UserDefaults.standard.string(forKey: "app_version") {
+            return savedVersion
+        }
+        
+        // 如果UserDefaults中没有，则从Bundle获取
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return "1.0.0"
         }
-        // 确保版本号格式为x.y.z
-        let components = version.components(separatedBy: ".")
-        if components.count == 2 {
-            return "\(version).0"  // 如果是x.y格式，添加.0
-        }
+        
+        // 将版本号保存到UserDefaults中
+        UserDefaults.standard.set(version, forKey: "app_version")
         return version
     }
     
