@@ -77,6 +77,7 @@ struct RemindersView: View {
                 }
             }
             .navigationTitle(String(localized: "Reminders"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {

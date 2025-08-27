@@ -45,6 +45,7 @@ struct WeightView: View {
                 }
             }
             .navigationTitle(String(localized: "Weight"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {

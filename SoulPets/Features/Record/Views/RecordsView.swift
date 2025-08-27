@@ -85,6 +85,7 @@ struct RecordsView: View {
                 }
             }
             .navigationTitle(String(localized: "Records"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
