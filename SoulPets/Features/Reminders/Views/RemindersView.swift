@@ -459,15 +459,20 @@ struct RemindersView: View {
                     Button(action: {
                         showingAddPet = true
                     }) {
-                        Text("Go to Add Pet")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(accentColor)
-                            )
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .semibold))
+                            
+                            Text(String(localized: "Add Your First Pet"))
+                                .font(.headline)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(accentColor)
+                        )
                     }
                 }
                 .padding(.top, 40)
