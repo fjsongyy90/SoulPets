@@ -52,13 +52,13 @@ struct PetBasicInfoView: View {
                                     .foregroundColor(accentColor)
                             }
                             
-                            // 加号按钮
+                            // 相机按钮
                             Circle()
                                 .fill(Color.white)
                                 .frame(width: 30, height: 30)
                                 .shadow(radius: 2)
                                 .overlay(
-                                    Image(systemName: "plus")
+                                    Image(systemName: "camera.fill")
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(accentColor)
                                 )
@@ -120,7 +120,7 @@ struct PetBasicInfoView: View {
                                 .font(.appHeadline)
                                 .foregroundColor(labelColor)
                             
-                            TextField("", text: $viewModel.breed)
+                            TextField("e.g. Golden Retriever, Orange Tabby", text: $viewModel.breed)
                                 .focused($focusedField, equals: .breed)
                                 .padding()
                                 .foregroundColor(textColor)
@@ -184,7 +184,7 @@ struct PetBasicInfoView: View {
                         }
                         .padding(.horizontal)
                         
-                        Spacer(minLength: 10) // 大幅减少底部空间
+                        Spacer() // 使用弹性空间
                         
                         // 隐私承诺文案
                         Text("Your pet's data never leaves your device.")
@@ -192,7 +192,7 @@ struct PetBasicInfoView: View {
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-                            .padding(.bottom, 15)
+                            .padding(.bottom, 8) // 缩小与按钮的间距
                         
                         // Next按钮 - 移除置灰状态
                         Button(action: {
@@ -209,7 +209,7 @@ struct PetBasicInfoView: View {
                                 )
                         }
                         .padding(.horizontal, 40)
-                        .padding(.bottom, 80) // 大幅上移
+                        .padding(.bottom, 120) // 进一步上移
                     }
                     .padding(.bottom, keyboardHeight > 0 ? keyboardHeight : 0)
                 }

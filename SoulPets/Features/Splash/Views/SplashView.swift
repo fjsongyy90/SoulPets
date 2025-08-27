@@ -63,7 +63,7 @@ struct SplashView: View {
     
     private func startSplashAnimation() {
         // 第一阶段：Logo渐显
-        withAnimation(.easeOut(duration: 0.6)) {
+        withAnimation(.easeOut(duration: 0.4)) {
             logoOpacity = 1.0
         }
         
@@ -74,13 +74,13 @@ struct SplashView: View {
             }
         }
         
-        // 第三阶段：心跳动画（延迟0.8秒开始）
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        // 第三阶段：心跳动画（延迟0.6秒开始）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             startHeartbeatAnimation()
         }
         
-        // 第四阶段：结束启动页（总时长2.5秒）
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+        // 第四阶段：结束启动页（总时长2.0秒）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             withAnimation(.easeOut(duration: 0.4)) {
                 showSplash = false
             }
