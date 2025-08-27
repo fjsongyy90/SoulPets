@@ -450,7 +450,7 @@ struct RemindersView: View {
                         .font(.appTitle2)
                         .foregroundColor(textColor)
                     
-                    Text("You need to create a pet profile first to set up reminders.")
+                    Text(String(localized: "empty_state.reminders.subtitle"))
                         .font(.appBody)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)

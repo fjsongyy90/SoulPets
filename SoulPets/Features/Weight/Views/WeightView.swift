@@ -147,7 +147,7 @@ struct WeightView: View {
                         .font(.appTitle2)
                         .foregroundColor(textColor)
                     
-                    Text("You need to create a pet profile first to track their weight.")
+                    Text(String(localized: "empty_state.weight.subtitle"))
                         .font(.appBody)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)

@@ -393,6 +393,11 @@
 "Add Your First Pet" = "Add Your First Pet";
 "Latest Weight" = "Latest Weight";
 
+// 空状态页面副标题文案
+"empty_state.reminders.subtitle" = "Add a pet to schedule their vaccines, birthdays, and playtime.";
+"empty_state.records.subtitle" = "Add a pet to cherish every moment, from their first meow to every nap.";
+"empty_state.weight.subtitle" = "Add a pet to monitor their health trends and celebrate every healthy day.";
+
 // 会员功能限制
 "Photo Limit Reached" = "Photo Limit Reached";
 "You've captured so many precious moments! The free version allows up to 50 photos per pet. To continue adding unlimited memories, please consider upgrading to SoulPets Pro." = "You've captured so many precious moments! The free version allows up to 50 photos per pet. To continue adding unlimited memories, please consider upgrading to SoulPets Pro.";

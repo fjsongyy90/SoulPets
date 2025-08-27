@@ -620,7 +620,7 @@ struct RecordsView: View {
                         .font(.appTitle2)
                         .foregroundColor(textColor)
                     
-                    Text("You need to create a pet profile first to track their records.")
+                    Text(String(localized: "empty_state.records.subtitle"))
                         .font(.appBody)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
