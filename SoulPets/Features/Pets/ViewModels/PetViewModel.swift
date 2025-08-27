@@ -39,7 +39,8 @@ class PetViewModel: ObservableObject {
     // MARK: - 初始化
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        validateForm()
+        // 初始化时不进行验证，避免显示错误信息
+        formIsValid = false
     }
     
     // 更新ModelContext
@@ -236,8 +237,14 @@ class PetViewModel: ObservableObject {
         case .selectType:
             currentStep = .basicInfo
         case .basicInfo:
-            validateForm()
-            if formIsValid {
+            // 验证名称
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmedName.isEmpty {
+                nameError = "Please enter your pet's name"
+                formIsValid = false
+            } else {
+                nameError = nil
+                formIsValid = true
                 currentStep = .importantDates
             }
         case .importantDates:

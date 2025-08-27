@@ -29,6 +29,7 @@ struct PetBasicInfoView: View {
                             .foregroundColor(textColor)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
+                            .padding(.top, 20) // 标题向下移动
                         
                         // 头像选择器
                         ZStack {
@@ -95,8 +96,10 @@ struct PetBasicInfoView: View {
                                 .cornerRadius(20)
                                 .id("nameField")
                                 .onChange(of: viewModel.name) { _, _ in
-                                    // 使用防抖动方式验证表单，减少卡顿
-                                    viewModel.debouncedValidateForm()
+                                    // 清除错误状态，只在用户输入时清除，不立即验证
+                                    if !viewModel.name.isEmpty {
+                                        viewModel.nameError = nil
+                                    }
                                 }
                                 .submitLabel(.next)
                                 .onSubmit {
@@ -181,9 +184,17 @@ struct PetBasicInfoView: View {
                         }
                         .padding(.horizontal)
                         
-                        Spacer(minLength: 60) // 减少底部空间
+                        Spacer(minLength: 10) // 大幅减少底部空间
                         
-                        // Next按钮
+                        // 隐私承诺文案
+                        Text("Your pet's data never leaves your device.")
+                            .font(.appLightCaption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                            .padding(.bottom, 15)
+                        
+                        // Next按钮 - 移除置灰状态
                         Button(action: {
                             viewModel.moveToNextStep()
                         }) {
@@ -194,20 +205,11 @@ struct PetBasicInfoView: View {
                                 .padding()
                                 .background(
                                     RoundedRectangle(cornerRadius: 20)
-                                        .fill(viewModel.formIsValid ? accentColor : Color.gray)
+                                        .fill(accentColor)
                                 )
                         }
-                        .disabled(!viewModel.formIsValid)
                         .padding(.horizontal, 40)
-                        .padding(.bottom, 20)
-                        
-                        // 隐私承诺文案
-                        Text("Your pet's data never leaves your device.")
-                            .font(.appLightCaption)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                            .padding(.bottom, 40) // 增加底部间距，避免太靠近边缘
+                        .padding(.bottom, 80) // 大幅上移
                     }
                     .padding(.bottom, keyboardHeight > 0 ? keyboardHeight : 0)
                 }

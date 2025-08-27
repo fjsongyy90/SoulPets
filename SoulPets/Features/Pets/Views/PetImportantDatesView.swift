@@ -23,6 +23,7 @@ struct PetImportantDatesView: View {
                     .foregroundColor(textColor)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
+                    .padding(.top, 20) // 标题向下移动
                 
                 // 生日选择
                 VStack(alignment: .leading, spacing: 8) {
@@ -146,13 +147,13 @@ struct PetImportantDatesView: View {
                 
                 // 移除了性格描述和故事输入字段
                 
-                Spacer(minLength: 100) // 增加底部空间，防止键盘遮挡
+                Spacer(minLength: 20) // 大幅减少底部空间
                 
                 // Finish按钮
                 Button(action: {
                     onSaveAndFinish?()
                 }) {
-                    Text(LocalizedStringKey("Finish & Welcome, \(viewModel.name)!"))
+                    Text("Finish & Welcome \(viewModel.name)!")
                         .font(.appHeadline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -163,7 +164,7 @@ struct PetImportantDatesView: View {
                         )
                 }
                 .padding(.horizontal, 40)
-                .padding(.bottom, 20)
+                .padding(.bottom, 80) // 大幅上移
             }
             .padding(.bottom, keyboardHeight)
         }
