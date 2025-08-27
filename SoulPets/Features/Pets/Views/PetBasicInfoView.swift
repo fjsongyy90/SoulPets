@@ -117,23 +117,17 @@ struct PetBasicInfoView: View {
                                 .font(.appHeadline)
                                 .foregroundColor(labelColor)
                             
-                            HStack {
-                                TextField("", text: $viewModel.breed)
-                                    .focused($focusedField, equals: .breed)
-                                    .padding()
-                                    .foregroundColor(textColor)
-                                    .submitLabel(.done)
-                                    .onSubmit {
-                                        focusedField = nil
-                                    }
-                                
-                                Image(systemName: "circle")
-                                    .foregroundColor(accentColor)
-                                    .padding(.trailing)
-                            }
-                            .background(Color(red: 0.95, green: 0.91, blue: 0.85))
-                            .cornerRadius(20)
-                            .id("breedField")
+                            TextField("", text: $viewModel.breed)
+                                .focused($focusedField, equals: .breed)
+                                .padding()
+                                .foregroundColor(textColor)
+                                .background(Color(red: 0.95, green: 0.91, blue: 0.85))
+                                .cornerRadius(20)
+                                .id("breedField")
+                                .submitLabel(.done)
+                                .onSubmit {
+                                    focusedField = nil
+                                }
                         }
                         .padding(.horizontal)
                         
@@ -171,7 +165,7 @@ struct PetBasicInfoView: View {
                         // 绝育状态
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text(LocalizedStringKey("Neutred Spray?"))
+                                Text(LocalizedStringKey("Neutered / Spayed?"))
                                     .font(.appHeadline)
                                     .foregroundColor(labelColor)
                                 
