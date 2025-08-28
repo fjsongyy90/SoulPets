@@ -40,8 +40,6 @@ struct AddPetView: View {
                     }
                     .scrollDismissesKeyboard(.immediately)
                     
-                    Spacer()
-                    
                     // 导航按钮 - 仅用于第一步
                     if viewModel.currentStep == .selectType {
                         VStack {

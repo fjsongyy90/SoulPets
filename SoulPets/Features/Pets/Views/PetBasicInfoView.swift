@@ -184,32 +184,33 @@ struct PetBasicInfoView: View {
                         }
                         .padding(.horizontal)
                         
-                        Spacer() // 使用弹性空间
-                        
-                        // 隐私承诺文案
-                        Text("Your pet's data never leaves your device.")
-                            .font(.appLightCaption)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                            .padding(.bottom, 8) // 缩小与按钮的间距
-                        
-                        // Next按钮 - 移除置灰状态
-                        Button(action: {
-                            viewModel.moveToNextStep()
-                        }) {
-                            Text(LocalizedStringKey("Next"))
-                                .font(.appHeadline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(accentColor)
-                                )
+                        // 隐私文案和Next按钮作为整体
+                        VStack(spacing: 8) {
+                            // 隐私承诺文案
+                            Text("Your pet's data never leaves your device.")
+                                .font(.appLightCaption)
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                            
+                            // Next按钮
+                            Button(action: {
+                                viewModel.moveToNextStep()
+                            }) {
+                                Text(LocalizedStringKey("Next"))
+                                    .font(.appHeadline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(accentColor)
+                                    )
+                            }
+                            .padding(.horizontal, 40)
                         }
-                        .padding(.horizontal, 40)
-                        .padding(.bottom, 120) // 进一步上移
+                        .padding(.top, 20) // 减少与上方表单的间距
+                        .padding(.bottom, 40) // 底部间距
                     }
                     .padding(.bottom, keyboardHeight > 0 ? keyboardHeight : 0)
                 }
