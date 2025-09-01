@@ -7,6 +7,8 @@ struct TagItemView: View {
     let accentColor: Color
     let textColor: Color
     
+    @State private var isPressed: Bool = false
+    
     init(
         tag: Tag, 
         isSelected: Bool, 
@@ -49,6 +51,8 @@ struct TagItemView: View {
                 .fill(isSelected ? accentColor.opacity(0.8) : Color.white)
                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         )
+        .scaleEffect(isPressed ? 1.05 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
     }
 }
 

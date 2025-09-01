@@ -60,6 +60,10 @@ struct AddRecordView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.currentStep == .selectPetsAndEvent {
                         Button(String(localized: "Next")) {
+                            print("🔍 Debug - Next按钮被点击")
+                            print("🔍 Debug - formIsValid: \(viewModel.formIsValid)")
+                            print("🔍 Debug - selectedPets: \(viewModel.selectedPets.count)")
+                            print("🔍 Debug - selectedTag: \(viewModel.selectedTag?.name ?? "nil")")
                             viewModel.moveToNextStep()
                         }
                         .disabled(!viewModel.formIsValid)
@@ -148,89 +152,147 @@ struct AddRecordView: View {
     
     // MARK: - 子视图
     
-    /// 选择宠物和事件视图
+    /// 选择宠物和事件视图 (已重构)
     private var selectPetsAndEventView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // 宠物选择器
-                Text(String(localized: "Select Pets"))
+                // MARK: - 拆分出的第一个子视图：宠物选择卡片
+                petSelectorCard
+                
+                // MARK: - 拆分出的第二个子视图：标签选择部分
+                tagSelectorSection
+            }
+            .padding(.vertical)
+        }
+    }
+
+    // MARK: - Helper View 1: 宠物选择卡片
+    private var petSelectorCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(String(localized: "Select Pets"))
+                .font(.headline)
+                .foregroundColor(textColor)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 15) {
+                    ForEach(pets) { pet in
+                                                 PetAvatarView(pet: pet, isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), accentColor: accentColor, textColor: textColor)
+                             .onTapGesture {
+                                 print("🔍 Debug - 宠物被点击: \(pet.name)")
+                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                     viewModel.togglePetSelection(pet: pet)
+                                 }
+                                 print("🔍 Debug - 选择后的宠物数量: \(viewModel.selectedPets.count)")
+                                 print("🔍 Debug - formIsValid: \(viewModel.formIsValid)")
+                             }
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+            
+            // 优化的验证提示
+            HStack {
+                Spacer()
+                HStack(spacing: 6) {
+                    if !viewModel.selectedPets.isEmpty {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(Color.green.opacity(0.8))
+                    }
+                    Text(viewModel.selectedPets.isEmpty ?
+                         String(localized: "Select at least one pet") :
+                         String(localized: "\(viewModel.selectedPets.count) pet(s) selected"))
+                        .font(.caption)
+                        .foregroundColor(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.8) : Color.green.opacity(0.8))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
+                        .overlay(
+                            Capsule()
+                                .stroke(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.3) : Color.green.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                Spacer()
+            }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.selectedPets.isEmpty)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white.opacity(0.6))
+                .shadow(color: Color.black.opacity(0.02), radius: 8, x: 0, y: 2)
+        )
+        .padding(.horizontal)
+    }
+
+    // MARK: - Helper View 2: 标签选择部分
+    private var tagSelectorSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // 标签选择器标题和管理按钮
+            HStack {
+                Text(String(localized: "Select Event Type"))
                     .font(.headline)
                     .foregroundColor(textColor)
-                    .padding(.horizontal)
                 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
-                        ForEach(pets) { pet in
-                            PetAvatarView(pet: pet, isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), accentColor: accentColor, textColor: textColor)
-                                .onTapGesture {
-                                    viewModel.togglePetSelection(pet: pet)
-                                }
-                        }
+                Spacer()
+                
+                Button(action: {
+                    showingTagManagement = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "gear")
+                            .font(.caption)
+                        Text(String(localized: "Manage Tags"))
+                            .font(.caption)
                     }
-                    .padding(.horizontal)
+                    .foregroundColor(accentColor)
                 }
-                
-                // 验证提示
-                if viewModel.selectedPets.isEmpty {
-                    Text(String(localized: "Select at least one pet"))
-                        .font(.caption)
-                        .foregroundColor(.red)
+            }
+            .padding(.horizontal)
+            
+            // 最近使用的标签 - 只在选择了宠物时显示
+            if !viewModel.selectedPets.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(String(localized: "Recently Used"))
+                        .font(.subheadline)
+                        .foregroundColor(labelColor)
                         .padding(.horizontal)
-                }
-                
-                // 标签选择器
-                HStack {
-                    Text(String(localized: "Select Event Type"))
-                        .font(.headline)
-                        .foregroundColor(textColor)
                     
-                    Spacer()
+                    let filteredRecentTags = filterRecentlyUsedTags()
                     
-                    // 标签管理按钮
-                    Button(action: {
-                        showingTagManagement = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gear")
-                                .font(.caption)
-                            Text(String(localized: "Manage Tags"))
-                                .font(.caption)
-                        }
-                        .foregroundColor(accentColor)
+                    if !filteredRecentTags.isEmpty {
+                        tagGridView(tags: filteredRecentTags)
+                    } else {
+                        // 空状态提示
+                        Text(String(localized: "No recently used tags for selected pets"))
+                            .font(.caption)
+                            .foregroundColor(labelColor.opacity(0.7))
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .italic()
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top)
-                
-                // 最近使用的标签
-                if !viewModel.recentlyUsedTags.isEmpty {
+            }
+            
+            // 按分类显示标签
+            ForEach(TagCategory.allCases, id: \.self) { category in
+                let filteredTags = filterTags(for: category)
+                if !filteredTags.isEmpty {
                     VStack(alignment: .leading) {
-                        Text(String(localized: "Recently Used"))
+                        Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
                             .font(.subheadline)
                             .foregroundColor(labelColor)
                             .padding(.horizontal)
                         
-                        tagGridView(tags: viewModel.recentlyUsedTags)
+                        tagGridView(tags: filteredTags)
                     }
-                }
-                
-                // 按分类显示标签
-                ForEach(TagCategory.allCases, id: \.self) { category in
-                    let filteredTags = filterTags(for: category)
-                    if !filteredTags.isEmpty {
-                        VStack(alignment: .leading) {
-                            Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
-                                .font(.subheadline)
-                                .foregroundColor(labelColor)
-                                .padding(.horizontal)
-                            
-                            tagGridView(tags: filteredTags)
-                        }
-                        .padding(.top, 10)
-                    }
+                    .padding(.top, 10)
                 }
             }
-            .padding(.vertical)
         }
     }
     
@@ -278,6 +340,16 @@ struct AddRecordView: View {
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
                         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button(String(localized: "Done")) {
+                                    // 关闭键盘
+                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                }
+                                .foregroundColor(accentColor)
+                            }
+                        }
                 }
                 .padding(.horizontal)
                 
@@ -395,6 +467,16 @@ struct AddRecordView: View {
                                 .fill(Color.white) // 强制使用白色背景
                                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                         )
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button(String(localized: "Done")) {
+                                    // 关闭键盘
+                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                }
+                                .foregroundColor(accentColor)
+                            }
+                        }
                 }
                 .padding(.horizontal)
             }
@@ -425,11 +507,36 @@ struct AddRecordView: View {
                     TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
                         .frame(width: 100) // 固定宽度确保一致性
                         .onTapGesture {
-                            viewModel.selectTag(tag)
+                            print("🔍 Debug - 标签被点击: \(tag.name)")
+                            
+                            // 触发按下动画
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                // 这里我们会在TagItemView中添加动画处理逻辑
+                            }
+                            
+                            // 选择标签
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                                viewModel.selectTag(tag)
+                            }
+                            print("🔍 Debug - 选择后的标签: \(viewModel.selectedTag?.name ?? "nil")")
+                            print("🔍 Debug - formIsValid: \(viewModel.formIsValid)")
                         }
                 }
             }
             .padding(.horizontal)
+        }
+    }
+    
+    /// 根据宠物类型过滤最近使用的标签
+    private func filterRecentlyUsedTags() -> [Tag] {
+        guard !viewModel.selectedPets.isEmpty else { return [] }
+        
+        // 获取选择的宠物类型
+        let selectedPetTypes = Set(viewModel.selectedPets.map { $0.petType })
+        
+        // 过滤最近使用的标签，只保留适用于选择宠物类型的标签
+        return viewModel.recentlyUsedTags.filter { tag in
+            !tag.isHidden && selectedPetTypes.isSubset(of: Set(tag.getApplicablePetTypes()))
         }
     }
     

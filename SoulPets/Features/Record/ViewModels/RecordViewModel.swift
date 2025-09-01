@@ -212,8 +212,20 @@ class RecordViewModel: ObservableObject {
     
     /// 选择标签
     func selectTag(_ tag: Tag) {
+        logger.info("✅ RecordViewModel.selectTag() 被调用 - 标签: \(tag.name)")
+        
         selectedTag = tag
+        print("🔍 Debug - ViewModel selectedTag 设置为: \(selectedTag?.name ?? "nil")")
+        
         validateForm()
+        print("🔍 Debug - ViewModel validateForm() 完成")
+        
+        let stepDescription = String(describing: currentStep)
+        logger.info("标签选择后 - formIsValid: \(self.formIsValid), currentStep: \(stepDescription), selectedPets count: \(self.selectedPets.count)")
+        print("🔍 Debug - ViewModel formIsValid: \(self.formIsValid)")
+        
+        // 更新最近使用的标签
+        updateRecentlyUsedTag(tag)
     }
     
     /// 验证表单
@@ -391,10 +403,29 @@ class RecordViewModel: ObservableObject {
     
     /// 加载最近使用的标签
     private func loadRecentlyUsedTags() {
-        // 这里应该从UserDefaults或其他持久化存储中加载最近使用的标签
-        // 目前先使用空数组，但需要确保过滤掉隐藏的标签
-        // 如果有持久化的最近使用标签，需要过滤掉隐藏的标签
-        recentlyUsedTags = recentlyUsedTags.filter { !$0.isHidden }
+        // TODO: 从UserDefaults或其他持久化存储中加载最近使用的标签
+        // 目前使用一些示例数据来测试功能
+        
+        do {
+            // 获取所有可见且适用于提醒的标签作为示例
+            let descriptor = FetchDescriptor<Tag>(
+                sortBy: [SortDescriptor(\.sortOrder)]
+            )
+            
+            let allTags = try modelContext.fetch(descriptor)
+            let availableTags = allTags.filter { !$0.isHidden && $0.defaultIsReminder }
+            
+            // 取前5个作为最近使用的标签示例
+            recentlyUsedTags = Array(availableTags.prefix(5))
+            logger.info("加载了 \(self.recentlyUsedTags.count) 个最近使用的标签")
+            
+            if recentlyUsedTags.isEmpty {
+                logger.warning("没有找到可用的标签作为最近使用标签")
+            }
+        } catch {
+            logger.error("加载最近使用标签失败: \(error.localizedDescription)")
+            recentlyUsedTags = []
+        }
     }
     
     /// 更新最近使用的标签

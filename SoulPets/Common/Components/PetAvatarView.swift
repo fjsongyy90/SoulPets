@@ -50,6 +50,25 @@ struct PetAvatarView: View {
                     Circle()
                         .stroke(accentColor, lineWidth: 3)
                         .frame(width: size + 4, height: size + 4)
+                    
+                    // 对勾图标 - 右下角
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: size * 0.25))
+                                .foregroundColor(.white)
+                                .background(
+                                    Circle()
+                                        .fill(accentColor)
+                                        .frame(width: size * 0.3, height: size * 0.3)
+                                )
+                                .scaleEffect(isSelected ? 1.0 : 0.8)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
+                        }
+                    }
+                    .frame(width: size, height: size)
                 }
             }
             
