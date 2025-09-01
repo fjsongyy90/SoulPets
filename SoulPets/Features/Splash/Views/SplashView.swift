@@ -27,7 +27,7 @@ struct SplashView: View {
                 }
                 
                 // Slogan
-                Text("The digital heartbeat of\nyour bond with pets.")
+                Text("The digital heartbeat of your\nbond with pets.")
                     .font(.custom("Nunito-Regular", size: 17)) // 优化字体
                     .foregroundColor(Color(hex: "#A88C7D"))   // 优化颜色
                     .multilineTextAlignment(.center)

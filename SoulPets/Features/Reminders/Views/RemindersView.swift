@@ -83,7 +83,7 @@ struct RemindersView: View {
                     Button {
                         showingAddReminder = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image("add_icon")
                             .foregroundColor(accentColor)
                     }
                 }

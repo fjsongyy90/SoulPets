@@ -93,7 +93,7 @@ struct RecordsView: View {
                         guard !showingDatePicker else { return }
                         showingAddRecordSheet = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image("add_icon")
                             .foregroundColor(accentColor)
                     }
                 }

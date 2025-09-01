@@ -51,7 +51,7 @@ struct WeightView: View {
                     Button {
                         showingAddWeight = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image("add_icon")
                             .foregroundColor(accentColor)
                     }
                     .disabled(viewModel.selectedPet == nil)
