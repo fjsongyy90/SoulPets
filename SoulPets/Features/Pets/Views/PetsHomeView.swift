@@ -78,12 +78,12 @@ struct PetsHomeView: View {
                             HStack(spacing: 12) {
                                 ForEach(0..<pets.count, id: \.self) { index in
                                     Image(systemName: "pawprint.fill")
-                                        .font(.system(size: 12))
+                                        .font(.system(size: 10))
                                         .foregroundColor(selectedPetIndex == index ? Color(hex: "E5B487") : Color.gray.opacity(0.3))
                                         .animation(.easeInOut(duration: 0.2), value: selectedPetIndex)
                                 }
                             }
-                            .padding(.top, 16)
+                            .padding(.top, 3)
                         }
                         
                         Spacer()
