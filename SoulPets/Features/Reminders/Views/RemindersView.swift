@@ -447,7 +447,7 @@ struct RemindersView: View {
                     .opacity(0.4) // 降低透明度显示未激活状态
                 
                 VStack(spacing: 20) {
-                    Text("Add a Pet First")
+                    Text("Never Miss a Moment of Care")
                         .font(.appTitle2)
                         .foregroundColor(textColor)
                     

@@ -347,9 +347,6 @@ struct PetsHomeView: View {
             
             // 文案区域 - 标题放在图片上方
             VStack(spacing: 30) {
-                Text(String(localized: "Welcome to SoulPets"))
-                    .font(.appTitle2)
-                    .foregroundColor(textColor)
                 
                 // 插画图标 - 主页激活状态，不降低透明度
                 Image("empty_pet")
@@ -359,7 +356,10 @@ struct PetsHomeView: View {
                     .clipShape(Circle())
                 
                 VStack(spacing: 20) {
-                    Text("Ready to listen to their story? Let's give their journey a digital heartbeat.")
+                    Text(String(localized: "Ready to listen to their story?"))
+                        .font(.appTitle2)
+                        .foregroundColor(textColor)
+                    Text("Let's give their journey a digital heartbeat.")
                         .font(.appBody)
                         .multilineTextAlignment(.center)
                         .foregroundColor(labelColor)

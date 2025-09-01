@@ -18,7 +18,7 @@ extension Font {
     /// 标题1 - 用于重要标题
     static let appTitle = Font.custom("Nunito-Bold", size: 28)
     /// 标题2 - 用于次级标题
-    static let appTitle2 = Font.custom("Nunito-Bold", size: 22)
+    static let appTitle2 = Font.custom("Nunito-Bold", size: 24)
     /// 标题3 - 用于小标题
     static let appTitle3 = Font.custom("Nunito-Bold", size: 20)
     /// 标题行 - 用于按钮、导航栏标题
