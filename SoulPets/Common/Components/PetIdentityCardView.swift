@@ -30,7 +30,7 @@ struct PetIdentityCardView: View {
             VStack {
                 HStack {
                     Spacer()
-                    Image(systemName: "pawprint.fill")
+                    Image("paw_icon")
                         .font(.system(size: 60))
                         .foregroundColor(Color(hex: "E5B487").opacity(0.3))
                         .padding(.top, 20)

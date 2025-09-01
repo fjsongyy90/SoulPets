@@ -11,6 +11,7 @@ struct EmotionalDataItemView: View {
             Text(value)
                 .font(.custom("Nunito-Bold", size: 18))
                 .foregroundColor(Color(hex: "A88C7D"))
+                .frame(maxWidth: .infinity, alignment: .center)
             
             // 标签 - 底部显示情感化文案
             Text(label)
@@ -18,6 +19,7 @@ struct EmotionalDataItemView: View {
                 .foregroundColor(Color(hex: "A88C7D").opacity(0.8))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
     }
 }

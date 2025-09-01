@@ -107,7 +107,7 @@ struct PetsHomeView: View {
                     Button {
                         showingSettingsSheet = true
                     } label: {
-                        Image(systemName: "gearshape")
+                        Image("setting_icon")
                             .foregroundColor(accentColor)
                     }
                 }
@@ -116,7 +116,7 @@ struct PetsHomeView: View {
                     Button {
                         showingAddPetSheet = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image("add_icon")
                             .foregroundColor(accentColor)
                     }
                 }
