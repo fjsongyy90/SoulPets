@@ -14,6 +14,9 @@ struct PetIdentityCardView: View {
     let birthdayLabel: String
     let onViewProfile: () -> Void
     
+    // MARK: - 状态
+    @State private var buttonPressed: Bool = false
+    
     var body: some View {
         ZStack {
             // 卡片容器
@@ -112,7 +115,20 @@ struct PetIdentityCardView: View {
                     .padding(.vertical, 24)
                 
                 // "查看档案"按钮
-                Button(action: onViewProfile) {
+                Button(action: {
+                    // 触发按压动画
+                    withAnimation(.easeInOut(duration: 0.1)) {
+                        buttonPressed = true
+                    }
+                    
+                    // 延迟恢复和执行动作
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            buttonPressed = false
+                        }
+                        onViewProfile()
+                    }
+                }) {
                     Text("View Profile")
                         .font(.custom("Nunito-SemiBold", size: 16))
                         .foregroundColor(.white)
@@ -123,6 +139,8 @@ struct PetIdentityCardView: View {
                                 .fill(Color(hex: "E5B487"))
                         )
                 }
+                .scaleEffect(buttonPressed ? 0.98 : 1.0)
+                .animation(.easeInOut(duration: 0.1), value: buttonPressed)
                 .padding(.horizontal, 32)
                 .padding(.bottom, 24)
             }

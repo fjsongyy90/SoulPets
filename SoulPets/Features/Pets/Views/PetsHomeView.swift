@@ -65,7 +65,7 @@ struct PetsHomeView: View {
                                             }
                                         }
                                     )
-                                    .tag(index)
+                                        .tag(index)
                                 }
                             }
                             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -75,11 +75,11 @@ struct PetsHomeView: View {
                         
                         // 页面指示器
                         if pets.count > 1 {
-                            HStack(spacing: 8) {
+                            HStack(spacing: 12) {
                                 ForEach(0..<pets.count, id: \.self) { index in
-                                    Circle()
-                                        .fill(selectedPetIndex == index ? Color(hex: "E5B487") : Color.gray.opacity(0.3))
-                                        .frame(width: 8, height: 8)
+                                    Image(systemName: "pawprint.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(selectedPetIndex == index ? Color(hex: "E5B487") : Color.gray.opacity(0.3))
                                         .animation(.easeInOut(duration: 0.2), value: selectedPetIndex)
                                 }
                             }
@@ -89,10 +89,18 @@ struct PetsHomeView: View {
                         Spacer()
                         
                         // 底部隐私承诺文案
+                        VStack(spacing: 10) {
+                            // 短分隔线
+                            RoundedRectangle(cornerRadius: 0.5)
+                                .fill(Color(hex: "E5B487").opacity(0.5))
+                                .frame(width: 60, height: 1)
+                            
+                            // slogan文字
                         Text("The digital heartbeat of your bond with pets.")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.bottom, 20)
+                                .font(.custom("Nunito-Italic", size: 13))
+                                .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
+                        }
+                        .padding(.bottom, 25)
                         
                     } else {
                         // 无宠物时的提示
@@ -381,10 +389,18 @@ struct PetsHomeView: View {
             Spacer()
             
             // 底部隐私承诺文案
+            VStack(spacing: 10) {
+                // 短分隔线
+                RoundedRectangle(cornerRadius: 0.5)
+                    .fill(Color(hex: "E5B487").opacity(0.5))
+                    .frame(width: 60, height: 1)
+                
+                // slogan文字
             Text("The digital heartbeat of your bond with pets.")
-                .font(.appCaption)
-                .foregroundColor(.gray)
-                .padding(.bottom, 20)
+                    .font(.custom("Nunito-Italic", size: 13))
+                    .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
+            }
+            .padding(.bottom, 25)
         }
         .padding()
     }
