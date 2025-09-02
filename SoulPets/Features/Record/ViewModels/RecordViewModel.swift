@@ -208,24 +208,22 @@ class RecordViewModel: ObservableObject {
             selectedPets.append(pet)
         }
         validateForm()
+        
+        // 重新加载最近使用的标签，因为现在基于选择的宠物查询
+        loadRecentlyUsedTags()
     }
     
     /// 选择标签
     func selectTag(_ tag: Tag) {
-        logger.info("✅ RecordViewModel.selectTag() 被调用 - 标签: \(tag.name)")
-        
+        logger.info("选择标签: \(tag.name)")
         selectedTag = tag
-        print("🔍 Debug - ViewModel selectedTag 设置为: \(selectedTag?.name ?? "nil")")
-        
         validateForm()
-        print("🔍 Debug - ViewModel validateForm() 完成")
         
         let stepDescription = String(describing: currentStep)
         logger.info("标签选择后 - formIsValid: \(self.formIsValid), currentStep: \(stepDescription), selectedPets count: \(self.selectedPets.count)")
-        print("🔍 Debug - ViewModel formIsValid: \(self.formIsValid)")
         
-        // 更新最近使用的标签
-        updateRecentlyUsedTag(tag)
+        // 注释：不再自动更新最近使用标签列表，避免选中时自动重排序
+        // 只有在保存记录时才更新最近使用列表（见 saveRecord 方法）
     }
     
     /// 验证表单
@@ -302,8 +300,7 @@ class RecordViewModel: ObservableObject {
             // 保存更改
             try modelContext.save()
             
-            // 更新最近使用的标签
-            updateRecentlyUsedTag(selectedTag)
+            // 不再需要维护最近使用标签字段，现在动态从record表查询
             
             // 立即刷新记录列表
             loadRecords()
@@ -370,11 +367,7 @@ class RecordViewModel: ObservableObject {
             // 保存更改
             try modelContext.save()
             
-            // 更新最近使用的标签
-            updateRecentlyUsedTag(selectedTag)
-            
             logger.info("成功创建记录")
-            
             // 立即刷新记录列表
             await MainActor.run {
                 loadRecords()
@@ -403,50 +396,48 @@ class RecordViewModel: ObservableObject {
     
     /// 加载最近使用的标签
     private func loadRecentlyUsedTags() {
-        // TODO: 从UserDefaults或其他持久化存储中加载最近使用的标签
-        // 目前使用一些示例数据来测试功能
+        // 根据选择的宠物从record表中查询最新30条记录的标签统计
+        guard !selectedPets.isEmpty else {
+            recentlyUsedTags = []
+            return
+        }
         
         do {
-            // 获取所有可见且适用于提醒的标签作为示例
-            let descriptor = FetchDescriptor<Tag>(
-                sortBy: [SortDescriptor(\.sortOrder)]
+            // 获取选择宠物的ID集合
+            let selectedPetIds = Set(selectedPets.map { $0.id })
+            
+            // 创建查询描述符：获取最新30条记录，按时间戳降序排列
+            let recordDescriptor = FetchDescriptor<Record>(
+                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
             )
             
-            let allTags = try modelContext.fetch(descriptor)
-            let availableTags = allTags.filter { !$0.isHidden && $0.defaultIsReminder }
+            let allRecords = try modelContext.fetch(recordDescriptor)
             
-            // 取前5个作为最近使用的标签示例
-            recentlyUsedTags = Array(availableTags.prefix(5))
-            logger.info("加载了 \(self.recentlyUsedTags.count) 个最近使用的标签")
+            // 过滤出包含选择宠物的记录，并限制为最新30条
+            let relevantRecords = allRecords.filter { record in
+                let recordPetIds = Set((record.pets ?? []).map { $0.id })
+                return !recordPetIds.isDisjoint(with: selectedPetIds)
+            }.prefix(30)
             
-            if recentlyUsedTags.isEmpty {
-                logger.warning("没有找到可用的标签作为最近使用标签")
+            // 统计标签使用次数
+            var tagUsageCount: [Tag: Int] = [:]
+            for record in relevantRecords {
+                let tag = record.tag
+                if !tag.isHidden {
+                    tagUsageCount[tag, default: 0] += 1
+                }
             }
+            
+            // 按使用次数排序，取前5个
+            let sortedTags = tagUsageCount.sorted { $0.value > $1.value }
+            recentlyUsedTags = Array(sortedTags.prefix(5).map { $0.key })
+            
+            logger.info("从最新30条记录中分析得到 \(self.recentlyUsedTags.count) 个最近使用的标签")
+            
         } catch {
             logger.error("加载最近使用标签失败: \(error.localizedDescription)")
             recentlyUsedTags = []
         }
-    }
-    
-    /// 更新最近使用的标签
-    /// 更新最近使用的标签
-    private func updateRecentlyUsedTag(_ tag: Tag) {
-        // 检查标签是否已在列表中
-        if let index = recentlyUsedTags.firstIndex(where: { $0.id == tag.id }) {
-            // 如果已存在，移到列表顶部
-            recentlyUsedTags.remove(at: index)
-            recentlyUsedTags.insert(tag, at: 0)
-        } else {
-            // 如果不存在，添加到列表顶部
-            recentlyUsedTags.insert(tag, at: 0)
-            
-            // 保持列表不超过5个
-            if recentlyUsedTags.count > 5 {
-                recentlyUsedTags.removeLast()
-            }
-        }
-        
-        // 这里应该将更新后的列表保存到UserDefaults或其他持久化存储中
     }
     
     /// 重新尝试保存记录（在照片管理后调用）

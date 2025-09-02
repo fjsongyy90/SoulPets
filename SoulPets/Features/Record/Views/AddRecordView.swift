@@ -60,10 +60,6 @@ struct AddRecordView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.currentStep == .selectPetsAndEvent {
                         Button(String(localized: "Next")) {
-                            print("🔍 Debug - Next按钮被点击")
-                            print("🔍 Debug - formIsValid: \(viewModel.formIsValid)")
-                            print("🔍 Debug - selectedPets: \(viewModel.selectedPets.count)")
-                            print("🔍 Debug - selectedTag: \(viewModel.selectedTag?.name ?? "nil")")
                             viewModel.moveToNextStep()
                         }
                         .disabled(!viewModel.formIsValid)
@@ -77,6 +73,16 @@ struct AddRecordView: View {
                         .disabled(!viewModel.formIsValid)
                         .foregroundColor(viewModel.formIsValid ? accentColor : .gray)
                     }
+                }
+                
+                // 统一的键盘工具栏 - 只显示一个Done按钮
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(String(localized: "Done")) {
+                        // 关闭键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                    .foregroundColor(accentColor)
                 }
             }
             .sheet(isPresented: $showingTagManagement) {
@@ -178,12 +184,9 @@ struct AddRecordView: View {
                     ForEach(pets) { pet in
                                                  PetAvatarView(pet: pet, isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), accentColor: accentColor, textColor: textColor)
                              .onTapGesture {
-                                 print("🔍 Debug - 宠物被点击: \(pet.name)")
                                  withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                      viewModel.togglePetSelection(pet: pet)
                                  }
-                                 print("🔍 Debug - 选择后的宠物数量: \(viewModel.selectedPets.count)")
-                                 print("🔍 Debug - formIsValid: \(viewModel.formIsValid)")
                              }
                     }
                 }
@@ -340,16 +343,6 @@ struct AddRecordView: View {
                                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                         )
                         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                Spacer()
-                                Button(String(localized: "Done")) {
-                                    // 关闭键盘
-                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                }
-                                .foregroundColor(accentColor)
-                            }
-                        }
                 }
                 .padding(.horizontal)
                 
@@ -467,16 +460,6 @@ struct AddRecordView: View {
                                 .fill(Color.white) // 强制使用白色背景
                                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                         )
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                Spacer()
-                                Button(String(localized: "Done")) {
-                                    // 关闭键盘
-                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                }
-                                .foregroundColor(accentColor)
-                            }
-                        }
                 }
                 .padding(.horizontal)
             }
@@ -507,19 +490,9 @@ struct AddRecordView: View {
                     TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
                         .frame(width: 100) // 固定宽度确保一致性
                         .onTapGesture {
-                            print("🔍 Debug - 标签被点击: \(tag.name)")
-                            
-                            // 触发按下动画
-                            withAnimation(.easeInOut(duration: 0.1)) {
-                                // 这里我们会在TagItemView中添加动画处理逻辑
-                            }
-                            
-                            // 选择标签
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                                 viewModel.selectTag(tag)
                             }
-                            print("🔍 Debug - 选择后的标签: \(viewModel.selectedTag?.name ?? "nil")")
-                            print("🔍 Debug - formIsValid: \(viewModel.formIsValid)")
                         }
                 }
             }
