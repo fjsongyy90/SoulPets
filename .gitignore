@@ -1,63 +1,66 @@
 # Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
-
-## User settings
-xcuserdata/
-
-## Obj-C/Swift specific
-*.hmap
-
-## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
 .DS_Store
+*/.DS_Store
+*.swp
+*~
+.nosync
+.tmp
+profile
+*.moved-aside
+*.orig
+*.rej
+*.bk
 
-## Playgrounds
-timeline.xctimeline
-playground.xcworkspace
+# Build generated
+build/
+DerivedData/
+Build/
+**/build/
+**/DerivedData/
+
+# Swift
+*.swiftpm
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata
+*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
+*.xcodeproj/xcshareddata/swiftpm/Package.resolved
+*.xcscheme
+*.moved-aside
+*.xcuserstate
 
 # Swift Package Manager
-#
-# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# *.xcodeproj
-#
-# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
-# hence it is not needed unless you have added a package configuration file to your project
-# .swiftpm
-
-.build/
+.swift-version
+Package.pins
+Package.resolved
+Packages/
+.swiftlint.yml
 
 # CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-#
-# Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+Pods/
+Podfile.lock
 
 # Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
+Carthage/Checkouts
+Carthage/Build
+Cartfile.resolved
 
-Carthage/Build/
-
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/#source-control
-
+# Fastlane
 fastlane/report.xml
 fastlane/Preview.html
-fastlane/screenshots/**/*.png
+fastlane/screenshots
 fastlane/test_output
+
+# Environment variable files
+.env
+*.env
+
+# xccheckout
+*.xccheckout
+
+
+# Other specific folders and files you mentioned
+.gitignore
+.vscode/
+.cursor/rules
+.codebuddy/
+.idea/
