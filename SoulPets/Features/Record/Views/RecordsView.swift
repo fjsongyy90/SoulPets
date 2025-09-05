@@ -136,10 +136,6 @@ struct RecordsView: View {
             }
             .sheet(isPresented: $showingDatePicker) {
                 datePickerSheet
-                    .onDisappear {
-                        // 确保在日期选择器关闭时清理状态
-                        selectedDate = nil
-                    }
             }
             .onChange(of: searchText) { oldValue, newValue in
                 viewModel.searchText = newValue
@@ -444,6 +440,17 @@ struct RecordsView: View {
                         showingSearchBar = false
                     }
                 }
+                .toolbar {
+        // 键盘工具栏 - 添加Done按钮
+        ToolbarItemGroup(placement: .keyboard) {
+            Spacer()
+            Button(String(localized: "Done")) {
+                // 关闭键盘
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+            .foregroundColor(accentColor)
+        }
+    }
             
             if !searchText.isEmpty {
                 Button {
@@ -567,50 +574,28 @@ struct RecordsView: View {
                 )
                 .datePickerStyle(.graphical)
                 .accentColor(accentColor)
-                
-                HStack(spacing: 16) {
-                    // 清除日期按钮
-                    Button {
-                        selectedDate = nil
-                        showingDatePicker = false
-                    } label: {
-                        Text(String(localized: "Clear"))
-                            .font(.headline)
-                            .foregroundColor(labelColor)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(labelColor, lineWidth: 1)
-                            )
-                    }
-                    
-                    // 确认按钮
-                    Button {
-                        showingDatePicker = false
-                    } label: {
-                        Text(String(localized: "Done"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(accentColor)
-                            )
-                    }
-                }
                 .padding(.horizontal)
             }
             .padding()
             .navigationTitle(String(localized: "Filter by Date"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // 左侧清除按钮
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(String(localized: "Clear")) {
+                        selectedDate = nil
+                        showingDatePicker = false
+                    }
+                    .foregroundColor(labelColor)
+                }
+                
+                // 右侧完成按钮
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "Cancel")) {
+                    Button(String(localized: "Done")) {
                         showingDatePicker = false
                     }
                     .foregroundColor(accentColor)
+                    .fontWeight(.semibold)
                 }
             }
         }
