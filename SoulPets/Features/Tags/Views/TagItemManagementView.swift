@@ -75,6 +75,7 @@ struct TagItemManagementView: View {
             .resizable()
             .scaledToFit()
             .frame(width: 44, height: 44)
+            .cornerRadius(8)
     }
     
     private var usageStatsView: some View {

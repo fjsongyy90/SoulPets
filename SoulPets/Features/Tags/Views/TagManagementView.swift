@@ -6,7 +6,7 @@ struct TagManagementView: View {
     // MARK: - 属性
     @StateObject private var viewModel: TagManagementViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var editMode: EditMode = .active  // 直接设置为编辑模式
+    // 移除编辑模式，使用自定义拖动手柄
     
     // 调试日志
     private let logger = Logger(subsystem: "com.soulpets.app", category: "TagManagementView")
@@ -34,7 +34,6 @@ struct TagManagementView: View {
             }
             .navigationTitle(String(localized: "Tag Management"))
             .navigationBarTitleDisplayMode(.inline)
-            .environment(\.editMode, $editMode)  // 设置编辑模式环境
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(String(localized: "Done")) {
@@ -54,7 +53,7 @@ struct TagManagementView: View {
                 }
             }
             .onAppear {
-                logger.info("标签管理页面出现，EditMode: \(String(describing: editMode))")
+                logger.info("标签管理页面出现")
             }
         }
     }
