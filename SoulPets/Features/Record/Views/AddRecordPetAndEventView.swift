@@ -43,10 +43,11 @@ struct AddRecordPetAndEventView: View {
     
     /// 宠物选择卡片 - 优化版
     private var petSelectorCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             Text(String(localized: "Select Pets"))
                 .font(.appTitle3) // 使用更大的标题字体
                 .foregroundColor(textColor)
+                .padding(.bottom, 4)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
@@ -64,6 +65,7 @@ struct AddRecordPetAndEventView: View {
                     }
                 }
                 .padding(.horizontal, 4)
+                .padding(.vertical, 4)
             }
             
             // 优化的验证提示 - 使用精致字体
@@ -83,7 +85,7 @@ struct AddRecordPetAndEventView: View {
                         .foregroundColor(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.8) : Color.green.opacity(0.8))
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.vertical, 2)
                 .background(
                     Capsule()
                         .fill(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
