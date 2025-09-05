@@ -133,6 +133,8 @@ SoulPets/
 │   ├── Tags/              # 标签功能
 │   └── Weight/            # 体重功能
 ├── Resources/             # 资源文件
+│   ├── Localization/      # 国际化文件
+│       ├── Localizable.strings# 默认的英文文件
 ├── ContentView.swift      # 主内容视图
 ├── SoulPetsApp.swift      # 应用入口
 ├── SoulPets.xcodeproj/    # Xcode项目文件

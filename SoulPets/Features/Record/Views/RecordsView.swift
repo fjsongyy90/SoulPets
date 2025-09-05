@@ -54,25 +54,40 @@ struct RecordsView: View {
                             .padding(.horizontal)
                             .padding(.top)
                         
-                        // 宠物选择器（展开时显示）
+                        // 宠物选择器（展开时显示） - 添加平滑动画
                         if showingPetSelector {
                             petSelectorView
                                 .padding(.horizontal)
                                 .padding(.top, 8)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
+                                ))
+                                .animation(.easeInOut(duration: 0.3), value: showingPetSelector)
                         }
                         
-                        // 标签选择器（展开时显示）
+                        // 标签选择器（展开时显示） - 添加平滑动画
                         if showingTagSelector {
                             tagSelectorView
                                 .padding(.horizontal)
                                 .padding(.top, 8)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
+                                ))
+                                .animation(.easeInOut(duration: 0.3), value: showingTagSelector)
                         }
                         
-                        // 搜索栏（展开时显示）
+                        // 搜索栏（展开时显示） - 添加平滑动画
                         if showingSearchBar {
                             searchBarView
                                 .padding(.horizontal)
                                 .padding(.top, 8)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
+                                ))
+                                .animation(.easeInOut(duration: 0.3), value: showingSearchBar)
                         }
                     }
                     
@@ -192,9 +207,9 @@ struct RecordsView: View {
     /// 新的筛选器和搜索栏视图
     private var filterAndSearchView: some View {
         HStack(spacing: 8) {
-            // All pets 按钮
+            // All pets 按钮 - 优化动画效果
             Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     showingPetSelector.toggle()
                     if showingPetSelector {
                         showingSearchBar = false
@@ -271,9 +286,9 @@ struct RecordsView: View {
                 )
             }
             
-            // 标签选择按钮
+            // 标签选择按钮 - 优化动画效果
             Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     showingTagSelector.toggle()
                     if showingTagSelector {
                         showingPetSelector = false
@@ -309,9 +324,9 @@ struct RecordsView: View {
             
             Spacer()
             
-            // 搜索按钮
+            // 搜索按钮 - 优化动画效果
             Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     showingSearchBar.toggle()
                     if showingSearchBar {
                         showingPetSelector = false
@@ -340,7 +355,7 @@ struct RecordsView: View {
                 Button {
                     // 设置记录页面的筛选状态为All（用户主动操作）
                     viewModel.setShowAllPets(updateAppState: true)
-                    withAnimation {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         showingPetSelector = false
                     }
                 } label: {
@@ -368,7 +383,7 @@ struct RecordsView: View {
                 ForEach(pets) { pet in
                     Button {
                         viewModel.setCurrentPet(pet, updateAppState: true)
-                        withAnimation {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             showingPetSelector = false
                         }
                     } label: {
@@ -425,7 +440,7 @@ struct RecordsView: View {
             TextField(String(localized: "Search records..."), text: $searchText)
                 .foregroundColor(textColor)
                 .onSubmit {
-                    withAnimation {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         showingSearchBar = false
                     }
                 }
@@ -457,7 +472,7 @@ struct RecordsView: View {
                     selectedTag = nil
                     viewModel.selectedTag = nil
                     filterRecords()
-                    withAnimation {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         showingTagSelector = false
                     }
                 } label: {
@@ -493,7 +508,7 @@ struct RecordsView: View {
                                 selectedTag = tag
                                 viewModel.selectedTag = tag
                                 filterRecords()
-                                withAnimation {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                     showingTagSelector = false
                                 }
                             } label: {
@@ -773,7 +788,7 @@ struct RecordsView: View {
     }
 }
 
-/// 记录卡片视图
+/// 记录卡片视图 - 全新设计
 struct RecordCardView: View {
     let record: Record
     let accentColor: Color
@@ -781,43 +796,51 @@ struct RecordCardView: View {
     let labelColor: Color
     let showPetAvatars: Bool
     
-    // 卡片颜色
-    private let cardColor = Color.white
+    // 卡片颜色 - 带有极微弱米黄的白色，营造温暖感
+    private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988) // #FFFEFC
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // 标签和时间
-            HStack {
-                // 标签图标和名称
-                HStack(spacing: 6) {
+            // 顶部区域：标签信息 + 相对时间
+            HStack(alignment: .top) {
+                // 左侧：标签图标和名称
+                HStack(spacing: 8) {
                     Image(record.tag.iconName)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 36, height: 36)
+                        .frame(width: 32, height: 32)
                         .clipShape(Circle())
                     
                     Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
                         .font(.appHeadline)
                         .foregroundColor(textColor)
+                        .lineLimit(1)
                 }
                 
                 Spacer()
                 
-                // 时间戳（移到原来宠物头像的位置）
-                Text(formattedDate)
-                    .font(.appSubheadline)
+                // 右侧：人性化的相对时间
+                Text(record.timestamp.formatRelativeString())
+                    .font(.appCaption)
                     .foregroundColor(labelColor)
+                    .lineLimit(1)
             }
             
-            // 备注
+            // 次级头部区域：宠物信息（紧随标签下方）
+            if showPetAvatars, let pets = record.pets, !pets.isEmpty {
+                petInfoSection(pets: pets)
+            }
+            
+            // 内容区域：备注
             if let notes = record.notes, !notes.isEmpty {
                 Text(notes)
                     .font(.appBody)
                     .foregroundColor(textColor)
                     .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
-            // 照片缩略图
+            // 内容区域：照片缩略图
             if let photos = record.photos, !photos.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -827,72 +850,92 @@ struct RecordCardView: View {
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 80, height: 80)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
-                        }
-                    }
-                }
-            }
-            
-            // 底部区域：左侧空白，右侧宠物头像
-            HStack {
-                Spacer()
-                
-                // 宠物头像（移到右下角）
-                if showPetAvatars, let pets = record.pets, !pets.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(pets.prefix(3)) { pet in // 最多显示3个头像，避免过度拥挤
-                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 24, height: 24)
-                                    .clipShape(Circle())
-                            } else {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                        .frame(width: 24, height: 24)
-                                    
-                                    Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 18, height: 18)
-                                        .clipShape(Circle())
-                                }
-                            }
-                        }
-                        
-                        // 如果宠物数量超过3个，显示省略号
-                        if pets.count > 3 {
-                            Text("+\(pets.count - 3)")
-                                .font(.caption2)
-                                .foregroundColor(labelColor)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                )
                         }
                     }
                 }
             }
         }
-        .padding()
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(cardColor)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
         )
     }
     
-    // 格式化日期
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: record.timestamp)
+    // MARK: - 子视图组件
+    
+    /// 宠物信息区域
+    @ViewBuilder
+    private func petInfoSection(pets: [Pet]) -> some View {
+        if pets.count == 1 {
+            // 单宠物：显示头像 + 名字
+            HStack(spacing: 6) {
+                petAvatarView(pet: pets[0], size: 20)
+                
+                Text(pets[0].name)
+                    .font(.appCaption)
+                    .foregroundColor(labelColor)
+                    .lineLimit(1)
+                
+                Spacer()
+            }
+        } else {
+            // 多宠物：横向排列头像，可略带重叠效果
+            HStack(spacing: -4) { // 负间距创造重叠效果
+                ForEach(pets.prefix(4)) { pet in // 最多显示4个头像
+                    petAvatarView(pet: pet, size: 20)
+                        .overlay(
+                            Circle()
+                                .stroke(cardColor, lineWidth: 1) // 白色边框分离重叠的头像
+                        )
+                }
+                
+                // 如果宠物数量超过4个，显示数量标识
+                if pets.count > 4 {
+                    Text("+\(pets.count - 4)")
+                        .font(.caption2)
+                        .foregroundColor(labelColor)
+                        .fontWeight(.medium)
+                        .frame(width: 20, height: 20)
+                        .background(
+                            Circle()
+                                .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                .overlay(
+                                    Circle()
+                                        .stroke(cardColor, lineWidth: 1)
+                                )
+                        )
+                }
+                
+                Spacer()
+            }
+        }
+    }
+    
+    /// 宠物头像视图
+    @ViewBuilder
+    private func petAvatarView(pet: Pet, size: CGFloat) -> some View {
+        if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size, height: size)
+                .clipShape(Circle())
+        } else {
+            ZStack {
+                Circle()
+                    .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                    .frame(width: size, height: size)
+                
+                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.7, height: size * 0.7)
+            }
+        }
     }
 }
 
