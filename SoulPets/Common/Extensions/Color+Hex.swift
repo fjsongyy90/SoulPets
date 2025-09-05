@@ -31,15 +31,45 @@ extension Color {
 
 // MARK: - 应用主题颜色
 extension Color {
-    /// 应用背景色
-    static let appBackground = Color(hex: "FDFBF8")
+    /// 应用背景色 - 适应深色模式
+    static let appBackground = Color(
+        light: Color(hex: "FDFBF8"), 
+        dark: Color(hex: "1C1C1E")
+    )
     
-    /// 应用主强调色
-    static let appAccent = Color(hex: "E5B487")
+    /// 应用主强调色 - 适应深色模式
+    static let appAccent = Color(
+        light: Color(hex: "E5B487"),
+        dark: Color(hex: "E5B487")
+    )
     
-    /// 卡片背景色
-    static let cardBackground = Color.white
+    /// 卡片背景色 - 适应深色模式
+    static let cardBackground = Color(
+        light: .white,
+        dark: Color(hex: "2C2C2E")
+    )
     
-    /// 分割线颜色
-    static let dividerColor = Color.gray.opacity(0.2)
+    /// 分割线颜色 - 适应深色模式
+    static let dividerColor = Color(
+        light: Color.gray.opacity(0.2),
+        dark: Color.gray.opacity(0.3)
+    )
+}
+
+// MARK: - 深色模式颜色初始化器
+extension Color {
+    /// 创建支持深色模式的动态颜色
+    /// - Parameters:
+    ///   - light: 浅色模式下的颜色
+    ///   - dark: 深色模式下的颜色
+    init(light: Color, dark: Color) {
+        self.init(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor(dark)
+            default:
+                return UIColor(light)
+            }
+        })
+    }
 } 

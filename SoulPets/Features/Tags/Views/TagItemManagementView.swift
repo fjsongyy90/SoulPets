@@ -43,7 +43,7 @@ struct TagItemManagementView: View {
     private var dragHandle: some View {
         Image(systemName: "line.horizontal.3")
             .font(.caption)
-            .foregroundColor(.gray.opacity(0.5))
+            .foregroundColor(.secondary)
             .frame(width: 20)
     }
     

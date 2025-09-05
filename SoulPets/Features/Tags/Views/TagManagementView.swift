@@ -124,7 +124,7 @@ struct TagManagementView: View {
             .padding(12)
             .background(
                 viewModel.selectedPetType == petType ? 
-                Color.appAccent.opacity(0.1) : Color.black.opacity(0.05)
+                Color.appAccent.opacity(0.1) : Color.gray.opacity(0.1)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
