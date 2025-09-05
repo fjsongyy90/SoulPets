@@ -41,17 +41,21 @@ struct AddRecordPetAndEventView: View {
     
     // MARK: - 子视图组件
     
-    /// 宠物选择卡片
+    /// 宠物选择卡片 - 优化版
     private var petSelectorCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(String(localized: "Select Pets"))
-                .font(.headline)
+                .font(.appTitle3) // 使用更大的标题字体
                 .foregroundColor(textColor)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
                     ForEach(pets) { pet in
-                        PetAvatarView(pet: pet, isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), accentColor: accentColor, textColor: textColor)
+                        let isSelected = viewModel.selectedPets.contains(where: { $0.id == pet.id })
+                        
+                        PetAvatarView(pet: pet, isSelected: isSelected, accentColor: accentColor, textColor: textColor)
+                            .scaleEffect(isSelected ? 1.05 : 1.0) // 选中时轻微放大
+                            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
                             .onTapGesture {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     viewModel.togglePetSelection(pet: pet)
@@ -62,19 +66,20 @@ struct AddRecordPetAndEventView: View {
                 .padding(.horizontal, 4)
             }
             
-            // 优化的验证提示
+            // 优化的验证提示 - 使用精致字体
             HStack {
                 Spacer()
                 HStack(spacing: 6) {
                     if !viewModel.selectedPets.isEmpty {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.caption)
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(Color.green.opacity(0.8))
                     }
                     Text(viewModel.selectedPets.isEmpty ?
                          String(localized: "Select at least one pet") :
                          String(localized: "\(viewModel.selectedPets.count) pet(s) selected"))
-                        .font(.caption)
+                        .font(.appCaption2) // 使用更小但清晰的字体
+                        .fontWeight(.semibold) // 突出显示
                         .foregroundColor(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.8) : Color.green.opacity(0.8))
                 }
                 .padding(.horizontal, 12)
@@ -101,13 +106,13 @@ struct AddRecordPetAndEventView: View {
         .padding(.horizontal)
     }
 
-    /// 标签选择部分
+    /// 标签选择部分 - 优化版
     private var tagSelectorSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             // 标签选择器标题和管理按钮
             HStack {
                 Text(String(localized: "Select Event Type"))
-                    .font(.headline)
+                    .font(.appTitle3) // 使用更大的标题字体
                     .foregroundColor(textColor)
                 
                 Spacer()
@@ -117,9 +122,9 @@ struct AddRecordPetAndEventView: View {
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "gear")
-                            .font(.caption)
+                            .font(.system(size: 12, weight: .medium))
                         Text(String(localized: "Manage Tags"))
-                            .font(.caption)
+                            .font(.appCaption)
                     }
                     .foregroundColor(accentColor)
                 }
@@ -130,7 +135,7 @@ struct AddRecordPetAndEventView: View {
             if !viewModel.selectedPets.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(String(localized: "Recently Used"))
-                        .font(.subheadline)
+                        .font(.appSubheadline) // 使用统一的子标题字体
                         .foregroundColor(labelColor)
                         .padding(.horizontal)
                     
@@ -141,7 +146,7 @@ struct AddRecordPetAndEventView: View {
                     } else {
                         // 空状态提示
                         Text(String(localized: "No recently used tags for selected pets"))
-                            .font(.caption)
+                            .font(.appCaption)
                             .foregroundColor(labelColor.opacity(0.7))
                             .padding(.horizontal)
                             .padding(.vertical, 8)
@@ -156,7 +161,7 @@ struct AddRecordPetAndEventView: View {
                 if !filteredTags.isEmpty {
                     VStack(alignment: .leading) {
                         Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
-                            .font(.subheadline)
+                            .font(.appSubheadline) // 使用统一的子标题字体
                             .foregroundColor(labelColor)
                             .padding(.horizontal)
                         
@@ -170,13 +175,27 @@ struct AddRecordPetAndEventView: View {
     
     // MARK: - 辅助方法
     
-    /// 标签网格视图
+    /// 标签网格视图 - 优化版
     private func tagGridView(tags: [Tag]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(tags) { tag in
-                    TagItemView(tag: tag, isSelected: viewModel.selectedTag?.id == tag.id, accentColor: accentColor, textColor: textColor)
+                    let isSelected = viewModel.selectedTag?.id == tag.id
+                    
+                    TagItemView(tag: tag, isSelected: isSelected, accentColor: accentColor, textColor: textColor)
                         .frame(width: 100) // 固定宽度确保一致性
+                        .scaleEffect(isSelected ? 1.05 : 1.0) // 选中时轻微放大
+                        .overlay(
+                            // 精致边框效果
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
+                        )
+                        .background(
+                            // 柔和背景效果
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(isSelected ? accentColor.opacity(0.1) : Color.clear)
+                        )
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isSelected)
                         .onTapGesture {
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                                 viewModel.selectTag(tag)

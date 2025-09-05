@@ -31,13 +31,13 @@ struct TagItemView: View {
                 .clipShape(Circle())
                 .overlay(
                     Circle()
-                        .stroke(isSelected ? Color.white : accentColor, lineWidth: 1)
+                        .stroke(isSelected ? accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
                 )
             
             // 名称
             Text(String(localized: LocalizedStringResource(stringLiteral: tag.name)))
-                .font(.caption2)
-                .foregroundColor(isSelected ? .white : textColor)
+                .font(.appCaption) // 使用统一的字体样式
+                .foregroundColor(isSelected ? accentColor : textColor)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -48,7 +48,7 @@ struct TagItemView: View {
         .padding(.horizontal, 6)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? accentColor.opacity(0.8) : Color.white)
+                .fill(Color.white) // 保持简洁的白色背景
                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         )
         .scaleEffect(isPressed ? 1.05 : 1.0)
