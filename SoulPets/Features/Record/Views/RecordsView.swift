@@ -618,11 +618,12 @@ struct RecordsView: View {
                 
                 VStack(spacing: 20) {
                     Text("Every Memory is a Treasure")
-                        .font(.appTitle2)
+                        .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
                     Text(String(localized: "empty_state.records.subtitle"))
-                        .font(.appBody)
+                        .font(.appRegular(size: 16))
+                        .lineSpacing(6)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -635,7 +636,7 @@ struct RecordsView: View {
                                 .font(.system(size: 16, weight: .semibold))
                             
                             Text(String(localized: "Add Your First Pet"))
-                                .font(.appHeadline)
+                                .font(.appSemiBold(size: 17))
                         }
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
@@ -657,12 +658,12 @@ struct RecordsView: View {
                 
                 VStack(spacing: 20) {
                     Text("No Records Yet")
-                        .font(.title2)
-                        .fontWeight(.medium)
+                        .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
                     Text("Give your bond a digital heartbeat. Add the first record.")
-                        .font(.body)
+                        .font(.appRegular(size: 16))
+                        .lineSpacing(6)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -671,7 +672,7 @@ struct RecordsView: View {
                         showingAddRecordSheet = true
                     }) {
                         Text("Add First Record")
-                            .font(.headline)
+                            .font(.appSemiBold(size: 17))
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)

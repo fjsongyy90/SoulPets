@@ -448,11 +448,12 @@ struct RemindersView: View {
                 
                 VStack(spacing: 20) {
                     Text("Never Miss a Moment of Care")
-                        .font(.appTitle2)
+                        .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
                     Text(String(localized: "empty_state.reminders.subtitle"))
-                        .font(.appBody)
+                        .font(.appRegular(size: 16))
+                        .lineSpacing(6)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -464,8 +465,8 @@ struct RemindersView: View {
                             Image(systemName: "plus")
                                 .font(.system(size: 16, weight: .semibold))
                             
-                            Text(String(localized: "Add Your First Pet"))
-                                .font(.headline)
+                                                    Text(String(localized: "Add Your First Pet"))
+                            .font(.appSemiBold(size: 17))
                         }
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
@@ -487,12 +488,12 @@ struct RemindersView: View {
                 
                 VStack(spacing: 20) {
                     Text(emptyStateTitle)
-                        .font(.title2)
-                        .fontWeight(.medium)
+                        .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
                     Text(emptyStateMessage)
-                        .font(.body)
+                        .font(.appRegular(size: 16))
+                        .lineSpacing(6)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -502,7 +503,7 @@ struct RemindersView: View {
                             showingAddReminder = true
                         }) {
                             Text("Add First Reminder")
-                                .font(.headline)
+                                .font(.appSemiBold(size: 17))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 12)

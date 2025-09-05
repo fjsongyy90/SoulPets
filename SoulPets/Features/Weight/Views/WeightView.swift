@@ -145,11 +145,12 @@ struct WeightView: View {
             
             VStack(spacing: 20) {
                     Text("Track Their Healthy Growth")
-                        .font(.appTitle2)
+                        .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
                     Text(String(localized: "empty_state.weight.subtitle"))
-                        .font(.appBody)
+                        .font(.appRegular(size: 16))
+                        .lineSpacing(6)
                         .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -162,7 +163,7 @@ struct WeightView: View {
                             .font(.system(size: 16, weight: .semibold))
                         
                         Text(String(localized: "Add Your First Pet"))
-                            .font(.headline)
+                            .font(.appSemiBold(size: 17))
                     }
                     .foregroundColor(.white)
                     .padding(.horizontal, 24)
@@ -183,7 +184,7 @@ struct WeightView: View {
     private var selectPetView: some View {
         VStack(spacing: 20) {
                 Text(String(localized: "Select a Pet"))
-                    .font(.appTitle2)
+                    .font(.appSemiBold(size: 22))
                     .foregroundColor(textColor)
             
             petSelectorView
@@ -211,12 +212,12 @@ struct WeightView: View {
             
             VStack(spacing: 20) {
                 Text("No Weight Records")
-                    .font(.title2)
-                    .fontWeight(.medium)
+                    .font(.appSemiBold(size: 22))
                     .foregroundColor(textColor)
                 
                 Text("The first beat of their digital heartbeat is weight. Let's start tracking.")
-                    .font(.body)
+                    .font(.appRegular(size: 16))
+                    .lineSpacing(6)
                     .multilineTextAlignment(.center)
                     .foregroundColor(labelColor)
                     .padding(.horizontal, 40)
@@ -225,7 +226,7 @@ struct WeightView: View {
                     showingAddWeight = true
                 } label: {
                     Text("Add First Weight Record")
-                        .font(.headline)
+                        .font(.appSemiBold(size: 17))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
