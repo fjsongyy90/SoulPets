@@ -152,9 +152,18 @@ struct RecordDetailView: View {
                         .datePickerStyle(.compact)
                         .accentColor(accentColor)
                 } else {
-                    Text(formattedDate(record.timestamp))
-                        .font(.appBody)
-                        .foregroundColor(textColor)
+                    VStack(alignment: .leading, spacing: 2) {
+                        // 日期 - 作为视觉重点
+                        Text(formattedDateOnly(record.timestamp))
+                            .font(.appBody)
+                            .fontWeight(.medium)
+                            .foregroundColor(textColor)
+                        
+                        // 时间 - 次要信息
+                        Text(formattedTimeOnly(record.timestamp))
+                            .font(.appCaption)
+                            .foregroundColor(labelColor)
+                    }
                 }
             }
             
@@ -249,7 +258,7 @@ struct RecordDetailView: View {
         }
     }
     
-    /// 备注卡片 - 去图标化，统一编辑样式
+    /// 备注卡片 - 去图标化，统一编辑样式，保持视觉韵律
     private var notesCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Notes"))
@@ -288,18 +297,24 @@ struct RecordDetailView: View {
                     }
                 }
             } else {
-                if let notes = record.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.appBody)
-                        .foregroundColor(textColor)
-                } else {
-                    Text(String(localized: "No notes"))
-                        .font(.appBody)
-                        .foregroundColor(labelColor)
-                        .italic()
+                // 查看模式 - 设置最小高度保持视觉韵律
+                VStack(alignment: .leading, spacing: 8) {
+                    if let notes = record.notes, !notes.isEmpty {
+                        Text(notes)
+                            .font(.appBody)
+                            .foregroundColor(textColor)
+                    } else {
+                        Text(String(localized: "No notes"))
+                            .font(.appBody)
+                            .foregroundColor(labelColor)
+                            .italic()
+                    }
                 }
+                .frame(minHeight: 60, alignment: .topLeading) // 设置最小高度，保持视觉平衡
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .frame(minHeight: 100) // 整个卡片的最小高度
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
@@ -322,8 +337,25 @@ struct RecordDetailView: View {
                         .foregroundColor(textColor)
                     Spacer()
                     
+                    // 显示照片限制提示
+                    if !UserPreferencesService.shared.isProMember {
+                        HStack(spacing: 2) {
+                            Text("Max")
+                                .font(.appCaption2)
+                                .foregroundColor(labelColor)
+                            Text("\(UserPreferencesService.shared.maxPhotosPerRecord)")
+                                .font(.appCaption2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(labelColor)
+                        }
+                    }
+                    
                     if isEditing {
-                        PhotosPicker(selection: $selectedItems, matching: .images) {
+                        PhotosPicker(
+                            selection: $selectedItems,
+                            maxSelectionCount: UserPreferencesService.shared.maxPhotosPerRecord,
+                            matching: .images
+                        ) {
                             Image(systemName: "plus.circle.fill")
                                 .foregroundColor(accentColor)
                                 .font(.title2)
@@ -339,12 +371,22 @@ struct RecordDetailView: View {
                     }
                 } else if isEditing {
                     // 编辑模式下的空状态提示
-                    Text(String(localized: "Add photos to capture this moment"))
-                        .font(.appBody)
-                        .foregroundColor(labelColor)
-                        .italic()
-                        .padding(.vertical, 20)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    VStack(spacing: 8) {
+                        Text(String(localized: "Add photos to capture this moment"))
+                            .font(.appBody)
+                            .foregroundColor(labelColor)
+                            .italic()
+                        
+                        // 非会员限制提示
+                        if !UserPreferencesService.shared.isProMember {
+                            Text(String(localized: "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos."))
+                                .font(.appFootnote)
+                                .foregroundColor(.orange)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .padding(.vertical, 20)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             .padding()
@@ -359,7 +401,14 @@ struct RecordDetailView: View {
                         if let data = try? await item.loadTransferable(type: Data.self),
                            let image = UIImage(data: data) {
                             await MainActor.run {
-                                newPhotos.append((id: UUID(), image: image))
+                                // 检查总照片数量限制（现有照片 + 新增照片）
+                                let currentPhotoCount = (record.photos?.count ?? 0) + newPhotos.count
+                                let maxPhotos = UserPreferencesService.shared.maxPhotosPerRecord
+                                
+                                if currentPhotoCount < maxPhotos {
+                                    newPhotos.append((id: UUID(), image: image))
+                                }
+                                // 如果超出限制，静默忽略（PhotosPicker已经限制了选择数量）
                             }
                         }
                     }
@@ -467,10 +516,26 @@ struct RecordDetailView: View {
     
     // MARK: - 辅助方法
     
-    /// 格式化日期
+    /// 格式化日期 - 分别获取日期和时间
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .full
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    /// 格式化日期部分
+    private func formattedDateOnly(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+    
+    /// 格式化时间部分
+    private func formattedTimeOnly(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
