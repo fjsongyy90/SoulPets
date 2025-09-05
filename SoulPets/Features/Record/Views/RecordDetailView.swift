@@ -13,7 +13,7 @@ struct RecordDetailView: View {
     @State private var editedNotes: String = ""
     @State private var editedDate: Date = Date()
     @State private var selectedItems: [PhotosPickerItem] = []
-    @State private var newPhotos: [UIImage] = []
+    @State private var newPhotos: [(id: UUID, image: UIImage)] = []
     @State private var showingDeleteAlert = false
     
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "RecordDetail")
@@ -34,26 +34,14 @@ struct RecordDetailView: View {
                         // 标签信息卡片
                         tagInfoCard
                         
-                        // 日期时间卡片
-                        dateTimeCard
-                        
-                        // 宠物信息卡片
-                        if let pets = record.pets, !pets.isEmpty {
-                            petInfoCard(pets: pets)
-                        }
+                        // 情境卡片 - 合并日期时间和宠物信息
+                        contextCard
                         
                         // 备注卡片
                         notesCard
                         
-                        // 照片卡片
-                        if let photos = record.photos, !photos.isEmpty {
-                            photosCard(photos: photos)
-                        }
-                        
-                        // 新添加的照片预览
-                        if !newPhotos.isEmpty {
-                            newPhotosCard
-                        }
+                        // 照片卡片 - 统一管理新旧照片
+                        photosCard
                     }
                     .padding()
                 }
@@ -145,115 +133,168 @@ struct RecordDetailView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(isEditing ? Color(UIColor.systemGray6) : Color.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
     }
     
-    /// 日期时间卡片
-    private var dateTimeCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "calendar")
-                    .foregroundColor(accentColor)
+    /// 情境卡片 - 合并日期时间和宠物信息
+    private var contextCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // 日期时间区域
+            VStack(alignment: .leading, spacing: 8) {
                 Text(String(localized: "Date & Time"))
-                    .font(.headline)
+                    .font(.appHeadline)
                     .foregroundColor(textColor)
-                Spacer()
+                
+                if isEditing {
+                    DatePicker("", selection: $editedDate)
+                        .datePickerStyle(.compact)
+                        .accentColor(accentColor)
+                } else {
+                    Text(formattedDate(record.timestamp))
+                        .font(.appBody)
+                        .foregroundColor(textColor)
+                }
             }
             
-            if isEditing {
-                DatePicker("", selection: $editedDate)
-                    .datePickerStyle(.compact)
-                    .accentColor(accentColor)
-            } else {
-                Text(formattedDate(record.timestamp))
-                    .font(.body)
-                    .foregroundColor(textColor)
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        )
-    }
-    
-    /// 宠物信息卡片
-    private func petInfoCard(pets: [Pet]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "pawprint.fill")
-                    .foregroundColor(accentColor)
-                Text(pets.count == 1 ? String(localized: "Pet") : String(localized: "Pets"))
-                    .font(.headline)
-                    .foregroundColor(textColor)
-                Spacer()
-            }
-            
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 12) {
-                ForEach(pets) { pet in
-                    VStack(spacing: 8) {
-                        if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 50, height: 50)
-                                .clipShape(Circle())
-                        } else {
-                            Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 50, height: 50)
-                                .clipShape(Circle())
-                        }
-                        
-                        Text(pet.name)
-                            .font(.caption)
-                            .foregroundColor(textColor)
-                            .lineLimit(1)
-                    }
+            // 宠物信息区域 - 与RecordsView保持一致的横向布局
+            if let pets = record.pets, !pets.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(pets.count == 1 ? String(localized: "Pet") : String(localized: "Pets"))
+                        .font(.appHeadline)
+                        .foregroundColor(textColor)
+                    
+                    // 使用与RecordsView相同的宠物展示逻辑
+                    petInfoSection(pets: pets)
                 }
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(isEditing ? Color(UIColor.systemGray6) : Color.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
     }
     
-    /// 备注卡片
-    private var notesCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "note.text")
-                    .foregroundColor(accentColor)
-                Text(String(localized: "Notes"))
-                    .font(.headline)
-                    .foregroundColor(textColor)
+    /// 宠物信息区域 - 与RecordsView保持一致
+    @ViewBuilder
+    private func petInfoSection(pets: [Pet]) -> some View {
+        if pets.count == 1 {
+            // 单宠物：显示头像 + 名字
+            HStack(spacing: 8) {
+                petAvatarView(pet: pets[0], size: 24)
+                
+                Text(pets[0].name)
+                    .font(.appCaption)
+                    .foregroundColor(labelColor)
+                    .lineLimit(1)
+                
                 Spacer()
             }
+        } else {
+            // 多宠物：横向排列头像，可略带重叠效果
+            HStack(spacing: -4) { // 负间距创造重叠效果
+                ForEach(pets.prefix(4)) { pet in // 最多显示4个头像
+                    petAvatarView(pet: pet, size: 24)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 1) // 白色边框分离重叠的头像
+                        )
+                }
+                
+                // 如果宠物数量超过4个，显示数量标识
+                if pets.count > 4 {
+                    Text("+\(pets.count - 4)")
+                        .font(.caption2)
+                        .foregroundColor(labelColor)
+                        .fontWeight(.medium)
+                        .frame(width: 24, height: 24)
+                        .background(
+                            Circle()
+                                .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: 1)
+                                )
+                        )
+                }
+                
+                Spacer()
+            }
+        }
+    }
+    
+    /// 宠物头像视图
+    @ViewBuilder
+    private func petAvatarView(pet: Pet, size: CGFloat) -> some View {
+        if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size, height: size)
+                .clipShape(Circle())
+        } else {
+            ZStack {
+                Circle()
+                    .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                    .frame(width: size, height: size)
+                
+                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.7, height: size * 0.7)
+            }
+        }
+    }
+    
+    /// 备注卡片 - 去图标化，统一编辑样式
+    private var notesCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(String(localized: "Notes"))
+                .font(.appHeadline)
+                .foregroundColor(textColor)
             
             if isEditing {
-                TextEditor(text: $editedNotes)
-                    .foregroundColor(textColor)
-                    .frame(minHeight: 100)
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(UIColor.systemGray6))
-                    )
+                ZStack(alignment: .topLeading) {
+                    // 背景容器
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white)
+                        .frame(minHeight: 100)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    
+                    // TextEditor
+                    TextEditor(text: $editedNotes)
+                        .foregroundColor(textColor)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .background(Color.clear)
+                        .colorScheme(.light)
+                    
+                    // 情感化占位符
+                    if editedNotes.isEmpty {
+                        Text("What's a sweet memory you made just now?")
+                            .font(.appBody)
+                            .foregroundColor(labelColor.opacity(0.7))
+                            .italic()
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .allowsHitTesting(false)
+                    }
+                }
             } else {
                 if let notes = record.notes, !notes.isEmpty {
                     Text(notes)
-                        .font(.body)
+                        .font(.appBody)
                         .foregroundColor(textColor)
                 } else {
                     Text(String(localized: "No notes"))
-                        .font(.body)
+                        .font(.appBody)
                         .foregroundColor(labelColor)
                         .italic()
                 }
@@ -262,121 +303,166 @@ struct RecordDetailView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(isEditing ? Color(UIColor.systemGray6) : Color.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
     }
     
-    /// 照片卡片
-    private func photosCard(photos: [RecordPhoto]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "photo")
-                    .foregroundColor(accentColor)
-                Text(String(localized: "Photos"))
-                    .font(.headline)
-                    .foregroundColor(textColor)
-                Spacer()
-                
-                if isEditing {
-                    PhotosPicker(selection: $selectedItems, matching: .images) {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(accentColor)
-                            .font(.title2)
-                    }
-                }
-            }
-            
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
-                ForEach(photos) { photo in
-                    if let uiImage = UIImage(data: photo.photoData) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 100, height: 100)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .overlay(
-                                Group {
-                                    if isEditing {
-                                        Button {
-                                            deletePhoto(photo)
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.white)
-                                                .background(Circle().fill(Color.red))
-                                        }
-                                        .padding(5)
-                                    }
-                                },
-                                alignment: .topTrailing
-                            )
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        )
-        .onChange(of: selectedItems) { oldValue, newValue in
-            Task {
-                for item in newValue {
-                    if let data = try? await item.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
-                        await MainActor.run {
-                            newPhotos.append(image)
+    /// 照片卡片 - 去图标化，统一管理新旧照片
+    @ViewBuilder
+    private var photosCard: some View {
+        let allPhotos = getAllPhotos()
+        
+        // 只在有照片或者编辑模式时显示卡片
+        if !allPhotos.isEmpty || isEditing {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(String(localized: "Photos"))
+                        .font(.appHeadline)
+                        .foregroundColor(textColor)
+                    Spacer()
+                    
+                    if isEditing {
+                        PhotosPicker(selection: $selectedItems, matching: .images) {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(accentColor)
+                                .font(.title2)
                         }
                     }
                 }
-                selectedItems.removeAll()
+                
+                if !allPhotos.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
+                        ForEach(Array(allPhotos.enumerated()), id: \.offset) { index, photoItem in
+                            photoGridItem(photoItem: photoItem, index: index)
+                        }
+                    }
+                } else if isEditing {
+                    // 编辑模式下的空状态提示
+                    Text(String(localized: "Add photos to capture this moment"))
+                        .font(.appBody)
+                        .foregroundColor(labelColor)
+                        .italic()
+                        .padding(.vertical, 20)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isEditing ? Color(UIColor.systemGray6) : Color.white)
+                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            )
+            .onChange(of: selectedItems) { oldValue, newValue in
+                Task {
+                    for item in newValue {
+                        if let data = try? await item.loadTransferable(type: Data.self),
+                           let image = UIImage(data: data) {
+                            await MainActor.run {
+                                newPhotos.append((id: UUID(), image: image))
+                            }
+                        }
+                    }
+                    selectedItems.removeAll()
+                }
             }
         }
     }
     
-    /// 新照片卡片
-    private var newPhotosCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "photo.badge.plus")
-                    .foregroundColor(accentColor)
-                Text(String(localized: "New Photos"))
-                    .font(.headline)
-                    .foregroundColor(textColor)
-                Spacer()
-            }
-            
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
-                ForEach(0..<newPhotos.count, id: \.self) { index in
-                    Image(uiImage: newPhotos[index])
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 100, height: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            Button {
-                                newPhotos.remove(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.white)
-                                    .background(Circle().fill(Color.red))
-                            }
-                            .padding(5),
-                            alignment: .topTrailing
-                        )
-                }
-            }
+    // MARK: - 照片管理辅助方法
+    
+    /// 照片项目类型
+    enum PhotoItem {
+        case existing(RecordPhoto)
+        case new(id: UUID, image: UIImage)
+    }
+    
+    /// 获取所有照片（现有 + 新增）
+    private func getAllPhotos() -> [PhotoItem] {
+        var allPhotos: [PhotoItem] = []
+        
+        // 添加现有照片
+        if let photos = record.photos {
+            allPhotos.append(contentsOf: photos.map { .existing($0) })
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(UIColor.systemYellow).opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color(UIColor.systemYellow), lineWidth: 1)
-                )
-        )
+        
+        // 添加新增照片
+        for photoItem in newPhotos {
+            allPhotos.append(.new(id: photoItem.id, image: photoItem.image))
+        }
+        
+        return allPhotos
+    }
+    
+    /// 照片网格项
+    @ViewBuilder
+    private func photoGridItem(photoItem: PhotoItem, index: Int) -> some View {
+        switch photoItem {
+        case .existing(let recordPhoto):
+            if let image = UIImage(data: recordPhoto.photoData) {
+                photoImageView(image: image, isNewPhoto: false, photoItem: photoItem)
+            }
+        case .new(_, let uiImage):
+            photoImageView(image: uiImage, isNewPhoto: true, photoItem: photoItem)
+        }
+    }
+    
+    /// 照片图像视图
+    @ViewBuilder
+    private func photoImageView(image: UIImage, isNewPhoto: Bool, photoItem: PhotoItem) -> some View {
+        Image(uiImage: image)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 100, height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                Group {
+                    if isEditing {
+                        Button {
+                            deletePhotoItem(photoItem)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.white)
+                                .background(Circle().fill(Color.red))
+                        }
+                        .padding(5)
+                    }
+                    
+                    // 新照片标识
+                    if isNewPhoto && !isEditing {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Text("NEW")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.orange)
+                                    )
+                                    .padding(.trailing, 8)
+                                    .padding(.bottom, 8)
+                            }
+                        }
+                    }
+                },
+                alignment: .topTrailing
+            )
+    }
+    
+    /// 删除照片项
+    private func deletePhotoItem(_ photoItem: PhotoItem) {
+        switch photoItem {
+        case .existing(let recordPhoto):
+            deletePhoto(recordPhoto)
+        case .new(let id, _):
+            // 通过UUID精确删除
+            newPhotos.removeAll { $0.id == id }
+        }
     }
     
     // MARK: - 辅助方法
@@ -414,8 +500,8 @@ struct RecordDetailView: View {
             record.updatedAt = Date()
             
             // 添加新照片
-            for image in newPhotos {
-                if let imageData = image.jpegData(compressionQuality: 0.5) {
+            for photoItem in newPhotos {
+                if let imageData = photoItem.image.jpegData(compressionQuality: 0.5) {
                     RecordService.addPhotoToRecord(record: record, photoData: imageData, modelContext: modelContext)
                 }
             }
