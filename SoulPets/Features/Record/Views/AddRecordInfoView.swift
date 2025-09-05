@@ -20,7 +20,7 @@ struct AddRecordInfoView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 24) { // 增加间距让布局更呼吸
                 // 日期和时间选择器
                 dateTimeSection
                 
@@ -33,7 +33,7 @@ struct AddRecordInfoView: View {
                 // 花费输入框（为未来功能预留）
                 costSection
             }
-            .padding(.vertical)
+            .padding(.vertical, 20) // 增加垂直padding
         }
         .onChange(of: selectedItems) { oldValue, newValue in
             Task {
@@ -62,11 +62,11 @@ struct AddRecordInfoView: View {
     
     // MARK: - 子视图组件
     
-    /// 日期和时间选择器部分
+    /// 日期和时间选择器部分 - 情感化优化
     private var dateTimeSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Date & Time"))
-                .font(.headline)
+                .font(.appHeadline) // 统一醒目的标题字体
                 .foregroundColor(textColor)
             
             DatePicker("", selection: $viewModel.recordDate)
@@ -86,44 +86,68 @@ struct AddRecordInfoView: View {
         .padding(.horizontal)
     }
     
-    /// 备注输入框部分
+    /// 备注输入框部分 - 情感化优化
     private var notesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Notes"))
-                .font(.headline)
+                .font(.appHeadline) // 统一醒目的标题字体
                 .foregroundColor(textColor)
             
-            TextEditor(text: $viewModel.recordNotes)
-                .foregroundColor(textColor)
-                .frame(minHeight: 100)
-                .padding()
-                .background(Color.white) // 直接设置白色背景
-                .colorScheme(.light) // 强制使用浅色模式
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            ZStack(alignment: .topLeading) {
+                // 背景容器
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white)
+                    .frame(minHeight: 100)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                
+                // TextEditor
+                TextEditor(text: $viewModel.recordNotes)
+                    .foregroundColor(textColor)
+                    .frame(minHeight: 100)
+                    .padding()
+                    .background(Color.clear)
+                    .colorScheme(.light)
+                
+                // 情感化占位符
+                if viewModel.recordNotes.isEmpty {
+                    Text("What's a sweet memory you made just now?")
+                        .font(.appBody) // 使用温暖的字体样式
+                        .foregroundColor(labelColor.opacity(0.7))
+                        .italic()
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        .allowsHitTesting(false) // 允许点击穿透到TextEditor
+                }
+            }
         }
         .padding(.horizontal)
     }
     
-    /// 照片选择器部分
+    /// 照片选择器部分 - 情感化优化
     private var photosSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(String(localized: "Photos"))
-                    .font(.headline)
+                    .font(.appHeadline) // 统一醒目的标题字体
                     .foregroundColor(textColor)
                 
                 Spacer()
                 
-                // 显示照片限制提示
+                // 显示照片限制提示 - 精致字体
                 if !UserPreferencesService.shared.isProMember {
-                    Text("Max \(UserPreferencesService.shared.maxPhotosPerRecord)")
-                        .font(.caption)
-                        .foregroundColor(labelColor)
+                    HStack(spacing: 2) {
+                        Text("Max")
+                            .font(.appCaption2)
+                            .foregroundColor(labelColor)
+                        Text("\(UserPreferencesService.shared.maxPhotosPerRecord)")
+                            .font(.appCaption2)
+                            .fontWeight(.semibold) // 数字突出显示
+                            .foregroundColor(labelColor)
+                    }
                 }
             }
             
@@ -139,7 +163,7 @@ struct AddRecordInfoView: View {
                         .font(.system(size: 16))
                     Text(String(localized: "Add Photos"))
                         .foregroundColor(accentColor)
-                        .font(.body)
+                        .font(.appBody)
                     Spacer()
                     Image(systemName: "plus.circle.fill")
                         .foregroundColor(accentColor)
@@ -149,20 +173,21 @@ struct AddRecordInfoView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
+                    // 情感化背景 - 温馨的邀请感
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(accentColor, style: StrokeStyle(lineWidth: 1, dash: [5]))
-                        .background(
+                        .fill(accentColor.opacity(0.05))
+                        .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white.opacity(0.5))
+                                .stroke(accentColor.opacity(0.2), lineWidth: 1)
                         )
                 )
             }
             .buttonStyle(PlainButtonStyle())
             
-            // 非会员限制提示
+            // 非会员限制提示 - 精致字体
             if !UserPreferencesService.shared.isProMember && viewModel.recordPhotos.count >= UserPreferencesService.shared.maxPhotosPerRecord {
                 Text(String(localized: "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos."))
-                    .font(.caption)
+                    .font(.appFootnote) // Pro提示使用appFootnote
                     .foregroundColor(.orange)
                     .padding(.top, 4)
             }
@@ -202,19 +227,19 @@ struct AddRecordInfoView: View {
         }
     }
     
-    /// 花费输入框部分（为未来功能预留）
+    /// 花费输入框部分 - 情感化优化（为未来功能预留）
     private var costSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(String(localized: "Cost"))
-                    .font(.headline)
+                    .font(.appHeadline) // 统一醒目的标题字体
                     .foregroundColor(textColor)
                 
                 Button(action: {
                     showingProInfoAlert = true
                 }) {
                     Image(systemName: "info.circle")
-                        .font(.caption)
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(accentColor)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -222,15 +247,34 @@ struct AddRecordInfoView: View {
                 Spacer()
             }
             
-            TextField("0.00", text: $viewModel.recordCost)
-                .keyboardType(.decimalPad)
-                .foregroundColor(textColor)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white) // 强制使用白色背景
-                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                )
+            ZStack(alignment: .leading) {
+                // 背景容器
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white)
+                    .frame(height: 48)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                
+                // 输入框
+                TextField("", text: $viewModel.recordCost)
+                    .keyboardType(.decimalPad)
+                    .foregroundColor(textColor)
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                    .background(Color.clear)
+                
+                // 精致的占位符
+                if viewModel.recordCost.isEmpty {
+                    Text("0.00")
+                        .foregroundColor(labelColor.opacity(0.6)) // 占位符使用labelColor
+                        .font(.appBody)
+                        .padding(.horizontal, 16)
+                        .allowsHitTesting(false)
+                }
+            }
         }
         .padding(.horizontal)
     }
