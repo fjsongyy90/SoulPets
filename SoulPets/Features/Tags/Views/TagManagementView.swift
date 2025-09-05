@@ -11,9 +11,9 @@ struct TagManagementView: View {
     // 调试日志
     private let logger = Logger(subsystem: "com.soulpets.app", category: "TagManagementView")
     
-    // 颜色定义
-    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
-    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    // 颜色定义 - 使用统一的应用颜色
+    private let backgroundColor = Color.appBackground
+    private let accentColor = Color.appAccent
     
     // MARK: - 初始化
     init(modelContext: ModelContext) {
@@ -40,7 +40,8 @@ struct TagManagementView: View {
                     Button(String(localized: "Done")) {
                         dismiss()
                     }
-                    .foregroundColor(accentColor)
+                    .font(.appBody)
+                    .foregroundColor(.appAccent)
                 }
             }
             .alert(String(localized: "Error"), isPresented: .constant(viewModel.errorMessage != nil)) {
@@ -104,10 +105,8 @@ struct TagManagementView: View {
                 }
             }
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
     
     private func petTypeButton(_ petType: PetType) -> some View {
@@ -118,89 +117,78 @@ struct TagManagementView: View {
                 Image(petType == .cat ? "pet_cat" : "pet_dog")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24, height: 24)
+                    .frame(width: 28, height: 28)
                 Text(petType.rawValue)
                     .font(.appBody)
                 Spacer()
-                if viewModel.selectedPetType == petType {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(accentColor)
-                }
             }
-            .padding()
+            .padding(12)
             .background(
                 viewModel.selectedPetType == petType ? 
-                accentColor.opacity(0.1) : Color.gray.opacity(0.05)
+                Color.appAccent.opacity(0.1) : Color.black.opacity(0.05)
             )
-            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        viewModel.selectedPetType == petType ? 
+                        Color.appAccent : Color.clear, 
+                        lineWidth: 1.5
+                    )
+            )
+            .cornerRadius(12)
         }
-        .foregroundColor(.primary)
+        .foregroundColor(viewModel.selectedPetType == petType ? .primary : .secondary)
     }
     
     private var tagsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(viewModel.sortedCategories, id: \.self) { category in
-                    categorySection(category)
+        List {
+            ForEach(viewModel.sortedCategories, id: \.self) { category in
+                Section {
+                    if let tags = viewModel.tagsByCategory[category] {
+                        ForEach(tags, id: \.id) { tag in
+                            TagItemManagementView(
+                                tag: tag,
+                                onToggleReminder: {
+                                    logger.info("点击提醒开关 - 标签: \(tag.name)")
+                                    viewModel.toggleReminderAvailability(for: tag)
+                                },
+                                onToggleVisibility: {
+                                    logger.info("点击可见性开关 - 标签: \(tag.name)")
+                                    viewModel.toggleVisibility(for: tag)
+                                },
+                                usageStats: viewModel.getUsageStats(for: tag),
+                                isHidden: viewModel.isTagHidden(tag)
+                            )
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        }
+                        .onMove { source, destination in
+                            logger.info("🎯 开始拖动操作 - 分类: \(category.rawValue)")
+                            logger.info("🎯 源索引: \(source.description), 目标索引: \(destination)")
+                            viewModel.reorderTags(in: category, from: source, to: destination)
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text(viewModel.getCategoryTitle(category))
+                            .font(.appHeadline)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        Text("\(viewModel.tagsByCategory[category]?.count ?? 0) tags")
+                            .font(.appCaption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 16)
+                    .textCase(.none)
                 }
             }
-            .padding()
         }
-    }
-    
-    private func categorySection(_ category: TagCategory) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 分类标题
-            HStack {
-                Text(viewModel.getCategoryTitle(category))
-                    .font(.appHeadline)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Text("\(viewModel.tagsByCategory[category]?.count ?? 0) tags")
-                    .font(.appCaption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.horizontal)
-            
-            // 标签列表 - 使用List来支持拖动功能
-            if let tags = viewModel.tagsByCategory[category] {
-                List {
-                    ForEach(tags, id: \.id) { tag in
-                        TagItemManagementView(
-                            tag: tag,
-                            onToggleReminder: {
-                                logger.info("点击提醒开关 - 标签: \(tag.name)")
-                                viewModel.toggleReminderAvailability(for: tag)
-                            },
-                            onToggleVisibility: {
-                                logger.info("点击可见性开关 - 标签: \(tag.name)")
-                                viewModel.toggleVisibility(for: tag)
-                            },
-                            usageStats: viewModel.getUsageStats(for: tag),
-                            isHidden: viewModel.isTagHidden(tag)
-                        )
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                    }
-                    .onMove { source, destination in
-                        logger.info("🎯 开始拖动操作 - 分类: \(category.rawValue)")
-                        logger.info("🎯 源索引: \(source.description), 目标索引: \(destination)")
-                        viewModel.reorderTags(in: category, from: source, to: destination)
-                    }
-                }
-                .listStyle(PlainListStyle())
-                .scrollDisabled(true)
-                .frame(height: CGFloat(tags.count * 70)) // 根据标签数量动态设置高度
-                .background(Color.white)
-                .cornerRadius(12)
-            }
-        }
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .listStyle(PlainListStyle())
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
     }
     
     private var emptyStateView: some View {
@@ -227,20 +215,25 @@ struct TagManagementView: View {
             // 未来实现Pro功能
         }) {
             HStack {
-                Image(systemName: "plus.circle")
+                Image(systemName: "plus")
                     .font(.title2)
                 Text(String(localized: "Add Custom Tag (Pro)"))
                     .font(.appBody)
                 Spacer()
                 Image(systemName: "crown.fill")
-                    .foregroundColor(.yellow)
+                    .foregroundColor(Color(hex: "FFD700"))
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.appAccent.opacity(0.1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.appAccent.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [5]))
+            )
             .cornerRadius(12)
         }
         .disabled(true)
-        .foregroundColor(.gray)
+        .foregroundColor(.appAccent)
     }
 }
 

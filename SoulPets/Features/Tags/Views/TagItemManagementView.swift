@@ -9,8 +9,8 @@ struct TagItemManagementView: View {
     let usageStats: (recordCount: Int, reminderCount: Int)
     let isHidden: Bool
     
-    // 颜色定义
-    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    // 颜色定义 - 使用统一的应用颜色
+    private let accentColor = Color.appAccent
     
     // 调试日志
     private let logger = Logger(subsystem: "com.soulpets.app", category: "TagItemManagement")
@@ -18,6 +18,9 @@ struct TagItemManagementView: View {
     // MARK: - 视图
     var body: some View {
         HStack(spacing: 12) {
+            // 拖拽手柄
+            dragHandle
+            
             // 标签信息
             tagInfo
             
@@ -26,14 +29,8 @@ struct TagItemManagementView: View {
             // 控制按钮（右边）
             controlButtons
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(isHidden ? Color.gray.opacity(0.1) : Color.white)
-        .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isHidden ? Color.gray.opacity(0.3) : Color.clear, lineWidth: 1)
-        )
+        .padding(.vertical, 12)
+        .background(Color.clear)
         .opacity(isHidden ? 0.6 : 1.0)
         .onAppear {
             // 添加调试日志
@@ -46,7 +43,7 @@ struct TagItemManagementView: View {
     private var dragHandle: some View {
         Image(systemName: "line.horizontal.3")
             .font(.caption)
-            .foregroundColor(.gray)
+            .foregroundColor(.gray.opacity(0.5))
             .frame(width: 20)
     }
     
@@ -60,8 +57,7 @@ struct TagItemManagementView: View {
                 // 标签名称
                 HStack {
                     Text(tag.name)
-                        .font(.body)
-                        .fontWeight(.medium)
+                        .font(.appBody)
                         .foregroundColor(isHidden ? .gray : .primary)
                         .strikethrough(isHidden)
                 }
@@ -75,16 +71,10 @@ struct TagItemManagementView: View {
     }
     
     private var tagIcon: some View {
-        ZStack {
-            Circle()
-                .fill(isHidden ? Color.gray.opacity(0.2) : accentColor.opacity(0.1))
-                .frame(width: 32, height: 32)
-            Image(tag.iconName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 24, height: 24)
-                .clipShape(Circle())
-        }
+        Image(tag.iconName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 44, height: 44)
     }
     
     private var usageStatsView: some View {
@@ -112,7 +102,7 @@ struct TagItemManagementView: View {
     }
     
     private var controlButtons: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 20) {
             // 提醒可用性开关
             reminderToggle
             
@@ -122,31 +112,19 @@ struct TagItemManagementView: View {
     }
     
     private var reminderToggle: some View {
-        VStack(spacing: 2) {
-            Button(action: onToggleReminder) {
-                Image(systemName: tag.defaultIsReminder ? "bell.fill" : "bell.slash")
-                    .font(.system(size: 16))
-                    .foregroundColor(tag.defaultIsReminder ? accentColor : .gray)
-            }
-            .disabled(isHidden)
-            
-            Text(String(localized: "Reminder"))
-                .font(.caption2)
-                .foregroundColor(.secondary)
+        Button(action: onToggleReminder) {
+            Image(systemName: tag.defaultIsReminder ? "bell.fill" : "bell.slash")
+                .font(.system(size: 18))
+                .foregroundColor(tag.defaultIsReminder ? .appAccent : .gray)
         }
+        .disabled(isHidden)
     }
     
     private var visibilityToggle: some View {
-        VStack(spacing: 2) {
-            Button(action: onToggleVisibility) {
-                Image(systemName: isHidden ? "eye.slash" : "eye")
-                    .font(.system(size: 16))
-                    .foregroundColor(isHidden ? .gray : accentColor)
-            }
-            
-            Text(String(localized: "Visible"))
-                .font(.caption2)
-                .foregroundColor(.secondary)
+        Button(action: onToggleVisibility) {
+            Image(systemName: isHidden ? "eye.slash" : "eye")
+                .font(.system(size: 18))
+                .foregroundColor(isHidden ? .gray : .appAccent)
         }
     }
     
@@ -270,5 +248,5 @@ struct TagItemManagementView: View {
         )
     }
     .padding()
-    .background(Color(red: 0.98, green: 0.97, blue: 0.94))
+    .background(Color.appBackground)
 } 
