@@ -59,10 +59,26 @@ struct WeightHistoryListView: View {
                                 showingDeleteAlert = true
                             }
                             .tint(.appError)
+                            Button(String(localized: "Edit")) {
+                                    weightToEdit = weight
+                                }
+                                .tint(.blue) // 可以给编辑按钮一个不同的颜色
                         }
-                        .onTapGesture {
-                            // 单击整行进入编辑模式
-                            weightToEdit = weight
+                        .contextMenu {
+                            // 编辑按钮
+                            Button {
+                                weightToEdit = weight
+                            } label: {
+                                Label(String(localized: "Edit"), systemImage: "pencil")
+                            }
+                            
+                            // 删除按钮
+                            Button(role: .destructive) {
+                                weightToDelete = weight
+                                showingDeleteAlert = true
+                            } label: {
+                                Label(String(localized: "Delete"), systemImage: "trash")
+                            }
                         }
                     
                     // 分割线（最后一项不显示）
@@ -107,11 +123,6 @@ struct WeightHistoryListView: View {
                     }
                 }
             }
-            
-            // 编辑按钮（保留为视觉提示）
-            Image(systemName: "chevron.right")
-                .font(.appCaption)
-                .foregroundColor(.appTextSecondary.opacity(0.6))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
