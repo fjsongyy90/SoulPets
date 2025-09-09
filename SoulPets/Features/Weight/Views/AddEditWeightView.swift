@@ -91,6 +91,14 @@ struct AddEditWeightView: View {
                     .foregroundColor(isFormValid ? Color.appAccent : Color.appTextSecondary)
                     .disabled(!isFormValid)
                 }
+                ToolbarItemGroup(placement: .keyboard) {
+                            Spacer() // 将按钮推到右侧
+                            
+                            Button(String(localized: "Done")) {
+                                weightFieldFocused = false // 点击“完成”按钮，取消焦点
+                            }
+                            .foregroundColor(Color.appAccent)
+                        }
             }
             .alert(
                 String(localized: "Validation Error"),
@@ -255,7 +263,7 @@ struct AddEditWeightView: View {
                 
                 Spacer()
             }
-            
+        
             // 简化的日期选择器 - 作为核心元素
             DatePicker(
                 String(localized: "Weigh Date"),
@@ -267,6 +275,13 @@ struct AddEditWeightView: View {
             .accentColor(Color.appAccent)
             .font(.system(size: 16, weight: .medium))
             .foregroundColor(Color.appTextPrimary)
+            // --- 新增代码开始 ---
+            .contentShape(Rectangle()) // 确保整个区域都可以响应点击
+            .onTapGesture {
+                // 在点击日期选择器时，明确地取消文本框的焦点
+                weightFieldFocused = false
+            }
+            // --- 新增代码结束 ---
         }
         .padding(20)
         .background(Color.cardBackground)
