@@ -10,6 +10,7 @@ struct AddEditWeightView: View {
     let weightToEdit: Weight?
     
     @State private var weightValue: String = ""
+    @FocusState private var weightFieldFocused: Bool
     @State private var selectedUnit: WeightUnit = .kg
     @State private var selectedDate: Date = Date()
     @State private var showingValidationError = false
@@ -101,6 +102,10 @@ struct AddEditWeightView: View {
             }
             .onAppear {
                 setupInitialValues()
+                // 确保视图加载完成后再聚焦，触发键盘弹起
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    weightFieldFocused = true
+                }
             }
         }
     }
@@ -166,6 +171,7 @@ struct AddEditWeightView: View {
                     .keyboardType(.decimalPad)
                     .font(.system(size: 36, weight: .medium, design: .rounded)) // 大号字体作为视觉焦点
                     .multilineTextAlignment(.center)
+                    .focused($weightFieldFocused)
                     .padding(.vertical, 20)
                     .background(Color.appBackground)
                     .overlay(
