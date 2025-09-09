@@ -9,15 +9,6 @@ enum WeightChartTimeRange: String, CaseIterable {
     case oneYear = "1 Year"
     case all = "All"
     
-    var days: Int? {
-        switch self {
-        case .threeMonths: return 90
-        case .sixMonths: return 180
-        case .oneYear: return 365
-        case .all: return nil
-        }
-    }
-    
     var localizedString: String {
         switch self {
         case .threeMonths: return String(localized: "3 Months")
@@ -69,13 +60,13 @@ class WeightViewModel: ObservableObject {
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 1
         formatter.positivePrefix = "+"
+        formatter.negativePrefix = "-"
         
         let unit = selectedPet?.weightUnitPreference ?? .kg
         let trendValue = unit == .kg ? trend : trend * 2.20462
         
-        if let formattedValue = formatter.string(from: NSNumber(value: abs(trendValue))) {
-            let arrow = trend > 0 ? "↑" : "↓"
-            return "\(arrow) \(formattedValue) \(unit.rawValue)"
+        if let formattedValue = formatter.string(from: NSNumber(value: trendValue)) {
+            return "\(formattedValue) \(unit.rawValue)"
         }
         
         return "--"
@@ -164,16 +155,31 @@ class WeightViewModel: ObservableObject {
     /// 图表数据（根据选择的时间范围显示）
     var chartData: [Weight] {
         let filteredEntries: [Weight]
+        let calendar = Calendar.current
         
-        if let days = self.selectedTimeRange.days {
-            // 根据时间范围过滤
-            let calendar = Calendar.current
-            if let startDate = calendar.date(byAdding: .day, value: -days, to: Date()) {
+        switch selectedTimeRange {
+        case .threeMonths:
+            // 3个月前的同一天
+            if let startDate = calendar.date(byAdding: .month, value: -3, to: Date()) {
                 filteredEntries = self.weightEntries.filter { $0.date >= startDate }
             } else {
                 filteredEntries = self.weightEntries
             }
-        } else {
+        case .sixMonths:
+            // 6个月前的同一天
+            if let startDate = calendar.date(byAdding: .month, value: -6, to: Date()) {
+                filteredEntries = self.weightEntries.filter { $0.date >= startDate }
+            } else {
+                filteredEntries = self.weightEntries
+            }
+        case .oneYear:
+            // 1年前的同一天
+            if let startDate = calendar.date(byAdding: .year, value: -1, to: Date()) {
+                filteredEntries = self.weightEntries.filter { $0.date >= startDate }
+            } else {
+                filteredEntries = self.weightEntries
+            }
+        case .all:
             // 显示全部数据
             filteredEntries = self.weightEntries
         }

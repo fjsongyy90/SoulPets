@@ -74,11 +74,18 @@ struct WeightView: View {
             .sheet(isPresented: $showingAddPet) {
                 AddPetView(modelContext: modelContext)
                     .onDisappear {
-                        // 添加宠物后切换到主页tab
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        // 延迟刷新，避免闪烁，并且只在有新宠物时刷新
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            // 检查是否有新的宠物被添加
+                            if let firstPet = allPets.first, viewModel.selectedPet == nil {
+                                appState.setSelectedPet(firstPet)
+                                viewModel.loadWeightData(for: firstPet, modelContext: modelContext)
+                            }
+                            
+                            // 切换到主页tab
                             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                                let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController {
-                                tabBarController.selectedIndex = 0 // 切换到主页
+                                tabBarController.selectedIndex = 0
                             }
                         }
                     }

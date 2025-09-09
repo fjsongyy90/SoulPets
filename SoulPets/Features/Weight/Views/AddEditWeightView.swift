@@ -250,36 +250,17 @@ struct AddEditWeightView: View {
                 Spacer()
             }
             
-            // 日期选择器容器
-            VStack(spacing: 12) {
-                // 当前选择的日期显示
-                HStack {
-                    Text(String(localized: "Weigh Date"))
-                        .font(.subheadline)
-                        .foregroundColor(Color.appTextSecondary)
-                    
-                    Spacer()
-                    
-                    Text(formattedSelectedDate)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color.appTextPrimary)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Color.appBackground)
-                .cornerRadius(10)
-                
-                // DatePicker
-                DatePicker(
-                    "",
-                    selection: $selectedDate,
-                    in: ...Date(),
-                    displayedComponents: [.date]
-                )
-                .datePickerStyle(CompactDatePickerStyle())
-                .accentColor(Color.appAccent)
-                .labelsHidden()
-            }
+            // 简化的日期选择器 - 作为核心元素
+            DatePicker(
+                String(localized: "Weigh Date"),
+                selection: $selectedDate,
+                in: ...Date(),
+                displayedComponents: [.date]
+            )
+            .datePickerStyle(CompactDatePickerStyle())
+            .accentColor(Color.appAccent)
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(Color.appTextPrimary)
         }
         .padding(20)
         .background(Color.cardBackground)

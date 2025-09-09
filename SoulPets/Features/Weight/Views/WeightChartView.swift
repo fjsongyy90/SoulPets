@@ -38,23 +38,31 @@ struct WeightChartView: View {
         }
     }
     
-    /// 时间范围选择器
+    /// 时间范围选择器 - 单个下拉按钮
     private var timeRangeSelector: some View {
-        HStack(spacing: 8) {
-            ForEach(WeightChartTimeRange.allCases, id: \.self) { range in
-                Button {
-                    viewModel.selectedTimeRange = range
-                } label: {
-                    Text(range.localizedString)
-                        .font(.appCaption)
-                        .foregroundColor(viewModel.selectedTimeRange == range ? .white : .appTextPrimary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(viewModel.selectedTimeRange == range ? .appAccent : Color.gray.opacity(0.1))
-                        )
+        HStack {
+            Menu {
+                ForEach(WeightChartTimeRange.allCases, id: \.self) { range in
+                    Button {
+                        viewModel.selectedTimeRange = range
+                    } label: {
+                        Text(range.localizedString)
+                    }
                 }
+            } label: {
+                HStack(spacing: 8) {
+                    Text(viewModel.selectedTimeRange.localizedString)
+                        .font(.appCaption)
+                        .foregroundColor(.appTextPrimary)
+                    
+                    Image(systemName: "chevron.down")
+                        .font(.appCaption2)
+                        .foregroundColor(.appTextSecondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(20) // 胶囊形状
             }
             
             Spacer()
@@ -110,6 +118,7 @@ struct WeightChartView: View {
             )
             .foregroundStyle(Color.appAccent)
             .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+            .interpolationMethod(.cardinal)
             
             // 数据点
             PointMark(
