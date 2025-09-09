@@ -52,34 +52,10 @@ struct WeightHistoryListView: View {
         LazyVStack(spacing: 0) {
             ForEach(Array(viewModel.weightEntries.enumerated()), id: \.element.id) { index, weight in
                 VStack(spacing: 0) {
+                    // --- MODIFICATION START ---
+                    // 移除了 .swipeActions 和 .contextMenu，因为操作已移入行内的按钮
                     weightHistoryRowLight(weight: weight)
-                        .swipeActions(edge: .trailing) {
-                            Button(String(localized: "Delete")) {
-                                weightToDelete = weight
-                                showingDeleteAlert = true
-                            }
-                            .tint(.appError)
-                            Button(String(localized: "Edit")) {
-                                    weightToEdit = weight
-                                }
-                                .tint(.blue) // 可以给编辑按钮一个不同的颜色
-                        }
-                        .contextMenu {
-                            // 编辑按钮
-                            Button {
-                                weightToEdit = weight
-                            } label: {
-                                Label(String(localized: "Edit"), systemImage: "pencil")
-                            }
-                            
-                            // 删除按钮
-                            Button(role: .destructive) {
-                                weightToDelete = weight
-                                showingDeleteAlert = true
-                            } label: {
-                                Label(String(localized: "Delete"), systemImage: "trash")
-                            }
-                        }
+                    // --- MODIFICATION END ---
                     
                     // 分割线（最后一项不显示）
                     if index < viewModel.weightEntries.count - 1 {
@@ -96,10 +72,15 @@ struct WeightHistoryListView: View {
     private func weightHistoryRowLight(weight: Weight) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(weight.formattedWeight())
-                    .font(.appBody)
-                    .fontWeight(.medium)
-                    .foregroundColor(.appTextPrimary)
+                // --- MODIFICATION START ---
+                // 1. 在体重数值后拼接单位
+                if let pet = weight.pet {
+                    Text("\(weight.formattedWeight()) \(pet.weightUnitPreference.rawValue)")
+                        .font(.appBody)
+                        .fontWeight(.medium)
+                        .foregroundColor(.appTextPrimary)
+                }
+                // --- MODIFICATION END ---
                 
                 Text(weight.date, style: .date)
                     .font(.appCaption)
@@ -123,11 +104,37 @@ struct WeightHistoryListView: View {
                     }
                 }
             }
+            
+            // --- MODIFICATION START ---
+            // 2. 添加“更多”操作按钮
+            Menu {
+                // 编辑按钮
+                Button {
+                    weightToEdit = weight
+                } label: {
+                    Label(String(localized: "Edit"), systemImage: "pencil")
+                }
+                
+                // 删除按钮
+                Button(role: .destructive) {
+                    weightToDelete = weight
+                    showingDeleteAlert = true
+                } label: {
+                    Label(String(localized: "Delete"), systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 16))
+                    .foregroundColor(.appTextSecondary)
+                    .frame(width: 44, height: 44, alignment: .trailing) // 增大点击区域
+            }
+            // --- MODIFICATION END ---
         }
-        .padding(.horizontal, 16)
+        .padding(.leading, 16)
+        // 右侧内边距设为0，让按钮可以紧贴边缘，视觉上更好对齐
+        .padding(.trailing, 0)
         .padding(.vertical, 12)
         .background(Color.clear) // 透明背景
-        .contentShape(Rectangle()) // 确保整行可点击
     }
     
     /// 获取前一条体重记录
@@ -138,61 +145,14 @@ struct WeightHistoryListView: View {
         }
         return viewModel.weightEntries[index + 1]
     }
-    
-    /// 体重历史记录行
-    private func weightHistoryRow(_ weight: Weight) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(weight.formattedWeight())
-                    .font(.system(.body, design: .rounded))
-                    .fontWeight(.semibold)
-                    .foregroundColor(.appTextPrimary)
-                
-                Text(weight.date, style: .date)
-                    .font(.appCaption)
-                    .foregroundColor(.appTextSecondary)
-            }
-            
-            Spacer()
-            
-            // 编辑按钮
-            Button {
-                weightToEdit = weight
-            } label: {
-                Image(systemName: "pencil")
-                    .foregroundColor(.appAccent)
-                    .font(.system(size: 16))
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-        .padding()
-        .background(Color.cardBackground)
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
-        .contextMenu {
-            // 编辑按钮
-            Button {
-                weightToEdit = weight
-            } label: {
-                Label(String(localized: "Edit"), systemImage: "pencil")
-            }
-            
-            // 删除按钮
-            Button(role: .destructive) {
-                weightToDelete = weight
-                showingDeleteAlert = true
-            } label: {
-                Label(String(localized: "Delete"), systemImage: "trash")
-            }
-        }
-    }
 }
 
+
 #Preview {
+    // ... Preview 代码保持不变 ...
     let container = try! ModelContainer(for: Pet.self, Weight.self, WeightGoal.self)
     let context = container.mainContext
     
-    // 创建示例数据
     let samplePet = Pet(
         name: "Fluffy",
         petType: .cat,
@@ -205,7 +165,6 @@ struct WeightHistoryListView: View {
     
     context.insert(samplePet)
     
-    // 添加一些示例体重记录
     let weight1 = Weight(date: Date().addingTimeInterval(-86400 * 7), weightInKg: 4.5, pet: samplePet)
     let weight2 = Weight(date: Date().addingTimeInterval(-86400 * 3), weightInKg: 4.3, pet: samplePet)
     let weight3 = Weight(date: Date(), weightInKg: 4.2, pet: samplePet)
