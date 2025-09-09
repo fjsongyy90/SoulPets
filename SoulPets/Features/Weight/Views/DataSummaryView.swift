@@ -10,23 +10,170 @@ struct DataSummaryView: View {
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "DataSummaryView")
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
+            // 上方：两个小卡片并排
             HStack(spacing: 12) {
-                // 当前体重卡片
-                currentWeightCard
+                currentWeightCompactCard
                 
-                // 体重变化卡片
-                weightChangeCard
+                weightChangeCompactCard
             }
             
-            // 体重目标卡片
-            weightGoalCard
+            // 下方：体重目标大卡片（仪表盘）
+            weightGoalDashboard
         }
     }
     
     // MARK: - 子视图
     
-    /// 当前体重卡片
+    /// 当前体重紧凑卡片
+    private var currentWeightCompactCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Current Weight"))
+                .font(.appCaption)
+                .foregroundColor(.appTextSecondary)
+            
+            if let latestWeight = viewModel.latestWeight {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(latestWeight.formattedWeight())
+                        .font(.appTitle2)
+                        .foregroundColor(.appTextPrimary)
+                    
+                    Text(viewModel.latestWeightDateText)
+                        .font(.appCaption2)
+                        .foregroundColor(.appTextSecondary)
+                }
+            } else {
+                Text("--")
+                    .font(.appTitle2)
+                    .foregroundColor(.appTextPrimary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+    }
+    
+    /// 体重变化紧凑卡片
+    private var weightChangeCompactCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Weight Change"))
+                .font(.appCaption)
+                .foregroundColor(.appTextSecondary)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.formattedWeightTrend)
+                    .font(.appTitle2)
+                    .foregroundColor(weightTrendColor)
+                
+                if !viewModel.weightChangeComparisonText.isEmpty {
+                    Text(viewModel.weightChangeComparisonText)
+                        .font(.appCaption2)
+                        .foregroundColor(.appTextSecondary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+    }
+    
+    /// 体重目标仪表盘（大卡片）
+    private var weightGoalDashboard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // 标题栏
+            HStack {
+                Text(String(localized: "Weight Goal"))
+                    .font(.appHeadline)
+                    .foregroundColor(.appTextPrimary)
+                
+                Spacer()
+                
+                Button {
+                    logger.info("🎯 点击体重目标按钮")
+                    showingWeightGoal = true
+                } label: {
+                    Text(viewModel.activeWeightGoal == nil ? 
+                         String(localized: "Set Goal") : 
+                         String(localized: "Edit Goal"))
+                        .font(.appCaption)
+                        .foregroundColor(.appAccent)
+                }
+            }
+            
+            // 目标内容
+            if let goal = viewModel.activeWeightGoal {
+                goalActiveContent(goal: goal)
+            } else {
+                goalEmptyState
+            }
+        }
+        .padding()
+        .background(Color.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+    }
+    
+    /// 激活目标的内容
+    private func goalActiveContent(goal: WeightGoal) -> some View {
+        VStack(spacing: 12) {
+            // 第一行：目标信息和进度
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Target: \(goal.targetWeight, specifier: "%.1f") \(goal.pet.weightUnitPreference.rawValue)")
+                        .font(.appBody)
+                        .foregroundColor(.appTextPrimary)
+                    
+                    Text(viewModel.goalActionSuggestion)
+                        .font(.appCaption)
+                        .foregroundColor(.appAccent)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(viewModel.formattedGoalProgressText)
+                        .font(.appTitle3)
+                        .foregroundColor(.appTextPrimary)
+                    
+                    if let remainingDays = viewModel.goalRemainingDays {
+                        Text(remainingDays > 0 ? 
+                             "\(remainingDays) days left" : 
+                             "Overdue")
+                            .font(.appCaption)
+                            .foregroundColor(remainingDays > 0 ? .appTextSecondary : .appWarning)
+                    }
+                }
+            }
+            
+            // 进度条
+            ProgressView(value: viewModel.getGoalProgress(), total: 100)
+                .tint(Color.appAccent)
+                .scaleEffect(y: 2)
+        }
+    }
+    
+    /// 目标空状态
+    private var goalEmptyState: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "target")
+                    .font(.title2)
+                    .foregroundColor(.appTextSecondary)
+                
+                Text("Set a weight goal to track progress")
+                    .font(.appBody)
+                    .foregroundColor(.appTextSecondary)
+                
+                Spacer()
+            }
+        }
+    }
+    
+    /// 当前体重卡片（保留备用）
     private var currentWeightCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Current Weight"))

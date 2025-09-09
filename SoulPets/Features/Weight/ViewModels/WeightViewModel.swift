@@ -343,4 +343,72 @@ class WeightViewModel: ObservableObject {
     func formattedGoalProgress() -> String {
         return formattedGoalProgressText.isEmpty ? "无目标" : formattedGoalProgressText
     }
+    
+    // MARK: - 新增的UI支持方法
+    
+    /// 最新体重记录的日期文本
+    var latestWeightDateText: String {
+        guard let latest = latestWeight else { return "" }
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        
+        return formatter.string(from: latest.date)
+    }
+    
+    /// 体重变化的比较周期文本
+    var weightChangeComparisonText: String {
+        guard weightEntries.count >= 2 else { return "" }
+        
+        let latest = weightEntries[0]
+        let previous = weightEntries[1]
+        
+        let daysDiff = Calendar.current.dateComponents([.day], from: previous.date, to: latest.date).day ?? 0
+        
+        if daysDiff <= 7 {
+            return "vs last week"
+        } else if daysDiff <= 30 {
+            return "vs last month"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            return "since \(formatter.string(from: previous.date))"
+        }
+    }
+    
+    /// 完整的体重变化描述文本（包含比较周期）
+    var formattedWeightChangeWithContext: String {
+        let trendText = formattedWeightTrend
+        let contextText = weightChangeComparisonText
+        
+        if trendText == "--" || contextText.isEmpty {
+            return trendText
+        }
+        
+        return "\(trendText) (\(contextText))"
+    }
+    
+    /// 体重目标的剩余天数
+    var goalRemainingDays: Int? {
+        guard let goal = activeWeightGoal else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: goal.targetDate).day
+    }
+    
+    /// 体重目标的行动建议文本
+    var goalActionSuggestion: String {
+        guard let goal = activeWeightGoal,
+              let current = latestWeight else { return "" }
+        
+        let currentWeight = current.weightInKg
+        let targetWeight = goal.targetWeight
+        
+        if abs(currentWeight - targetWeight) <= 0.2 {
+            return "Almost there! Keep it up"
+        } else if currentWeight < targetWeight {
+            return "Need to gain weight"
+        } else {
+            return "Need to lose weight"
+        }
+    }
 } 

@@ -49,11 +49,83 @@ struct WeightHistoryListView: View {
     
     /// 历史记录列表
     private var historyList: some View {
-        LazyVStack(spacing: 8) {
-            ForEach(viewModel.weightEntries) { weight in
-                weightHistoryRow(weight)
+        LazyVStack(spacing: 0) {
+            ForEach(Array(viewModel.weightEntries.enumerated()), id: \.element.id) { index, weight in
+                VStack(spacing: 0) {
+                    weightHistoryRowLight(weight: weight)
+                        .swipeActions(edge: .trailing) {
+                            Button(String(localized: "Delete")) {
+                                weightToDelete = weight
+                                showingDeleteAlert = true
+                            }
+                            .tint(.appError)
+                        }
+                        .onTapGesture {
+                            // 单击整行进入编辑模式
+                            weightToEdit = weight
+                        }
+                    
+                    // 分割线（最后一项不显示）
+                    if index < viewModel.weightEntries.count - 1 {
+                        Divider()
+                            .background(Color.appTextSecondary.opacity(0.2))
+                            .padding(.leading, 16)
+                    }
+                }
             }
         }
+    }
+    
+    /// 轻量化的体重历史记录行
+    private func weightHistoryRowLight(weight: Weight) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(weight.formattedWeight())
+                    .font(.appBody)
+                    .fontWeight(.medium)
+                    .foregroundColor(.appTextPrimary)
+                
+                Text(weight.date, style: .date)
+                    .font(.appCaption)
+                    .foregroundColor(.appTextSecondary)
+            }
+            
+            Spacer()
+            
+            // 可选：显示变化趋势
+            if let previousWeight = previousWeight(for: weight) {
+                let change = weight.weightInKg - previousWeight.weightInKg
+                if abs(change) > 0.05 { // 只显示有意义的变化
+                    HStack(spacing: 4) {
+                        Image(systemName: change > 0 ? "arrow.up" : "arrow.down")
+                            .font(.appCaption2)
+                            .foregroundColor(change > 0 ? .appWarning : .appSuccess)
+                        
+                        Text(String(format: "%.1f", abs(change)))
+                            .font(.appCaption2)
+                            .foregroundColor(.appTextSecondary)
+                    }
+                }
+            }
+            
+            // 编辑按钮（保留为视觉提示）
+            Image(systemName: "chevron.right")
+                .font(.appCaption)
+                .foregroundColor(.appTextSecondary.opacity(0.6))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.clear) // 透明背景
+        .contentShape(Rectangle()) // 确保整行可点击
+    }
+    
+    /// 获取前一条体重记录
+    private func previousWeight(for weight: Weight) -> Weight? {
+        guard let index = viewModel.weightEntries.firstIndex(of: weight),
+              index < viewModel.weightEntries.count - 1 else {
+            return nil
+        }
+        return viewModel.weightEntries[index + 1]
     }
     
     /// 体重历史记录行

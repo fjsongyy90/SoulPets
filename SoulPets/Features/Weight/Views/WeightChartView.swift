@@ -86,28 +86,71 @@ struct WeightChartView: View {
     /// 体重图表
     private var weightChart: some View {
         Chart(viewModel.chartData, id: \.id) { weight in
+            // 区域填充 - 增加视觉质感
+            AreaMark(
+                x: .value("Date", weight.date),
+                y: .value("Weight", weight.formattedWeightValue)
+            )
+            .foregroundStyle(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.appAccent.opacity(0.3),
+                        Color.appAccent.opacity(0.1),
+                        Color.appAccent.opacity(0.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            
+            // 曲线
             LineMark(
                 x: .value("Date", weight.date),
                 y: .value("Weight", weight.formattedWeightValue)
             )
             .foregroundStyle(Color.appAccent)
-            .lineStyle(StrokeStyle(lineWidth: 3))
+            .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
             
+            // 数据点
             PointMark(
                 x: .value("Date", weight.date),
                 y: .value("Weight", weight.formattedWeightValue)
             )
             .foregroundStyle(Color.appAccent)
             .symbol(Circle())
+            .symbolSize(60)
             
             // 目标线
             if let goal = viewModel.activeWeightGoal {
                 RuleMark(y: .value("Target", goal.targetWeight))
-                    .foregroundStyle(Color.appError)
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
+                    .foregroundStyle(Color.appWarning)
+                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [8, 4]))
+                    .annotation(position: .topTrailing) {
+                        Text("Target: \(goal.targetWeight, specifier: "%.1f") \(goal.pet.weightUnitPreference.rawValue)")
+                            .font(.appCaption)
+                            .foregroundColor(.appWarning)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.cardBackground)
+                            .cornerRadius(6)
+                    }
             }
         }
-        .frame(height: 200)
+        .chartYAxis {
+            // 移除Y轴标签和刻度线，让图表更干净
+            AxisMarks(values: .automatic) { _ in }
+        }
+        .chartXAxis {
+            // 弱化X轴样式
+            AxisMarks(values: .automatic) { value in
+                AxisGridLine()
+                    .foregroundStyle(Color.appTextSecondary.opacity(0.2))
+                AxisValueLabel()
+                    .font(.appCaption2)
+                    .foregroundStyle(Color.appTextSecondary.opacity(0.6))
+            }
+        }
+        .frame(height: 220)
         .padding()
         .background(Color.cardBackground)
         .cornerRadius(12)
