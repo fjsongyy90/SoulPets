@@ -203,9 +203,13 @@ class WeightViewModel: ObservableObject {
     // MARK: - 数据加载
     
     /// 加载指定宠物的体重数据
-    func loadWeightData(for pet: Pet, modelContext: ModelContext) {
+    /// - Parameters:
+    ///   - pet: 目标宠物
+    ///   - modelContext: 数据上下文
+    ///   - showLoading: 是否显示加载动画（仅首次/切换宠物时）
+    func loadWeightData(for pet: Pet, modelContext: ModelContext, showLoading: Bool = false) {
         logger.info("🐾 开始加载宠物体重数据: \(pet.name)")
-        isLoading = true
+        if showLoading { isLoading = true }
         errorMessage = nil
         
         Task {
@@ -219,7 +223,7 @@ class WeightViewModel: ObservableObject {
                 self.selectedPet = pet
                 self.weightEntries = weights
                 self.activeWeightGoal = goal
-                self.isLoading = false
+                if showLoading { self.isLoading = false }
                 
                 logger.info("✅ 成功加载体重数据: \(weights.count)条记录")
                 if let goal = goal {
@@ -239,7 +243,7 @@ class WeightViewModel: ObservableObject {
         appState.setWeightPageFilter(pet)
         
         // 加载新宠物的数据
-        loadWeightData(for: pet, modelContext: modelContext)
+        loadWeightData(for: pet, modelContext: modelContext, showLoading: true)
     }
     
     /// 刷新当前宠物的体重数据
@@ -249,7 +253,8 @@ class WeightViewModel: ObservableObject {
             logger.warning("⚠️ 刷新数据时宠物为空")
             return 
         }
-        loadWeightData(for: pet, modelContext: modelContext)
+        // 返回页面时的刷新不显示loading，避免闪烁
+        loadWeightData(for: pet, modelContext: modelContext, showLoading: false)
     }
     
     // MARK: - 体重操作

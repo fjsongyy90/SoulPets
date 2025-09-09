@@ -54,6 +54,7 @@ struct WeightView: View {
             .sheet(isPresented: $showingAddWeight) {
                 AddEditWeightView(pet: viewModel.selectedPet)
                     .onDisappear {
+                        // 返回后轻量刷新，不展示loading
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
@@ -61,6 +62,7 @@ struct WeightView: View {
                 AddEditWeightView(pet: viewModel.selectedPet, weightToEdit: weight)
                     .onDisappear {
                         weightToEdit = nil
+                        // 返回后轻量刷新，不展示loading
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
@@ -68,6 +70,7 @@ struct WeightView: View {
                 WeightGoalView(pet: viewModel.selectedPet)
                     .onDisappear {
                         logger.info("🔄 体重目标页面关闭，刷新数据")
+                        // 返回后轻量刷新，不展示loading
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
