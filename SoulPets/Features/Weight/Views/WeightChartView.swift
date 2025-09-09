@@ -13,9 +13,6 @@ struct WeightChartView: View {
             // 标题
             headerView
             
-            // 时间范围选择器
-            timeRangeSelector
-            
             // 图表内容
             chartContent
         }
@@ -35,12 +32,8 @@ struct WeightChartView: View {
                 .foregroundColor(.appTextPrimary)
             
             Spacer()
-        }
-    }
-    
-    /// 时间范围选择器 - 单个下拉按钮
-    private var timeRangeSelector: some View {
-        HStack {
+            
+            // 时间范围选择菜单（放在标题右侧）
             Menu {
                 ForEach(WeightChartTimeRange.allCases, id: \.self) { range in
                     Button {
@@ -50,22 +43,19 @@ struct WeightChartView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text(viewModel.selectedTimeRange.localizedString)
                         .font(.appCaption)
                         .foregroundColor(.appTextPrimary)
-                    
                     Image(systemName: "chevron.down")
                         .font(.appCaption2)
                         .foregroundColor(.appTextSecondary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(20) // 胶囊形状
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.gray.opacity(0.12))
+                .cornerRadius(16)
             }
-            
-            Spacer()
         }
     }
     
