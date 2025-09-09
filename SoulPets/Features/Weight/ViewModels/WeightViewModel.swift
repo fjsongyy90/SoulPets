@@ -81,6 +81,86 @@ class WeightViewModel: ObservableObject {
         return "--"
     }
     
+    /// 体重变化趋势类型
+    enum WeightTrendType {
+        case increase, decrease, noChange, noData
+    }
+    
+    /// 获取体重变化趋势类型
+    var weightTrendType: WeightTrendType {
+        guard let trend = weightTrend else { return .noData }
+        
+        if trend > 0 {
+            return .increase
+        } else if trend < 0 {
+            return .decrease
+        } else {
+            return .noChange
+        }
+    }
+    
+    /// 格式化当前体重文本
+    var formattedCurrentWeight: String {
+        guard let latest = latestWeight else { return "--" }
+        return latest.formattedWeight()
+    }
+    
+    /// 格式化当前体重日期
+    var formattedCurrentWeightDate: String {
+        guard let latest = latestWeight else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: latest.date)
+    }
+    
+    /// 格式化目标状态文本
+    var formattedGoalStatusText: String {
+        guard let goal = activeWeightGoal else { 
+            return String(localized: "Set a weight goal to track progress")
+        }
+        return goal.formattedGoal
+    }
+    
+    /// 格式化目标进度文本
+    var formattedGoalProgressText: String {
+        guard let goal = activeWeightGoal else { return "" }
+        let progress = goal.calculateProgress() ?? 0.0
+        return String(format: "%.0f%%", progress)
+    }
+    
+    /// 格式化目标剩余天数文本
+    var formattedGoalRemainingDays: String {
+        guard let goal = activeWeightGoal else { return "" }
+        let days = goal.remainingDays
+        if days > 0 {
+            return String(format: String(localized: "%d days left"), days)
+        } else if days == 0 {
+            return String(localized: "Target date is today")
+        } else {
+            return String(localized: "Target date has passed")
+        }
+    }
+    
+    /// 是否有目标设置
+    var hasActiveGoal: Bool {
+        return activeWeightGoal != nil
+    }
+    
+    /// 目标按钮文本
+    var goalButtonText: String {
+        return hasActiveGoal ? String(localized: "Edit Goal") : String(localized: "Set Goal")
+    }
+    
+    /// 获取图表空状态文本
+    var chartEmptyStateText: String {
+        return String(localized: "Not enough data for chart")
+    }
+    
+    /// 获取历史记录空状态文本
+    var historyEmptyStateText: String {
+        return String(localized: "No weight records yet")
+    }
+    
     /// 图表数据（根据选择的时间范围显示）
     var chartData: [Weight] {
         let filteredEntries: [Weight]
@@ -259,10 +339,8 @@ class WeightViewModel: ObservableObject {
         return activeWeightGoal?.calculateProgress() ?? 0.0
     }
     
-    /// 格式化体重目标进度文本
+    /// 格式化体重目标进度文本（保持向后兼容）
     func formattedGoalProgress() -> String {
-        guard activeWeightGoal != nil else { return "无目标" }
-        let progress = getGoalProgress()
-        return String(format: "%.0f%%", progress)
+        return formattedGoalProgressText.isEmpty ? "无目标" : formattedGoalProgressText
     }
 } 

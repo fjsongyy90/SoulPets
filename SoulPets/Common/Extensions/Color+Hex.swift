@@ -54,6 +54,36 @@ extension Color {
         light: Color.gray.opacity(0.2),
         dark: Color.gray.opacity(0.3)
     )
+    
+    /// 主要文本颜色 - 适应深色模式
+    static let appTextPrimary = Color(
+        light: Color(red: 0.25, green: 0.25, blue: 0.25),
+        dark: Color(hex: "FFFFFF")
+    )
+    
+    /// 次要文本颜色 - 适应深色模式  
+    static let appTextSecondary = Color(
+        light: Color(red: 0.4, green: 0.4, blue: 0.4),
+        dark: Color(hex: "AEAEB2")
+    )
+    
+    /// 成功/减重颜色 - 适应深色模式
+    static let appSuccess = Color(
+        light: Color(hex: "34C759"),
+        dark: Color(hex: "30D158")
+    )
+    
+    /// 警告/增重颜色 - 适应深色模式
+    static let appWarning = Color(
+        light: Color(hex: "FF9500"),
+        dark: Color(hex: "FF9F0A")
+    )
+    
+    /// 错误/危险颜色 - 适应深色模式
+    static let appError = Color(
+        light: Color(hex: "FF3B30"),
+        dark: Color(hex: "FF453A")
+    )
 }
 
 // MARK: - 深色模式颜色初始化器

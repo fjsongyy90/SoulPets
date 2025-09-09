@@ -19,12 +19,7 @@ struct WeightGoalView: View {
     @State private var errorMessage = ""
     @State private var existingGoal: WeightGoal?
     
-    // 颜色定义
-    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
-    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
-    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
-    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
-    private let cardColor = Color.white
+    // 使用统一的颜色定义
     
     /// 是否为编辑模式
     private var isEditMode: Bool {
@@ -67,7 +62,7 @@ struct WeightGoalView: View {
         NavigationStack {
             ZStack {
                 // 背景色
-                backgroundColor.ignoresSafeArea()
+                Color.appBackground.ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -104,14 +99,14 @@ struct WeightGoalView: View {
                     Button(String(localized: "Cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(accentColor)
+                    .foregroundColor(.appAccent)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(saveButtonText) {
                         saveGoal()
                     }
-                    .foregroundColor(isFormValid ? accentColor : labelColor)
+                    .foregroundColor(isFormValid ? .appAccent : .appTextSecondary)
                     .disabled(!isFormValid)
                 }
             }
@@ -162,17 +157,17 @@ struct WeightGoalView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(pet.name)
                     .font(.headline)
-                    .foregroundColor(textColor)
+                    .foregroundColor(.appTextPrimary)
                 
                 Text(pet.breed)
                     .font(.caption)
-                    .foregroundColor(labelColor)
+                    .foregroundColor(.appTextSecondary)
             }
             
             Spacer()
         }
         .padding()
-        .background(cardColor)
+        .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -182,29 +177,29 @@ struct WeightGoalView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Current Weight"))
                 .font(.headline)
-                .foregroundColor(textColor)
+                .foregroundColor(.appTextPrimary)
             
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(weight.formattedWeight())
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundColor(textColor)
+                        .foregroundColor(.appTextPrimary)
                     
                     Text(weight.date, style: .date)
                         .font(.caption)
-                        .foregroundColor(labelColor)
+                        .foregroundColor(.appTextSecondary)
                 }
                 
                 Spacer()
                 
                 Image(systemName: "scalemass")
                     .font(.title2)
-                    .foregroundColor(accentColor)
+                    .foregroundColor(.appAccent)
             }
         }
         .padding()
-        .background(cardColor)
+        .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -214,7 +209,7 @@ struct WeightGoalView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(String(localized: "Target Weight"))
                 .font(.headline)
-                .foregroundColor(textColor)
+                .foregroundColor(.appTextPrimary)
             
             HStack(spacing: 12) {
                 // 目标体重输入框
@@ -253,10 +248,10 @@ struct WeightGoalView: View {
                 
                 HStack {
                     Image(systemName: targetValue < currentInUnit ? "arrow.down" : "arrow.up")
-                        .foregroundColor(targetValue < currentInUnit ? .green : .blue)
+                        .foregroundColor(targetValue < currentInUnit ? .appSuccess : .appWarning)
                     Text(goalType)
                         .font(.caption)
-                        .foregroundColor(labelColor)
+                        .foregroundColor(.appTextSecondary)
                 }
             }
             
@@ -264,11 +259,11 @@ struct WeightGoalView: View {
             if !targetWeight.isEmpty && !isFormValid {
                 Text(String(localized: "Please enter a valid target weight"))
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(.appError)
             }
         }
         .padding()
-        .background(cardColor)
+        .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -278,7 +273,7 @@ struct WeightGoalView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(String(localized: "Target Date"))
                 .font(.headline)
-                .foregroundColor(textColor)
+                .foregroundColor(.appTextPrimary)
             
             DatePicker(
                 String(localized: "Target Date"),
@@ -287,18 +282,18 @@ struct WeightGoalView: View {
                 displayedComponents: [.date]
             )
             .datePickerStyle(CompactDatePickerStyle())
-            .accentColor(accentColor)
+            .accentColor(Color.appAccent)
             
             // 天数提示
             let daysUntilTarget = Calendar.current.dateComponents([.day], from: Date(), to: targetDate).day ?? 0
             if daysUntilTarget > 0 {
                 Text(String(format: String(localized: "%d days from now"), daysUntilTarget))
                     .font(.caption)
-                    .foregroundColor(labelColor)
+                    .foregroundColor(.appTextSecondary)
             }
         }
         .padding()
-        .background(cardColor)
+        .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
@@ -310,14 +305,14 @@ struct WeightGoalView: View {
         } label: {
             Text(String(localized: "Cancel Current Goal"))
                 .fontWeight(.semibold)
-                .foregroundColor(.red)
+                .foregroundColor(.appError)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(cardColor)
+                .background(Color.cardBackground)
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(.red.opacity(0.3), lineWidth: 1)
+                        .stroke(Color.appError.opacity(0.3), lineWidth: 1)
                 )
         }
     }

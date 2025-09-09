@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import Charts
 import OSLog
 
 /// 体重追踪主页面
@@ -19,18 +18,13 @@ struct WeightView: View {
     @State private var weightToEdit: Weight?
     @State private var weightToDelete: Weight?
     
-    // 颜色定义 - 与其他模块保持一致
-    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
-    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
-    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
-    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
-    private let cardColor = Color.white
+    // 使用统一的颜色定义
     
     var body: some View {
         NavigationStack {
             ZStack {
                 // 背景色
-                backgroundColor.ignoresSafeArea()
+                Color.appBackground.ignoresSafeArea()
                 
                 if viewModel.isLoading {
                     loadingView
@@ -52,7 +46,7 @@ struct WeightView: View {
                         showingAddWeight = true
                     } label: {
                         Image("add_icon")
-                            .foregroundColor(accentColor)
+                            .foregroundColor(.appAccent)
                     }
                     .disabled(viewModel.selectedPet == nil)
                 }
@@ -126,7 +120,7 @@ struct WeightView: View {
                 .scaleEffect(1.5)
             Text(String(localized: "Loading..."))
                 .font(.appBody)
-                .foregroundColor(labelColor)
+                .foregroundColor(.appTextSecondary)
                 .padding(.top)
         }
     }
@@ -146,12 +140,12 @@ struct WeightView: View {
             VStack(spacing: 20) {
                     Text("Track Their Healthy Growth")
                         .font(.appSemiBold(size: 22))
-                        .foregroundColor(textColor)
+                        .foregroundColor(.appTextPrimary)
                     
                     Text(String(localized: "empty_state.weight.subtitle"))
                         .font(.appRegular(size: 16))
                         .lineSpacing(6)
-                        .foregroundColor(labelColor)
+                        .foregroundColor(.appTextSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 
@@ -170,7 +164,7 @@ struct WeightView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 25)
-                            .fill(accentColor)
+                            .fill(Color.appAccent)
                     )
                 }
             }
@@ -185,7 +179,7 @@ struct WeightView: View {
         VStack(spacing: 20) {
                 Text(String(localized: "Select a Pet"))
                     .font(.appSemiBold(size: 22))
-                    .foregroundColor(textColor)
+                    .foregroundColor(.appTextPrimary)
             
             petSelectorView
         }
@@ -213,13 +207,13 @@ struct WeightView: View {
             VStack(spacing: 20) {
                 Text("No Weight Records")
                     .font(.appSemiBold(size: 22))
-                    .foregroundColor(textColor)
+                    .foregroundColor(.appTextPrimary)
                 
                 Text("The first beat of their digital heartbeat is weight. Let's start tracking.")
                     .font(.appRegular(size: 16))
                     .lineSpacing(6)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(labelColor)
+                    .foregroundColor(.appTextSecondary)
                     .padding(.horizontal, 40)
                 
                 Button {
@@ -232,7 +226,7 @@ struct WeightView: View {
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 25)
-                                .fill(accentColor)
+                                .fill(Color.appAccent)
                         )
                 }
             }
@@ -251,15 +245,20 @@ struct WeightView: View {
                     .padding(.horizontal)
                 
                 // 体重图表
-                weightChartView
+                WeightChartView(viewModel: viewModel)
                     .padding(.horizontal)
                 
                 // 数据摘要卡片
-                dataSummaryCards
+                DataSummaryView(viewModel: viewModel, showingWeightGoal: $showingWeightGoal)
                     .padding(.horizontal)
                 
                 // 历史记录列表
-                weightHistoryList
+                WeightHistoryListView(
+                    viewModel: viewModel,
+                    weightToEdit: $weightToEdit,
+                    weightToDelete: $weightToDelete,
+                    showingDeleteAlert: $showingDeleteAlert
+                )
                     .padding(.horizontal)
             }
             .padding(.vertical)
@@ -274,8 +273,8 @@ struct WeightView: View {
                     PetAvatarView(
                         pet: pet,
                         isSelected: viewModel.selectedPet?.id == pet.id,
-                        accentColor: accentColor,
-                        textColor: textColor,
+                        accentColor: .appAccent,
+                        textColor: .appTextPrimary,
                         size: 60
                     )
                     .onTapGesture {
@@ -291,269 +290,6 @@ struct WeightView: View {
         }
     }
     
-    /// 体重图表视图
-    private var weightChartView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(String(localized: "Weight Trend"))
-                    .font(.appHeadline)
-                    .foregroundColor(textColor)
-                
-                Spacer()
-            }
-            
-            // 时间范围选择器
-            timeRangeSelector
-            
-            if viewModel.chartData.isEmpty {
-                Text(String(localized: "Not enough data for chart"))
-                    .font(.appBody)
-                    .foregroundColor(labelColor)
-                    .frame(height: 200)
-                    .frame(maxWidth: .infinity)
-                    .background(cardColor)
-                    .cornerRadius(12)
-            } else {
-                Chart(viewModel.chartData, id: \.id) { weight in
-                    LineMark(
-                        x: .value("Date", weight.date),
-                        y: .value("Weight", weight.formattedWeightValue)
-                    )
-                    .foregroundStyle(accentColor)
-                    .lineStyle(StrokeStyle(lineWidth: 3))
-                    
-                    PointMark(
-                        x: .value("Date", weight.date),
-                        y: .value("Weight", weight.formattedWeightValue)
-                    )
-                    .foregroundStyle(accentColor)
-                    .symbol(Circle())
-                    
-                    // 目标线
-                    if let goal = viewModel.activeWeightGoal {
-                        RuleMark(y: .value("Target", goal.targetWeight))
-                            .foregroundStyle(.red)
-                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
-                    }
-                }
-                .frame(height: 200)
-                .padding()
-                .background(cardColor)
-                .cornerRadius(12)
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-            }
-        }
-    }
-    
-    /// 时间范围选择器
-    private var timeRangeSelector: some View {
-        HStack(spacing: 8) {
-            ForEach(WeightChartTimeRange.allCases, id: \.self) { range in
-                Button {
-                    viewModel.selectedTimeRange = range
-                } label: {
-                    Text(range.localizedString)
-                        .font(.appCaption)
-                        .foregroundColor(viewModel.selectedTimeRange == range ? .white : textColor)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(viewModel.selectedTimeRange == range ? accentColor : Color.gray.opacity(0.1))
-                        )
-                }
-            }
-            
-            Spacer()
-        }
-    }
-    
-    /// 数据摘要卡片
-    private var dataSummaryCards: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                // 当前体重卡片
-                currentWeightCard
-                
-                // 体重变化卡片
-                weightChangeCard
-            }
-            
-            // 体重目标卡片
-            weightGoalCard
-        }
-    }
-    
-    /// 当前体重卡片
-    private var currentWeightCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(String(localized: "Current Weight"))
-                .font(.appCaption)
-                .foregroundColor(labelColor)
-            
-            if let latestWeight = viewModel.latestWeight {
-                Text(latestWeight.formattedWeight())
-                    .font(.appTitle2)
-                    .foregroundColor(textColor)
-                
-                Text(latestWeight.date, style: .date)
-                    .font(.appCaption)
-                    .foregroundColor(labelColor)
-            } else {
-                Text("--")
-                    .font(.appTitle2)
-                    .foregroundColor(textColor)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(cardColor)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-    }
-    
-    /// 体重变化卡片
-    private var weightChangeCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(String(localized: "Weight Change"))
-                .font(.appCaption)
-                .foregroundColor(labelColor)
-            
-            Text(viewModel.formattedWeightTrend)
-                .font(.appTitle2)
-                .foregroundColor(viewModel.weightTrend == nil ? textColor : 
-                                (viewModel.weightTrend! > 0 ? .orange : .green))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(cardColor)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-    }
-    
-    /// 体重目标卡片
-    private var weightGoalCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(String(localized: "Weight Goal"))
-                    .font(.appHeadline)
-                    .foregroundColor(textColor)
-                
-                Spacer()
-                
-                Button {
-                    logger.info("🎯 点击体重目标按钮")
-                    showingWeightGoal = true
-                } label: {
-                    Text(viewModel.activeWeightGoal == nil ? 
-                         String(localized: "Set Goal") : 
-                         String(localized: "Edit Goal"))
-                        .font(.appCaption)
-                        .foregroundColor(accentColor)
-                }
-            }
-            
-            if let goal = viewModel.activeWeightGoal {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(goal.formattedGoal)
-                        .font(.appBody)
-                        .foregroundColor(textColor)
-                    
-                    HStack {
-                        Text(String(localized: "Progress:"))
-                            .font(.appBody)
-                            .foregroundColor(labelColor)
-                        Text(viewModel.formattedGoalProgress())
-                            .font(.appBody)
-                            .fontWeight(.semibold)
-                            .foregroundColor(accentColor)
-                        Spacer()
-                        Text("\(goal.remainingDays) days left")
-                            .font(.appCaption)
-                            .foregroundColor(labelColor)
-                    }
-                    
-                    // 进度条
-                    ProgressView(value: viewModel.getGoalProgress(), total: 100)
-                        .tint(accentColor)
-                }
-                .onAppear {
-                    logger.debug("🎯 显示活跃体重目标: \(goal.targetWeight) \(goal.unit.rawValue)")
-                }
-            } else {
-                Text(String(localized: "Set a weight goal to track progress"))
-                    .font(.appBody)
-                    .foregroundColor(labelColor)
-                    .onAppear {
-                        logger.debug("❌ 无活跃体重目标，显示设置提示")
-                    }
-            }
-        }
-        .padding()
-        .background(cardColor)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-        .onAppear {
-            logger.info("🎯 体重目标卡片显示，当前目标状态: \(viewModel.activeWeightGoal == nil ? "无目标" : "有目标")")
-        }
-    }
-    
-    /// 体重历史记录列表
-    private var weightHistoryList: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(String(localized: "Weight History"))
-                .font(.appHeadline)
-                .foregroundColor(textColor)
-            
-            LazyVStack(spacing: 8) {
-                ForEach(viewModel.weightEntries) { weight in
-                    weightHistoryRow(weight)
-                }
-            }
-        }
-    }
-    
-    /// 体重历史记录行
-    private func weightHistoryRow(_ weight: Weight) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(weight.formattedWeight())
-                    .font(.system(.body, design: .rounded))
-                    .fontWeight(.semibold)
-                    .foregroundColor(textColor)
-                
-                Text(weight.date, style: .date)
-                    .font(.appCaption)
-                    .foregroundColor(labelColor)
-            }
-            
-            Spacer()
-            
-            Button {
-                weightToEdit = weight
-            } label: {
-                Image(systemName: "pencil")
-                    .foregroundColor(accentColor)
-            }
-        }
-        .padding()
-        .background(cardColor)
-        .cornerRadius(8)
-        .contextMenu {
-            Button {
-                weightToEdit = weight
-            } label: {
-                Label(String(localized: "Edit"), systemImage: "pencil")
-            }
-            
-            Button(role: .destructive) {
-                weightToDelete = weight
-                showingDeleteAlert = true
-            } label: {
-                Label(String(localized: "Delete"), systemImage: "trash")
-            }
-        }
-    }
 }
 
 // MARK: - 扩展
