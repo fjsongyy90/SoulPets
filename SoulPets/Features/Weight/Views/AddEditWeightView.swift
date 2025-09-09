@@ -15,12 +15,7 @@ struct AddEditWeightView: View {
     @State private var showingValidationError = false
     @State private var errorMessage = ""
     
-    // 颜色定义
-    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
-    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
-    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
-    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
-    private let cardColor = Color.white
+    // 移除硬编码颜色定义，使用统一的颜色系统
     
     /// 是否为编辑模式
     private var isEditMode: Bool {
@@ -57,10 +52,10 @@ struct AddEditWeightView: View {
         NavigationStack {
             ZStack {
                 // 背景色
-                backgroundColor.ignoresSafeArea()
+                Color.appBackground.ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 20) {
                         // 宠物信息卡片
                         if let pet = pet {
                             petInfoCard(pet)
@@ -72,9 +67,10 @@ struct AddEditWeightView: View {
                         // 日期选择
                         dateSelectionCard
                         
-                        Spacer(minLength: 100)
+                        Spacer(minLength: 80)
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
                 }
             }
             .navigationTitle(titleText)
@@ -84,14 +80,14 @@ struct AddEditWeightView: View {
                     Button(String(localized: "Cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(accentColor)
+                    .foregroundColor(Color.appAccent)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(saveButtonText) {
                         saveWeight()
                     }
-                    .foregroundColor(isFormValid ? accentColor : labelColor)
+                    .foregroundColor(isFormValid ? Color.appAccent : Color.appTextSecondary)
                     .disabled(!isFormValid)
                 }
             }
@@ -132,88 +128,171 @@ struct AddEditWeightView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(pet.name)
                     .font(.headline)
-                    .foregroundColor(textColor)
+                    .foregroundColor(Color.appTextPrimary)
                 
                 Text(pet.breed)
                     .font(.caption)
-                    .foregroundColor(labelColor)
+                    .foregroundColor(Color.appTextSecondary)
             }
             
             Spacer()
         }
         .padding()
-        .background(cardColor)
+        .background(Color.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     
     /// 体重输入表单
     private var weightInputForm: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(String(localized: "Weight"))
-                .font(.headline)
-                .foregroundColor(textColor)
+        VStack(alignment: .leading, spacing: 20) {
+            // 标题
+            HStack {
+                Image(systemName: "scalemass")
+                    .foregroundColor(Color.appAccent)
+                    .font(.title3)
+                
+                Text(String(localized: "Weight"))
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color.appTextPrimary)
+                
+                Spacer()
+            }
             
-            HStack(spacing: 12) {
-                // 体重输入框
+            VStack(spacing: 16) {
+                // 体重输入框 - 视觉焦点
                 TextField(String(localized: "Enter weight"), text: $weightValue)
                     .keyboardType(.decimalPad)
-                    .font(.title2)
+                    .font(.system(size: 36, weight: .medium, design: .rounded)) // 大号字体作为视觉焦点
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.white)
+                    .padding(.vertical, 20)
+                    .background(Color.appBackground)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                !weightValue.isEmpty && !isFormValid ? Color.appError : Color.appAccent.opacity(0.3), 
+                                lineWidth: 2
+                            )
                     )
-                    .cornerRadius(8)
+                    .cornerRadius(12)
                 
-                // 单位选择器
-                Picker(String(localized: "Unit"), selection: $selectedUnit) {
-                    ForEach(WeightUnit.allCases, id: \.self) { unit in
-                        Text(unit.rawValue)
-                            .tag(unit)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .frame(width: 100)
+                // 自定义单位选择器
+                customUnitSelector
             }
             
             // 验证提示
             if !weightValue.isEmpty && !isFormValid {
-                Text(String(localized: "Please enter a valid weight between 0.1 and 999.9"))
-                    .font(.caption)
-                    .foregroundColor(.red)
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundColor(Color.appError)
+                        .font(.caption)
+                    
+                    Text(String(localized: "Please enter a valid weight between 0.1 and 999.9"))
+                        .font(.caption)
+                        .foregroundColor(Color.appError)
+                }
+                .padding(.horizontal, 4)
             }
         }
-        .padding()
-        .background(Color.white) // 强制使用白色背景
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
     
-    /// 日期选择卡片
-    private var dateSelectionCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(String(localized: "Date"))
-                .font(.headline)
-                .foregroundColor(textColor)
-            
-            DatePicker(
-                String(localized: "Weigh Date"),
-                selection: $selectedDate,
-                in: ...Date(),
-                displayedComponents: [.date]
-            )
-            .datePickerStyle(CompactDatePickerStyle())
-            .colorScheme(.light) // 强制使用浅色模式
-            .accentColor(accentColor)
+    /// 自定义单位选择器 - 柔和胶囊按钮
+    private var customUnitSelector: some View {
+        HStack(spacing: 0) {
+            ForEach(WeightUnit.allCases, id: \.self) { unit in
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedUnit = unit
+                    }
+                }) {
+                    Text(unit.rawValue)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(selectedUnit == unit ? Color.cardBackground : Color.appTextSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            selectedUnit == unit ? 
+                            Color.appAccent : 
+                            Color.appBackground
+                        )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
         }
-        .padding()
-        .background(Color.white) // 强制使用白色背景
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .background(Color.appBackground)
+        .cornerRadius(25) // 胶囊形状
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color.appAccent.opacity(0.2), lineWidth: 1)
+        )
+        .shadow(color: Color.appAccent.opacity(0.1), radius: 4, x: 0, y: 2)
+    }
+    
+    /// 精美的日期选择卡片
+    private var dateSelectionCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // 标题和图标
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundColor(Color.appAccent)
+                    .font(.title3)
+                
+                Text(String(localized: "Date"))
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color.appTextPrimary)
+                
+                Spacer()
+            }
+            
+            // 日期选择器容器
+            VStack(spacing: 12) {
+                // 当前选择的日期显示
+                HStack {
+                    Text(String(localized: "Weigh Date"))
+                        .font(.subheadline)
+                        .foregroundColor(Color.appTextSecondary)
+                    
+                    Spacer()
+                    
+                    Text(formattedSelectedDate)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Color.appTextPrimary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.appBackground)
+                .cornerRadius(10)
+                
+                // DatePicker
+                DatePicker(
+                    "",
+                    selection: $selectedDate,
+                    in: ...Date(),
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(CompactDatePickerStyle())
+                .accentColor(Color.appAccent)
+                .labelsHidden()
+            }
+        }
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+    
+    /// 格式化选择的日期
+    private var formattedSelectedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: selectedDate)
     }
     
     // MARK: - 方法
