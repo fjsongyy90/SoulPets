@@ -284,24 +284,38 @@ struct EditPetView: View {
         }
     }
     
-    // 故事输入框 - 多行
+    // 故事输入框 - 多行 (已添加占位符功能)
     private var storyField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Story with Owner"))
                 .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
-            TextEditor(text: Binding(
-                get: { viewModel.story ?? "" },
-                set: { viewModel.story = $0.isEmpty ? nil : $0 }
-            ))
-            .frame(minHeight: 100)
-            .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(UIColor.systemGray4), lineWidth: 1)
-            )
-            .cornerRadius(8)
+            // 👇 主要修改在这里：使用 ZStack 来实现占位符
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: Binding(
+                    get: { viewModel.story ?? "" },
+                    set: { viewModel.story = $0.isEmpty ? nil : $0 }
+                ))
+                .frame(minHeight: 100)
+                .padding(4)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(UIColor.systemGray4), lineWidth: 1)
+                )
+                .cornerRadius(8)
+                
+                // 当内容为空时，显示这里的占位符文本
+                if (viewModel.story ?? "").isEmpty {
+                    // 👇 您可以在这里替换成您最喜欢的那句引导语
+                    Text(String(localized: "Describe a special moment, a funny habit, or how you first met..."))
+                        .font(.body) // 确保字体与TextEditor一致
+                        .foregroundColor(.gray.opacity(0.6))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 12)
+                        .allowsHitTesting(false) // 允许点击穿透，以便用户可以点击到下方的TextEditor
+                }
+            }
         }
     }
     
