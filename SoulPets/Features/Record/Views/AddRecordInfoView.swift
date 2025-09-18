@@ -62,25 +62,30 @@ struct AddRecordInfoView: View {
     
     // MARK: - 子视图组件
     
-    /// 日期和时间选择器部分 - 情感化优化
+    /// 日期和时间选择器部分 - 方案一：视觉优化
     private var dateTimeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "Date & Time"))
-                .font(.appHeadline) // 统一醒目的标题字体
+                .font(.appHeadline)
                 .foregroundColor(textColor)
             
             DatePicker("", selection: $viewModel.recordDate)
                 .labelsHidden()
                 .datePickerStyle(.compact)
-                .colorScheme(.light) // 强制使用浅色模式
-                .padding()
-                .background(Color.white) // 强制使用白色背景
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                .colorScheme(.light)
+                // 👇 主要修改在这里
+                .padding(.horizontal, 12) // 给左右一些呼吸空间
+                .padding(.vertical, 8)   // 给上下一些呼吸空间
+                .background(
+                    // 使用品牌强调色的微透明版本作为背景，更温暖
+                    accentColor.opacity(0.05)
                 )
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .cornerRadius(16) // 使用更大的圆角
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        // 使用品牌强调色的半透明版本作为边框，更柔和
+                        .stroke(accentColor.opacity(0.2), lineWidth: 1)
+                )
                 .accentColor(accentColor)
         }
         .padding(.horizontal)
