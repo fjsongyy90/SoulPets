@@ -14,6 +14,7 @@ struct ContentView: View {
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "ContentView")
     @State private var isModelReady = false
     @State private var errorMessage: String? = nil
+    @State private var selectedTab: Int = 0 // 用于追踪当前选中的标签
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -66,32 +67,42 @@ struct ContentView: View {
                 .padding()
             } else {
                 // 主要内容
-                TabView {
-                    // 主页标签
-                    PetsHomeView()
-                        .tabItem {
-                            Label(LocalizedStringKey("Home"), systemImage: "pawprint.fill")
+                TabView(selection: $selectedTab) { // 绑定 selection
+                            // 主页标签
+                            PetsHomeView()
+                                .tabItem {
+                                    // 使用三元运算符根据选中状态切换图标
+                                    Image(selectedTab == 0 ? "home_fill" : "home_outline")
+                                    Text(LocalizedStringKey("Home"))
+                                }
+                                .tag(0)
+                            
+                            // 提醒标签
+                            RemindersView()
+                                .tabItem {
+                                    Image(selectedTab == 1 ? "reminder_fill" : "reminder_outline")
+                                    Text(LocalizedStringKey("Reminders"))
+                                }
+                                .tag(1)
+                                
+                            // 记录标签
+                            RecordsView(modelContext: modelContext)
+                                .tabItem {
+                                    Image(selectedTab == 2 ? "record_fill" : "record_outline")
+                                    Text(LocalizedStringKey("Records"))
+                                }
+                                .tag(2)
+                            
+                            // 体重标签
+                            WeightView()
+                                .tabItem {
+                                    Image(selectedTab == 3 ? "weight_fill" : "weight_outline")
+                                    Text(LocalizedStringKey("Weight"))
+                                }
+                                .tag(3)
                         }
-                    // 提醒标签
-                    RemindersView()
-                        .tabItem {
-                            Label(LocalizedStringKey("Reminders"), systemImage: "bell")
-                        }
-                    // 记录标签
-                    RecordsView(modelContext: modelContext)
-                        .tabItem {
-                            Label(LocalizedStringKey("Records"), systemImage: "list.bullet.clipboard")
-                        }
-                    
-                    // 体重标签
-                    WeightView()
-                        .tabItem {
-                            Label(LocalizedStringKey("Weight"), systemImage: "scalemass")
-                        }
-                    
-                }
-                .tint(adaptiveAccentColor) // 使用适应性强调色，确保在深色模式下也清晰可见
-            }
+                        .tint(adaptiveAccentColor)
+                    }
         }
         .onAppear {
             checkModelContext()
