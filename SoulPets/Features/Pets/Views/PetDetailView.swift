@@ -252,7 +252,7 @@ struct PetDetailView: View {
                     
                     // 照片数量和箭头
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text("\(photoCount) 张")
+                        Text(String(format: NSLocalizedString("photos_count %d", comment: ""), photoCount))
                             .font(.appCallout)
                             .foregroundColor(textColor)
                         
