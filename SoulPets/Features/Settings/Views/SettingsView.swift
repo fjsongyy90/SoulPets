@@ -58,7 +58,7 @@ struct SettingsView: View {
             }
             .background(Color(.systemBackground)) // 使用系统背景色，适应深色模式
             .navigationTitle(String(localized: "settings.title"))
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) { // 👈 修改点 1: trailing 改为 leading
                     Button {
