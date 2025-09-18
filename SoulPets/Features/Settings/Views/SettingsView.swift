@@ -59,14 +59,16 @@ struct SettingsView: View {
             .background(Color(.systemBackground)) // 使用系统背景色，适应深色模式
             .navigationTitle(String(localized: "settings.title"))
             .navigationBarTitleDisplayMode(.large)
-            .navigationBarBackButtonHidden()
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "common.done")) {
+                ToolbarItem(placement: .navigationBarLeading) { // 👈 修改点 1: trailing 改为 leading
+                    Button {
                         dismiss()
+                    } label: {
+                        // 👇 修改点 2: 使用标准的返回图标
+                        Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
                     }
-                    .foregroundColor(adaptiveAccentColor) // 使用适应性强调色，确保在深色模式下也清晰可见
-                    .font(.body.weight(.medium))
+                    .foregroundColor(adaptiveAccentColor)
                 }
             }
         }

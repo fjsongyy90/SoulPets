@@ -113,13 +113,13 @@ struct RecordsView: View {
                     }
                 }
             }
-        .sheet(isPresented: $showingAddRecordSheet, onDismiss: {
+        .fullScreenCover(isPresented: $showingAddRecordSheet, onDismiss: {
             // 当添加记录的sheet关闭时，重新加载记录
             viewModel.loadRecords()
         }) {
             AddRecordView(modelContext: modelContext)
         }
-        .sheet(isPresented: $showingAddPet) {
+        .fullScreenCover(isPresented: $showingAddPet) {
             AddPetView(modelContext: modelContext)
                 .onDisappear {
                     // 添加宠物后切换到主页tab

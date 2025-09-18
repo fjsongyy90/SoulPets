@@ -51,14 +51,14 @@ struct WeightView: View {
                     .disabled(viewModel.selectedPet == nil)
                 }
             }
-            .sheet(isPresented: $showingAddWeight) {
+            .fullScreenCover(isPresented: $showingAddWeight) {
                 AddEditWeightView(pet: viewModel.selectedPet)
                     .onDisappear {
                         // 返回后轻量刷新，不展示loading
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
-            .sheet(item: $weightToEdit) { weight in
+            .fullScreenCover(item: $weightToEdit) { weight in
                 AddEditWeightView(pet: viewModel.selectedPet, weightToEdit: weight)
                     .onDisappear {
                         weightToEdit = nil
@@ -74,7 +74,7 @@ struct WeightView: View {
                         viewModel.refreshData(modelContext: modelContext)
                     }
             }
-            .sheet(isPresented: $showingAddPet) {
+            .fullScreenCover(isPresented: $showingAddPet) {
                 AddPetView(modelContext: modelContext)
                     .onDisappear {
                         // 延迟刷新，避免闪烁，并且只在有新宠物时刷新

@@ -211,10 +211,10 @@ struct PetsHomeView: View {
             // 清理延迟任务
             delayedCleanupTask?.cancel()
         }
-        .sheet(isPresented: $showingAddPetSheet) {
+        .fullScreenCover(isPresented: $showingAddPetSheet) {
             AddPetView(modelContext: modelContext)
         }
-        .sheet(isPresented: $showingEditPetSheet) {
+        .fullScreenCover(isPresented: $showingEditPetSheet) {
             if let pet = editViewPet {
                 EditPetView(pet: pet)
                     .onDisappear {
@@ -223,7 +223,7 @@ struct PetsHomeView: View {
                     }
             }
         }
-        .sheet(isPresented: $showingPetDetailSheet) {
+        .fullScreenCover(isPresented: $showingPetDetailSheet) {
             // 主要逻辑：使用detailViewPetID查找宠物
             if let petID = detailViewPetID,
                let pet = pets.first(where: { $0.id == petID }) {
@@ -303,7 +303,7 @@ struct PetsHomeView: View {
                     }
             }
         }
-        .sheet(isPresented: $showingSettingsSheet) {
+        .fullScreenCover(isPresented: $showingSettingsSheet) {
             SettingsView()
         }
     }

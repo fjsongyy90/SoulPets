@@ -88,13 +88,13 @@ struct RemindersView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddReminder) {
+            .fullScreenCover(isPresented: $showingAddReminder) {
                 AddEditReminderView()
                     .onDisappear {
                         viewModel.loadReminders(from: modelContext)
                     }
             }
-            .sheet(isPresented: $showingAddPet) {
+            .fullScreenCover(isPresented: $showingAddPet) {
                 AddPetView(modelContext: modelContext)
                     .onDisappear {
                         // 添加宠物后切换到主页tab
