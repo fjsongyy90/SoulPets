@@ -14,6 +14,7 @@ struct RemindersView: View {
     @State private var selectedReminderForRecord: Reminder?
     @State private var reminderToEdit: Reminder?
     @State private var reminderToDelete: Reminder?
+    @State private var selectedReminderForNavigation: Reminder? // 程序化导航状态
     
     // 新增状态管理 - 参考Record模块
     @State private var showingPetSelector = false
@@ -560,6 +561,9 @@ struct RemindersView: View {
             }
             .padding(.bottom, 16)
         }
+        .navigationDestination(item: $selectedReminderForNavigation) { reminder in
+            ReminderDetailView(reminder: reminder)
+        }
     }
     
     // MARK: - 今日待办部分 - TabView分页布局
@@ -583,25 +587,25 @@ struct RemindersView: View {
             if !viewModel.filteredTodayReminders.isEmpty {
                 TabView {
                     ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
-                        NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                            TodayReminderCardView(
-                                reminder: reminder,
-                                accentColor: accentColor,
-                                textColor: textColor,
-                                labelColor: labelColor,
-                                onComplete: { reminder in
-                                    handleReminderCompletion(reminder)
-                                },
-                                onEdit: { reminder in
-                                    editReminder(reminder)
-                                },
-                                onDelete: { reminder in
-                                    handleReminderDeletion(reminder)
-                                }
-                            )
-                            .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                        TodayReminderCardView(
+                            reminder: reminder,
+                            accentColor: accentColor,
+                            textColor: textColor,
+                            labelColor: labelColor,
+                            onComplete: { reminder in
+                                handleReminderCompletion(reminder)
+                            },
+                            onEdit: { reminder in
+                                editReminder(reminder)
+                            },
+                            onDelete: { reminder in
+                                handleReminderDeletion(reminder)
+                            }
+                        )
+                        .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                        .onTapGesture {
+                            selectedReminderForNavigation = reminder
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // 隐藏页面指示器
@@ -647,25 +651,25 @@ struct RemindersView: View {
             // 纵向滚动的未来安排卡片
             LazyVStack(spacing: 8) {
                 ForEach(Array(viewModel.filteredUpcomingReminders.enumerated()), id: \.offset) { index, reminder in
-                    NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                        UpcomingReminderCardView(
-                            reminder: reminder,
-                            accentColor: accentColor,
-                            textColor: textColor,
-                            labelColor: labelColor,
-                            onComplete: { reminder in
-                                handleReminderCompletion(reminder)
-                            },
-                            onEdit: { reminder in
-                                editReminder(reminder)
-                            },
-                            onDelete: { reminder in
-                                handleReminderDeletion(reminder)
-                            }
-                        )
-                        .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                    UpcomingReminderCardView(
+                        reminder: reminder,
+                        accentColor: accentColor,
+                        textColor: textColor,
+                        labelColor: labelColor,
+                        onComplete: { reminder in
+                            handleReminderCompletion(reminder)
+                        },
+                        onEdit: { reminder in
+                            editReminder(reminder)
+                        },
+                        onDelete: { reminder in
+                            handleReminderDeletion(reminder)
+                        }
+                    )
+                    .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                    .onTapGesture {
+                        selectedReminderForNavigation = reminder
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
             }
             .padding(.horizontal)
@@ -697,25 +701,25 @@ struct RemindersView: View {
             // 已完成提醒 - 使用未来安排卡片样式
             LazyVStack(spacing: 8) {
                 ForEach(Array(viewModel.filteredCompletedReminders.enumerated()), id: \.offset) { index, reminder in
-                    NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                        UpcomingReminderCardView(
-                            reminder: reminder,
-                            accentColor: accentColor,
-                            textColor: textColor,
-                            labelColor: labelColor,
-                            onComplete: { reminder in
-                                handleReminderCompletion(reminder)
-                            },
-                            onEdit: { reminder in
-                                editReminder(reminder)
-                            },
-                            onDelete: { reminder in
-                                handleReminderDeletion(reminder)
-                            }
-                        )
-                        .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                    UpcomingReminderCardView(
+                        reminder: reminder,
+                        accentColor: accentColor,
+                        textColor: textColor,
+                        labelColor: labelColor,
+                        onComplete: { reminder in
+                            handleReminderCompletion(reminder)
+                        },
+                        onEdit: { reminder in
+                            editReminder(reminder)
+                        },
+                        onDelete: { reminder in
+                            handleReminderDeletion(reminder)
+                        }
+                    )
+                    .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                    .onTapGesture {
+                        selectedReminderForNavigation = reminder
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
             }
             .padding(.horizontal)
