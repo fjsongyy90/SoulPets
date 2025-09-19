@@ -609,7 +609,7 @@ struct RemindersView: View {
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // 隐藏页面指示器
-                .frame(height: 260) // 增加卡片高度
+                .frame(height: 280) // 匹配卡片高度
             }
         }
     }
@@ -823,7 +823,7 @@ struct TodayReminderCardView: View {
                 )
                 
                 // 中部：大号标题和状态
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 12) {
                     // 提醒标题 - 增强字体层级
                     Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
                         .font(.appTitle2) // 从Title3升级到Title2
@@ -874,14 +874,15 @@ struct TodayReminderCardView: View {
                     }
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 16)
+                .padding(.top, 18)
+                .padding(.bottom, 8) // 添加底部间距
                 
                 Spacer()
                 
-                // 底部：滑动完成交互 + 宠物信息
-                VStack(spacing: 12) {
-                    // 宠物信息行
-                    HStack {
+                // 底部：宠物信息行 + 滑动完成交互
+                VStack(spacing: 10) {
+                    // 宠物信息行 - 重新布局
+                    HStack(alignment: .center) {
                         // 左侧：宠物头像和名字
                         if let pets = reminder.pets, !pets.isEmpty {
                             HStack(spacing: 8) {
@@ -891,54 +892,54 @@ struct TodayReminderCardView: View {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: 28, height: 28)
+                                        .frame(width: 24, height: 24)
                                         .clipShape(Circle())
                                 } else {
                                     ZStack {
                                         Circle()
                                             .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
-                                            .frame(width: 28, height: 28)
+                                            .frame(width: 24, height: 24)
                                         
                                         Image(firstPet.petType == .dog ? "pet_dog" : "pet_cat")
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 18, height: 18)
+                                            .frame(width: 16, height: 16)
                                     }
                                 }
                                 
-                                VStack(alignment: .leading, spacing: 1) {
-                                    if pets.count == 1 {
-                                        Text(firstPet.name)
-                                            .font(.appSubheadline) // 增大字体
-                                            .fontWeight(.medium)
-                                            .foregroundColor(textColor) // 使用主文本色而非次要色
-                                            .lineLimit(1)
-                                    } else {
-                                        Text("\(firstPet.name) +\(pets.count - 1)")
-                                            .font(.appSubheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundColor(textColor)
-                                            .lineLimit(1)
-                                    }
-                                    
-                                    Text(formattedTime)
-                                        .font(.appCaption)
-                                        .foregroundColor(labelColor.opacity(0.8)) // 次要信息使用更浅的颜色
+                                if pets.count == 1 {
+                                    Text(firstPet.name)
+                                        .font(.appSubheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(textColor)
+                                        .lineLimit(1)
+                                } else {
+                                    Text("\(firstPet.name) +\(pets.count - 1)")
+                                        .font(.appSubheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(textColor)
+                                        .lineLimit(1)
                                 }
                             }
                         }
                         
                         Spacer()
+                        
+                        // 右侧：时间信息
+                        Text(formattedTime)
+                            .font(.appSubheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(labelColor)
                     }
                     
                     // 滑动完成交互轨道
                     swipeToCompleteTrack(geometry: geometry)
                 }
                 .padding(.horizontal, 18)
-                .padding(.bottom, 18)
+                .padding(.bottom, 16)
             }
         }
-        .frame(width: max(300, UIScreen.main.bounds.width - 48), height: 260) // 响应式宽度
+        .frame(width: max(300, UIScreen.main.bounds.width - 48), height: 280) // 增加高度确保内容完整显示
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(cardColor)
