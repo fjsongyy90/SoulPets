@@ -562,102 +562,128 @@ struct RemindersView: View {
         }
     }
     
-    // MARK: - 今日待办部分 - 重新设计
+    // MARK: - 今日待办部分 - 横向滑动布局
     private var todayRemindersSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
+            // 标题区域
             HStack {
-                Text(String(localized: "Today"))
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(textColor)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "Today's To-do"))
+                        .font(.appTitle2)
+                        .fontWeight(.bold)
+                        .foregroundColor(textColor)
+                    
+                    Text(String(localized: "Time to show some love"))
+                        .font(.appCaption)
+                        .foregroundColor(labelColor)
+                }
                 
                 Spacer()
                 
-                Text("\(viewModel.todayReminderCount)")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(accentColor.opacity(0.1))
-                    .foregroundColor(accentColor)
-                    .clipShape(Capsule())
+                // 计数徽章
+                if viewModel.todayReminderCount > 0 {
+                    Text("\(viewModel.todayReminderCount)")
+                        .font(.appFootnote)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(minWidth: 20, minHeight: 20)
+                        .background(
+                            Circle()
+                                .fill(accentColor)
+                        )
+                }
             }
             .padding(.horizontal)
-            .padding(.top, 8)
             
-            // 今日提醒使用不同的ID前缀避免冲突
-            ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
-                NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                    ReminderCardView(
-                        reminder: reminder,
-                        isCurrentlyToday: true,
-                        accentColor: accentColor,
-                        textColor: textColor,
-                        labelColor: labelColor,
-                        onComplete: { reminder in
-                            handleReminderCompletion(reminder)
-                        },
-                        onEdit: { reminder in
-                            editReminder(reminder)
-                        },
-                        onDelete: { reminder in
-                            handleReminderDeletion(reminder)
+            // 横向滑动的今日待办卡片
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
+                        NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
+                            TodayReminderCardView(
+                                reminder: reminder,
+                                accentColor: accentColor,
+                                textColor: textColor,
+                                labelColor: labelColor,
+                                onComplete: { reminder in
+                                    handleReminderCompletion(reminder)
+                                },
+                                onEdit: { reminder in
+                                    editReminder(reminder)
+                                },
+                                onDelete: { reminder in
+                                    handleReminderDeletion(reminder)
+                                }
+                            )
+                            .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                         }
-                    )
-                    .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
-                    .padding(.horizontal)
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
-                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal)
             }
         }
     }
     
-    // MARK: - 未来提醒部分 - 新增
+    // MARK: - 未来安排部分 - 纵向滚动紧凑卡片
     private var upcomingRemindersSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
+            // 标题区域
             HStack {
-                Text(String(localized: "Upcoming"))
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(textColor)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "Upcoming Plans"))
+                        .font(.appTitle3)
+                        .fontWeight(.bold)
+                        .foregroundColor(textColor)
+                    
+                    Text(String(localized: "Stay prepared for what's ahead"))
+                        .font(.appCaption)
+                        .foregroundColor(labelColor)
+                }
                 
                 Spacer()
                 
-                Text("\(viewModel.filteredUpcomingReminders.count)")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(labelColor.opacity(0.1))
-                    .foregroundColor(labelColor)
-                    .clipShape(Capsule())
+                // 计数标签
+                if viewModel.filteredUpcomingReminders.count > 0 {
+                    Text("\(viewModel.filteredUpcomingReminders.count)")
+                        .font(.appCaption)
+                        .fontWeight(.medium)
+                        .foregroundColor(labelColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(labelColor.opacity(0.1))
+                        )
+                }
             }
             .padding(.horizontal)
             
-            // 未来提醒
-            ForEach(Array(viewModel.filteredUpcomingReminders.enumerated()), id: \.offset) { index, reminder in
-                NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                    ReminderCardView(
-                        reminder: reminder,
-                        isCurrentlyToday: false,
-                        accentColor: accentColor,
-                        textColor: textColor,
-                        labelColor: labelColor,
-                        onComplete: { reminder in
-                            handleReminderCompletion(reminder)
-                        },
-                        onEdit: { reminder in
-                            editReminder(reminder)
-                        },
-                        onDelete: { reminder in
-                            handleReminderDeletion(reminder)
-                        }
-                    )
-                    .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
-                    .padding(.horizontal)
+            // 纵向滚动的未来安排卡片
+            LazyVStack(spacing: 8) {
+                ForEach(Array(viewModel.filteredUpcomingReminders.enumerated()), id: \.offset) { index, reminder in
+                    NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
+                        UpcomingReminderCardView(
+                            reminder: reminder,
+                            accentColor: accentColor,
+                            textColor: textColor,
+                            labelColor: labelColor,
+                            onComplete: { reminder in
+                                handleReminderCompletion(reminder)
+                            },
+                            onEdit: { reminder in
+                                editReminder(reminder)
+                            },
+                            onDelete: { reminder in
+                                handleReminderDeletion(reminder)
+                            }
+                        )
+                        .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .buttonStyle(PlainButtonStyle())
             }
+            .padding(.horizontal)
         }
     }
     
@@ -683,30 +709,31 @@ struct RemindersView: View {
             }
             .padding(.horizontal)
             
-            // 已完成提醒
-            ForEach(Array(viewModel.filteredCompletedReminders.enumerated()), id: \.offset) { index, reminder in
-                NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
-                    ReminderCardView(
-                        reminder: reminder,
-                        isCurrentlyToday: false,
-                        accentColor: accentColor,
-                        textColor: textColor,
-                        labelColor: labelColor,
-                        onComplete: { reminder in
-                            handleReminderCompletion(reminder)
-                        },
-                        onEdit: { reminder in
-                            editReminder(reminder)
-                        },
-                        onDelete: { reminder in
-                            handleReminderDeletion(reminder)
-                        }
-                    )
-                    .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
-                    .padding(.horizontal)
+            // 已完成提醒 - 使用未来安排卡片样式
+            LazyVStack(spacing: 8) {
+                ForEach(Array(viewModel.filteredCompletedReminders.enumerated()), id: \.offset) { index, reminder in
+                    NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
+                        UpcomingReminderCardView(
+                            reminder: reminder,
+                            accentColor: accentColor,
+                            textColor: textColor,
+                            labelColor: labelColor,
+                            onComplete: { reminder in
+                                handleReminderCompletion(reminder)
+                            },
+                            onEdit: { reminder in
+                                editReminder(reminder)
+                            },
+                            onDelete: { reminder in
+                                handleReminderDeletion(reminder)
+                            }
+                        )
+                        .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .buttonStyle(PlainButtonStyle())
             }
+            .padding(.horizontal)
         }
     }
     
@@ -752,10 +779,9 @@ struct RemindersView: View {
     }
 }
 
-// MARK: - 提醒卡片 - 重新设计以匹配Record风格
-struct ReminderCardView: View {
+// MARK: - 今日待办卡片 - 情感化大卡片设计
+struct TodayReminderCardView: View {
     let reminder: Reminder
-    let isCurrentlyToday: Bool // 改名避免冲突
     let accentColor: Color
     let textColor: Color
     let labelColor: Color
@@ -763,168 +789,171 @@ struct ReminderCardView: View {
     let onEdit: (Reminder) -> Void
     let onDelete: (Reminder) -> Void
     
-    // 卡片颜色
-    private let cardColor = Color.white
+    // 卡片尺寸 - 大卡片设计
+    private let cardWidth: CGFloat = 280
+    private let cardHeight: CGFloat = 200
+    private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988) // 温暖白色
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 标签和时间
-            HStack {
-                // 标签图标和名称
-                HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
+            // 顶部：大幅精美插画区域
+            ZStack {
+                // 背景渐变
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.98, green: 0.94, blue: 0.88),
+                        Color(red: 0.96, green: 0.92, blue: 0.85)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                
+                // 标签图标 - 放大显示作为情感化插画
+                VStack {
                     Image(reminder.tag.iconName)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 36, height: 36)
+                        .frame(width: 64, height: 64)
                         .clipShape(Circle())
-                    
-                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
-                        .font(.appHeadline)
-                        .foregroundColor(textColor)
-                }
-                
-                Spacer()
-                
-                // 时间显示和倒计时
-                VStack(alignment: .trailing, spacing: 2) {
-                    // 具体日期时间
-                    Text(formattedDate)
-                        .font(.appSubheadline)
-                        .foregroundColor(labelColor)
-                    
-                    // 倒计时或状态标签
-                    if isCurrentlyToday {
-                        if isOverdue {
-                            Text(String(localized: "Overdue"))
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.red.opacity(0.1))
-                                )
-                                .foregroundColor(Color.red)
-                        } else {
-                            Text(String(localized: "Today"))
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(accentColor.opacity(0.1))
-                                )
-                                .foregroundColor(accentColor)
-                        }
-                    } else if !isCurrentlyToday {
-                        // 显示倒计时
-                        Text(countdownText)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(
-                                Capsule()
-                                    .fill(labelColor.opacity(0.1))
-                            )
-                            .foregroundColor(labelColor)
-                    }
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                 }
             }
+            .frame(height: 100)
+            .clipShape(
+                .rect(
+                    topLeadingRadius: 16,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 16
+                )
+            )
             
-            // 第二行：备注和完成按钮
-            HStack {
-                // 备注（如果有的话）
-                if let notes = reminder.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.appBody)
-                        .foregroundColor(textColor)
-                        .lineLimit(3)
-                } else {
-                    // 如果没有备注，用空的 VStack 占位
-                    VStack { }
-                }
+            // 中部：大号标题和状态
+            VStack(alignment: .leading, spacing: 8) {
+                // 提醒标题 - 大号字体
+                Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                    .font(.appTitle3)
+                    .fontWeight(.bold)
+                    .foregroundColor(textColor)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
                 
-                Spacer()
-                
-                // 完成按钮（仅今天未完成的提醒显示）
-                if isCurrentlyToday && !reminder.isCompletedToday {
+                // 状态信息 - 逾期提醒特殊处理
+                HStack {
+                    if isOverdue {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(.appWarning)
+                            
+                            Text("overdue \(overdueDays) days")
+                                .font(.appCaption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.appWarning)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.appWarning.opacity(0.1))
+                        )
+                    } else {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(accentColor)
+                            
+                            Text("Today")
+                                .font(.appCaption)
+                                .fontWeight(.medium)
+                                .foregroundColor(accentColor)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(accentColor.opacity(0.1))
+                        )
+                    }
+                    
+                    Spacer()
+                    
+                    // 完成按钮
                     Button {
                         onComplete(reminder)
                     } label: {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(.green)
+                            .foregroundColor(.appSuccess)
                     }
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
             
-            // 底部区域：左侧重复规则，右侧宠物头像
+            // 底部：宠物信息
             HStack {
-                // 重复规则
-                if let repeatRule = reminder.repeatRuleText {
-                    Text(repeatRule)
-                        .font(.appCaption)
-                        .foregroundColor(labelColor)
+                // 左侧：宠物头像和名字
+                if let pets = reminder.pets, !pets.isEmpty {
+                    HStack(spacing: 6) {
+                        // 显示第一个宠物的头像
+                        let firstPet = pets[0]
+                        if let avatarData = firstPet.avatar, let uiImage = UIImage(data: avatarData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 24, height: 24)
+                                .clipShape(Circle())
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                    .frame(width: 24, height: 24)
+                                
+                                Image(firstPet.petType == .dog ? "pet_dog" : "pet_cat")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
+                            }
+                        }
+                        
+                        if pets.count == 1 {
+                            Text(firstPet.name)
+                                .font(.appCaption)
+                                .foregroundColor(labelColor)
+                                .lineLimit(1)
+                        } else {
+                            Text("\(firstPet.name) +\(pets.count - 1)")
+                                .font(.appCaption)
+                                .foregroundColor(labelColor)
+                                .lineLimit(1)
+                        }
+                    }
                 }
                 
                 Spacer()
                 
-                // 宠物头像（移到右下角）
-                if let pets = reminder.pets, !pets.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(pets.prefix(3)) { pet in // 最多显示3个头像，避免过度拥挤
-                            if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 24, height: 24)
-                                    .clipShape(Circle())
-                            } else {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                        .frame(width: 24, height: 24)
-                                    
-                                    Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 18, height: 18)
-                                        .clipShape(Circle())
-                                }
-                            }
-                        }
-                        
-                        // 如果宠物数量超过3个，显示省略号
-                        if pets.count > 3 {
-                            Text("+\(pets.count - 3)")
-                                .font(.caption2)
-                                .foregroundColor(labelColor)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(Color(red: 0.97, green: 0.90, blue: 0.83))
-                                )
-                        }
-                    }
-                }
+                // 右侧：时间信息
+                Text(formattedTime)
+                    .font(.appCaption)
+                    .foregroundColor(labelColor)
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .padding(.top, 8)
         }
-        .padding()
+        .frame(width: cardWidth, height: cardHeight)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(cardColor)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
         )
         .contextMenu {
-            // Complete 操作 - 移除限制，所有提醒都可以完成
             Button {
                 onComplete(reminder)
             } label: {
                 Label(String(localized: "Complete"), systemImage: "checkmark.circle")
-                    .foregroundColor(.green)
+                    .foregroundColor(.appSuccess)
             }
             
             Button {
@@ -942,23 +971,11 @@ struct ReminderCardView: View {
         }
     }
     
+    // MARK: - 计算属性
+    
     // 获取提醒的实际显示日期（下一次发生的日期）
     private var actualReminderDate: Date {
         return ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate
-    }
-    
-    // 格式化日期 - 显示实际的提醒日期
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy 'at' HH:mm"
-        formatter.locale = Locale(identifier: "en_US_POSIX") // 确保英文月份缩写
-        return formatter.string(from: actualReminderDate)
-    }
-    
-    // 判断是否是今天的提醒
-    private var isToday: Bool {
-        let calendar = Calendar.current
-        return calendar.isDate(actualReminderDate, inSameDayAs: Date())
     }
     
     // 判断是否逾期
@@ -966,6 +983,167 @@ struct ReminderCardView: View {
         let calendar = Calendar.current
         let comparison = calendar.compare(actualReminderDate, to: Date(), toGranularity: .day)
         return comparison == .orderedAscending
+    }
+    
+    // 逾期天数
+    private var overdueDays: Int {
+        if isOverdue {
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.day], from: actualReminderDate, to: Date())
+            return components.day ?? 0
+        }
+        return 0
+    }
+    
+    // 格式化时间
+    private var formattedTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: actualReminderDate)
+    }
+}
+
+// MARK: - 未来安排卡片 - 信息密度高的紧凑设计
+struct UpcomingReminderCardView: View {
+    let reminder: Reminder
+    let accentColor: Color
+    let textColor: Color
+    let labelColor: Color
+    let onComplete: (Reminder) -> Void
+    let onEdit: (Reminder) -> Void
+    let onDelete: (Reminder) -> Void
+    
+    private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988)
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // 左侧：标签图标 + 提醒标题
+            HStack(spacing: 10) {
+                // 小图标
+                Image(reminder.tag.iconName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 32, height: 32)
+                    .clipShape(Circle())
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    // 提醒标题
+                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                        .font(.appSubheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(textColor)
+                        .lineLimit(1)
+                    
+                    // 关联宠物
+                    if let pets = reminder.pets, !pets.isEmpty {
+                        HStack(spacing: -2) {
+                            ForEach(pets.prefix(3)) { pet in
+                                if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 16, height: 16)
+                                        .clipShape(Circle())
+                                        .overlay(
+                                            Circle()
+                                                .stroke(cardColor, lineWidth: 1)
+                                        )
+                                } else {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                            .frame(width: 16, height: 16)
+                                        
+                                        Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 10, height: 10)
+                                    }
+                                    .overlay(
+                                        Circle()
+                                            .stroke(cardColor, lineWidth: 1)
+                                    )
+                                }
+                            }
+                            
+                            if pets.count > 3 {
+                                Text("+\(pets.count - 3)")
+                                    .font(.caption2)
+                                    .foregroundColor(labelColor)
+                                    .frame(width: 16, height: 16)
+                                    .background(
+                                        Circle()
+                                            .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(cardColor, lineWidth: 1)
+                                            )
+                                    )
+                            }
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            
+            // 右侧：倒计时和具体日期
+            VStack(alignment: .trailing, spacing: 4) {
+                // 倒计时
+                if !countdownText.isEmpty {
+                    Text(countdownText)
+                        .font(.appFootnote)
+                        .fontWeight(.semibold)
+                        .foregroundColor(accentColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(accentColor.opacity(0.1))
+                        )
+                }
+                
+                // 具体日期
+                Text(formattedDate)
+                    .font(.appCaption)
+                    .foregroundColor(labelColor)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(cardColor)
+                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
+        )
+        .contextMenu {
+            Button {
+                onComplete(reminder)
+            } label: {
+                Label(String(localized: "Complete"), systemImage: "checkmark.circle")
+                    .foregroundColor(.appSuccess)
+            }
+            
+            Button {
+                onEdit(reminder)
+            } label: {
+                Label(String(localized: "Edit"), systemImage: "pencil")
+                    .foregroundColor(accentColor)
+            }
+            
+            Button(role: .destructive) {
+                onDelete(reminder)
+            } label: {
+                Label(String(localized: "Delete"), systemImage: "trash")
+            }
+        }
+    }
+    
+    // MARK: - 计算属性
+    
+    // 获取提醒的实际显示日期（下一次发生的日期）
+    private var actualReminderDate: Date {
+        return ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate
     }
     
     // 倒计时文本
@@ -982,6 +1160,14 @@ struct ReminderCardView: View {
         }
         
         return ""
+    }
+    
+    // 格式化日期
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, HH:mm"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter.string(from: actualReminderDate)
     }
 }
 
