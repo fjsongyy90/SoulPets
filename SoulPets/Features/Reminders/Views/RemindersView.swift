@@ -562,42 +562,26 @@ struct RemindersView: View {
         }
     }
     
-    // MARK: - 今日待办部分 - 横向滑动布局
+    // MARK: - 今日待办部分 - TabView分页布局
     private var todayRemindersSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // 标题区域
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(String(localized: "Today's To-do"))
-                        .font(.appTitle2)
-                        .fontWeight(.bold)
-                        .foregroundColor(textColor)
-                    
-                    Text(String(localized: "Time to show some love"))
-                        .font(.appCaption)
-                        .foregroundColor(labelColor)
-                }
+        VStack(alignment: .leading, spacing: 20) { // 增加spacing从16到20
+            // 标题区域 - 移除计数徽章，简化视觉层次
+            VStack(alignment: .leading, spacing: 6) { // 增加标题和副标题间距
+                Text(String(localized: "Today's To-do"))
+                    .font(.appTitle2)
+                    .fontWeight(.bold)
+                    .foregroundColor(textColor)
                 
-                Spacer()
-                
-                // 计数徽章
-                if viewModel.todayReminderCount > 0 {
-                    Text("\(viewModel.todayReminderCount)")
-                        .font(.appFootnote)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(minWidth: 20, minHeight: 20)
-                        .background(
-                            Circle()
-                                .fill(accentColor)
-                        )
-                }
+                Text(String(localized: "Time to show some love"))
+                    .font(.appCaption)
+                    .foregroundColor(labelColor)
             }
             .padding(.horizontal)
+            .padding(.top, 12) // 与上方筛选器增加间距
             
-            // 横向滑动的今日待办卡片
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+            // TabView分页的今日待办卡片
+            if !viewModel.filteredTodayReminders.isEmpty {
+                TabView {
                     ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
                         NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
                             TodayReminderCardView(
@@ -620,7 +604,8 @@ struct RemindersView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
-                .padding(.horizontal)
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // 隐藏页面指示器
+                .frame(height: 260) // 增加卡片高度
             }
         }
     }
@@ -789,168 +774,178 @@ struct TodayReminderCardView: View {
     let onEdit: (Reminder) -> Void
     let onDelete: (Reminder) -> Void
     
-    // 卡片尺寸 - 大卡片设计
-    private let cardWidth: CGFloat = 280
-    private let cardHeight: CGFloat = 200
+    // 卡片尺寸 - 大卡片设计，接近屏幕宽度
     private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988) // 温暖白色
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging: Bool = false
+    @State private var isCompleted: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 顶部：大幅精美插画区域
-            ZStack {
-                // 背景渐变
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.98, green: 0.94, blue: 0.88),
-                        Color(red: 0.96, green: 0.92, blue: 0.85)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                
-                // 标签图标 - 放大显示作为情感化插画
-                VStack {
-                    Image(reminder.tag.iconName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 64, height: 64)
-                        .clipShape(Circle())
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-            }
-            .frame(height: 100)
-            .clipShape(
-                .rect(
-                    topLeadingRadius: 16,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 16
-                )
-            )
-            
-            // 中部：大号标题和状态
-            VStack(alignment: .leading, spacing: 8) {
-                // 提醒标题 - 大号字体
-                Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
-                    .font(.appTitle3)
-                    .fontWeight(.bold)
-                    .foregroundColor(textColor)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                
-                // 状态信息 - 逾期提醒特殊处理
-                HStack {
-                    if isOverdue {
-                        HStack(spacing: 4) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(.appWarning)
-                            
-                            Text("overdue \(overdueDays) days")
-                                .font(.appCaption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.appWarning)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(Color.appWarning.opacity(0.1))
-                        )
-                    } else {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(accentColor)
-                            
-                            Text("Today")
-                                .font(.appCaption)
-                                .fontWeight(.medium)
-                                .foregroundColor(accentColor)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(accentColor.opacity(0.1))
-                        )
-                    }
+        GeometryReader { geometry in
+            VStack(alignment: .leading, spacing: 0) {
+                // 顶部：大幅精美插画区域 - 逾期状态环境色染色
+                ZStack {
+                    // 背景渐变 - 根据逾期状态调整颜色
+                    LinearGradient(
+                        colors: isOverdue ? [
+                            Color.appWarning.opacity(0.15),
+                            Color.appWarning.opacity(0.08)
+                        ] : [
+                            Color(red: 0.98, green: 0.94, blue: 0.88),
+                            Color(red: 0.96, green: 0.92, blue: 0.85)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                     
-                    Spacer()
-                    
-                    // 完成按钮
-                    Button {
-                        onComplete(reminder)
-                    } label: {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.appSuccess)
+                    // 标签图标 - 放大显示作为情感化插画
+                    VStack {
+                        Image(reminder.tag.iconName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 72, height: 72) // 稍微增大图标
+                            .clipShape(Circle())
+                            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                     }
                 }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            
-            // 底部：宠物信息
-            HStack {
-                // 左侧：宠物头像和名字
-                if let pets = reminder.pets, !pets.isEmpty {
-                    HStack(spacing: 6) {
-                        // 显示第一个宠物的头像
-                        let firstPet = pets[0]
-                        if let avatarData = firstPet.avatar, let uiImage = UIImage(data: avatarData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 24, height: 24)
-                                .clipShape(Circle())
-                        } else {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
-                                    .frame(width: 24, height: 24)
+                .frame(height: 120) // 增加插画区域高度
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 16,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 16
+                    )
+                )
+                
+                // 中部：大号标题和状态
+                VStack(alignment: .leading, spacing: 10) {
+                    // 提醒标题 - 增强字体层级
+                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                        .font(.appTitle2) // 从Title3升级到Title2
+                        .fontWeight(.bold)
+                        .foregroundColor(textColor)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    // 状态信息 - 逾期提醒特殊处理
+                    HStack {
+                        if isOverdue {
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.appWarning)
                                 
-                                Image(firstPet.petType == .dog ? "pet_dog" : "pet_cat")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
+                                Text("overdue \(overdueDays) days")
+                                    .font(.appFootnote) // 稍微增大字体
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.appWarning)
                             }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                Capsule()
+                                    .fill(Color.appWarning.opacity(0.15))
+                            )
+                        } else {
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(accentColor)
+                                
+                                Text("Today")
+                                    .font(.appFootnote)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(accentColor)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                Capsule()
+                                    .fill(accentColor.opacity(0.1))
+                            )
                         }
                         
-                        if pets.count == 1 {
-                            Text(firstPet.name)
-                                .font(.appCaption)
-                                .foregroundColor(labelColor)
-                                .lineLimit(1)
-                        } else {
-                            Text("\(firstPet.name) +\(pets.count - 1)")
-                                .font(.appCaption)
-                                .foregroundColor(labelColor)
-                                .lineLimit(1)
-                        }
+                        Spacer()
                     }
                 }
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
                 
                 Spacer()
                 
-                // 右侧：时间信息
-                Text(formattedTime)
-                    .font(.appCaption)
-                    .foregroundColor(labelColor)
+                // 底部：滑动完成交互 + 宠物信息
+                VStack(spacing: 12) {
+                    // 宠物信息行
+                    HStack {
+                        // 左侧：宠物头像和名字
+                        if let pets = reminder.pets, !pets.isEmpty {
+                            HStack(spacing: 8) {
+                                // 显示第一个宠物的头像
+                                let firstPet = pets[0]
+                                if let avatarData = firstPet.avatar, let uiImage = UIImage(data: avatarData) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 28, height: 28)
+                                        .clipShape(Circle())
+                                } else {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                            .frame(width: 28, height: 28)
+                                        
+                                        Image(firstPet.petType == .dog ? "pet_dog" : "pet_cat")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 18, height: 18)
+                                    }
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 1) {
+                                    if pets.count == 1 {
+                                        Text(firstPet.name)
+                                            .font(.appSubheadline) // 增大字体
+                                            .fontWeight(.medium)
+                                            .foregroundColor(textColor) // 使用主文本色而非次要色
+                                            .lineLimit(1)
+                                    } else {
+                                        Text("\(firstPet.name) +\(pets.count - 1)")
+                                            .font(.appSubheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(textColor)
+                                            .lineLimit(1)
+                                    }
+                                    
+                                    Text(formattedTime)
+                                        .font(.appCaption)
+                                        .foregroundColor(labelColor.opacity(0.8)) // 次要信息使用更浅的颜色
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    // 滑动完成交互轨道
+                    swipeToCompleteTrack(geometry: geometry)
+                }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 18)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
-            .padding(.top, 8)
         }
-        .frame(width: cardWidth, height: cardHeight)
+        .frame(width: max(300, UIScreen.main.bounds.width - 48), height: 260) // 响应式宽度
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(cardColor)
-                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
+        .scaleEffect(isCompleted ? 0.95 : 1.0)
+        .opacity(isCompleted ? 0.8 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompleted)
         .contextMenu {
             Button {
-                onComplete(reminder)
+                completeReminder()
             } label: {
                 Label(String(localized: "Complete"), systemImage: "checkmark.circle")
                     .foregroundColor(.appSuccess)
@@ -1000,6 +995,98 @@ struct TodayReminderCardView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: actualReminderDate)
+    }
+    
+    // MARK: - 滑动完成交互
+    
+    @ViewBuilder
+    private func swipeToCompleteTrack(geometry: GeometryProxy) -> some View {
+        let trackWidth = geometry.size.width - 36 // 减去左右padding
+        let pawSize: CGFloat = 32
+        let maxDragDistance = trackWidth - pawSize - 16
+        
+        ZStack(alignment: .leading) {
+            // 轨道背景
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: 40)
+            
+            // 进度填充
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [.appSuccess.opacity(0.3), .appSuccess.opacity(0.6)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: max(pawSize + 8, dragOffset + pawSize + 8), height: 40)
+                .animation(.easeOut(duration: 0.2), value: dragOffset)
+            
+            // 爪印图标 - 可拖拽
+            HStack {
+                Image(systemName: "pawprint.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(isDragging ? .white : .appSuccess)
+                    .frame(width: pawSize, height: pawSize)
+                    .background(
+                        Circle()
+                            .fill(isDragging ? .appSuccess : Color.white)
+                            .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 1)
+                    )
+                    .offset(x: dragOffset)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                isDragging = true
+                                // 限制拖拽范围
+                                dragOffset = min(max(0, value.translation.width), maxDragDistance)
+                            }
+                            .onEnded { value in
+                                isDragging = false
+                                
+                                // 如果拖拽超过80%的距离，完成任务
+                                if dragOffset > maxDragDistance * 0.8 {
+                                    completeReminder()
+                                } else {
+                                    // 否则弹回起始位置
+                                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                        dragOffset = 0
+                                    }
+                                }
+                            }
+                    )
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isDragging)
+                
+                Spacer()
+                
+                // 提示文字
+                if dragOffset < maxDragDistance * 0.3 {
+                    Text(String(localized: "Swipe to complete"))
+                        .font(.appCaption)
+                        .foregroundColor(labelColor.opacity(0.7))
+                        .transition(.opacity)
+                }
+            }
+            .padding(.horizontal, 8)
+        }
+    }
+    
+    private func completeReminder() {
+        // 播放愉悦的完成动画
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+            isCompleted = true
+            dragOffset = 0
+        }
+        
+        // 延迟调用完成回调，让动画播放
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            onComplete(reminder)
+        }
+        
+        // 可以在这里添加更多愉悦的反馈，比如触觉反馈
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
     }
 }
 
