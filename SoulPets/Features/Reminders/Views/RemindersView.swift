@@ -609,7 +609,7 @@ struct RemindersView: View {
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // 隐藏页面指示器
-                .frame(height: 280) // 匹配卡片高度
+                .frame(height: 320) // 匹配卡片高度
             }
         }
     }
@@ -939,7 +939,7 @@ struct TodayReminderCardView: View {
                 .padding(.bottom, 16)
             }
         }
-        .frame(width: max(300, UIScreen.main.bounds.width - 48), height: 280) // 增加高度确保内容完整显示
+        .frame(width: max(300, UIScreen.main.bounds.width - 48), height: 320) // 增加高度确保内容完整显示
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(cardColor)
