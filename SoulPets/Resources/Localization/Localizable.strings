@@ -172,6 +172,8 @@
 "reminder.completed_title" = "Reminder Completed!";
 "reminder.create_record" = "Create Record";
 "reminder.create_record_message" = "Would you like to create a detailed record for this event?";
+"reminder.no_thanks" = "No thanks";
+"reminder.completed_success" = "Great job! ✨";
 "common.cancel" = "Cancel";
 "This action cannot be undone." = "This action cannot be undone.";
 

@@ -15,6 +15,8 @@ struct RemindersView: View {
     @State private var reminderToEdit: Reminder?
     @State private var reminderToDelete: Reminder?
     @State private var selectedReminderForNavigation: Reminder? // 程序化导航状态
+    @State private var showingCompletionSheet = false // 底部抽屉状态
+    @State private var completedReminder: Reminder? // 刚完成的提醒
     
     // 新增状态管理 - 参考Record模块
     @State private var showingPetSelector = false
@@ -116,20 +118,8 @@ struct RemindersView: View {
                         }
                 }
             }
-            .confirmationDialog(
-                String(localized: "reminder.completed_title"),
-                isPresented: $showingReminderToRecordAlert,
-                titleVisibility: .visible
-            ) {
-                Button(String(localized: "reminder.create_record")) {
-                    createRecordFromReminder()
-                }
-                
-                Button(String(localized: "common.cancel"), role: .cancel) {
-                    selectedReminderForRecord = nil
-                }
-            } message: {
-                Text(String(localized: "reminder.create_record_message"))
+            .sheet(isPresented: $showingCompletionSheet) {
+                completionBottomSheet
             }
             .confirmationDialog(
                 String(localized: "Delete Reminder"),
@@ -728,16 +718,20 @@ struct RemindersView: View {
     
     // MARK: - 处理提醒完成
     private func handleReminderCompletion(_ reminder: Reminder) {
-        // 先标记为完成
+        // 即时反馈：立即标记为完成并从列表中移除
         viewModel.markReminderAsCompleted(reminder, modelContext: modelContext)
         
-        // 然后询问是否创建记录
-        selectedReminderForRecord = reminder
-        showingReminderToRecordAlert = true
+        // 保存刚完成的提醒用于后续询问
+        completedReminder = reminder
+        
+        // 短暂延迟后显示底部抽屉，让用户先看到即时反馈
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            showingCompletionSheet = true
+        }
     }
     
     private func createRecordFromReminder() {
-        guard let reminder = selectedReminderForRecord else { return }
+        guard let reminder = completedReminder else { return }
         
         if let newRecord = viewModel.showCreateRecordFromReminder(reminder, modelContext: modelContext) {
             // 记录创建成功，发送通知让记录模块刷新数据
@@ -747,7 +741,9 @@ struct RemindersView: View {
             logger.error("❌ 从提醒创建记录失败")
         }
         
-        selectedReminderForRecord = nil
+        // 关闭抽屉并清理状态
+        showingCompletionSheet = false
+        completedReminder = nil
     }
     
     // MARK: - 处理提醒删除
@@ -759,12 +755,97 @@ struct RemindersView: View {
     // MARK: - 编辑提醒
     private func editReminder(_ reminder: Reminder) {
         // 确保没有其他模态视图正在显示
-        guard !showingAddReminder && !showingReminderToRecordAlert else {
+        guard !showingAddReminder && !showingCompletionSheet else {
             return
         }
         
         reminderToEdit = reminder
         showingEditReminder = true
+    }
+    
+    // MARK: - 底部抽屉视图
+    private var completionBottomSheet: some View {
+        VStack(spacing: 0) {
+            // 抽屉顶部指示器
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
+            
+            VStack(spacing: 24) {
+                // 成功图标和标题
+                VStack(spacing: 12) {
+                    // 愉悦的成功图标
+                    ZStack {
+                        Circle()
+                            .fill(Color.appSuccess.opacity(0.1))
+                            .frame(width: 64, height: 64)
+                        
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.appSuccess)
+                    }
+                    
+                    Text(String(localized: "reminder.completed_title"))
+                        .font(.appTitle2)
+                        .fontWeight(.bold)
+                        .foregroundColor(textColor)
+                    
+                    Text(String(localized: "reminder.create_record_message"))
+                        .font(.appBody)
+                        .foregroundColor(labelColor)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                }
+                
+                // 操作按钮
+                VStack(spacing: 12) {
+                    // 主要按钮 - 创建记录
+                    Button {
+                        createRecordFromReminder()
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 18))
+                            Text(String(localized: "reminder.create_record"))
+                                .font(.appSubheadline)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(accentColor)
+                        )
+                    }
+                    
+                    // 次要按钮 - 不用了
+                    Button {
+                        showingCompletionSheet = false
+                        completedReminder = nil
+                    } label: {
+                        Text(String(localized: "reminder.no_thanks"))
+                            .font(.appSubheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(labelColor)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(backgroundColor)
+                .ignoresSafeArea()
+        )
+        .presentationDetents([.height(320)]) // 固定高度
+        .presentationDragIndicator(.hidden) // 隐藏系统指示器，使用自定义的
+        .interactiveDismissDisabled(false) // 允许向下滑动关闭
     }
 }
 
@@ -945,9 +1026,29 @@ struct TodayReminderCardView: View {
                 .fill(cardColor)
                 .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
-        .scaleEffect(isCompleted ? 0.95 : 1.0)
-        .opacity(isCompleted ? 0.8 : 1.0)
+        .scaleEffect(isCompleted ? 0.85 : 1.0)
+        .opacity(isCompleted ? 0.3 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompleted)
+        .overlay(
+            // 完成时的闪烁效果
+            isCompleted ? 
+            ZStack {
+                Circle()
+                    .fill(Color.appSuccess.opacity(0.3))
+                    .frame(width: 80, height: 80)
+                    .scaleEffect(isCompleted ? 2.0 : 0.1)
+                    .opacity(isCompleted ? 0.0 : 1.0)
+                    .animation(.easeOut(duration: 0.6), value: isCompleted)
+                
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.appSuccess)
+                    .scaleEffect(isCompleted ? 1.2 : 0.1)
+                    .opacity(isCompleted ? 1.0 : 0.0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.1), value: isCompleted)
+            }
+            : nil
+        )
     }
     
     // MARK: - 计算属性
@@ -1057,20 +1158,20 @@ struct TodayReminderCardView: View {
     }
     
     private func completeReminder() {
-        // 播放愉悦的完成动画
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+        // 播放愉悦的完成动画 - 更强烈的视觉反馈
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             isCompleted = true
             dragOffset = 0
         }
         
-        // 延迟调用完成回调，让动画播放
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        // 触觉反馈 - 成功感
+        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+        impactFeedback.impactOccurred()
+        
+        // 延迟调用完成回调，让动画播放完成
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             onComplete(reminder)
         }
-        
-        // 可以在这里添加更多愉悦的反馈，比如触觉反馈
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
     }
 }
 
