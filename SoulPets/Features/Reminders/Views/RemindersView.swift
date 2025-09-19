@@ -948,27 +948,6 @@ struct TodayReminderCardView: View {
         .scaleEffect(isCompleted ? 0.95 : 1.0)
         .opacity(isCompleted ? 0.8 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompleted)
-        .contextMenu {
-            Button {
-                completeReminder()
-            } label: {
-                Label(String(localized: "Complete"), systemImage: "checkmark.circle")
-                    .foregroundColor(.appSuccess)
-            }
-            
-            Button {
-                onEdit(reminder)
-            } label: {
-                Label(String(localized: "Edit"), systemImage: "pencil")
-                    .foregroundColor(accentColor)
-            }
-            
-            Button(role: .destructive) {
-                onDelete(reminder)
-            } label: {
-                Label(String(localized: "Delete"), systemImage: "trash")
-            }
-        }
     }
     
     // MARK: - 计算属性
