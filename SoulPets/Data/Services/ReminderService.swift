@@ -6,9 +6,10 @@ import OSLog
 class ReminderService {
     private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "Reminder")
     
-    /// 获取今日待办提醒
+    /// 获取今日待办提醒（包含逾期未完成 + 今日到期未完成）
     static func getTodayReminders(modelContext: ModelContext) -> [Reminder] {
         let today = Date()
+        let calendar = Calendar.current
         let allRemindersDescriptor = FetchDescriptor<Reminder>()
         
         do {
@@ -16,11 +17,18 @@ class ReminderService {
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
             logger.info("📋 所有提醒总数: \(allReminders.count)")
             
-            // 筛选出今天需要执行但尚未完成的提醒
-            let todayReminders = allReminders.filter { reminder in
-                let needsReminder = reminder.needsReminderOn(date: today)
-                let isCompleted = reminder.isCompletedToday
-                return needsReminder && !isCompleted
+            var todayReminders: [Reminder] = []
+            
+            for reminder in allReminders {
+                // 检查是否有未完成的提醒（逾期 + 今日）
+                if let nextReminderDate = getNextReminderDate(for: reminder, from: today) {
+                    // 如果下一次提醒日期是今天或之前（逾期），且未完成
+                    let comparison = calendar.compare(nextReminderDate, to: today, toGranularity: .day)
+                    if (comparison == .orderedSame || comparison == .orderedAscending) && !reminder.isCompletedOn(date: nextReminderDate) {
+                        todayReminders.append(reminder)
+                        logger.info("📅 今日待办: \(reminder.tag.name) - 日期: \(nextReminderDate)")
+                    }
+                }
             }
             
             return todayReminders
@@ -30,8 +38,8 @@ class ReminderService {
         }
     }
     
-    /// 获取未来的提醒（除今天外的未来7天，以及年度重复提醒）
-    static func getUpcomingReminders(modelContext: ModelContext, daysAhead: Int = 7) -> [Reminder] {
+    /// 获取未来安排提醒（明天及以后的提醒）
+    static func getUpcomingReminders(modelContext: ModelContext, daysAhead: Int = 30) -> [Reminder] {
         let calendar = Calendar.current
         let today = Date()
         let allRemindersDescriptor = FetchDescriptor<Reminder>()
@@ -43,76 +51,93 @@ class ReminderService {
             
             var upcomingReminders: [Reminder] = []
             
-            // 检查未来7天的每一天（从明天开始）
-            for dayOffset in 1...daysAhead {
-                guard let futureDate = calendar.date(byAdding: .day, value: dayOffset, to: today) else {
-                    continue
-                }
-                
-                // 筛选出在该日期需要提醒的模板
-                let remindersForDay = allReminders.filter { reminder in
-                    let needsReminder = reminder.needsReminderOn(date: futureDate)
-                    let isNotCompletedOnThatDay = !reminder.isCompletedOn(date: futureDate)
-                    
-                    return needsReminder && isNotCompletedOnThatDay
-                }
-                
-                upcomingReminders.append(contentsOf: remindersForDay)
-            }
-            
-            // 🔧 新增：特别处理年度重复提醒（如生日、领养纪念日）
-            let yearlyReminders = allReminders.filter { reminder in
-                guard let repeatUnit = reminder.repeatUnit else { return false }
-                return repeatUnit == .yearly && !reminder.isCompletedToday
-            }
-            
-            for reminder in yearlyReminders {
-                // 计算下一个年度提醒日期
-                if let nextYearlyDate = calculateNextYearlyReminderDate(for: reminder, from: today) {
-                    // 如果这个年度提醒还没有在upcomingReminders中，就添加它
-                    let notAlreadyIncluded = !upcomingReminders.contains { $0.id == reminder.id }
-                    
-                    if notAlreadyIncluded {
-                        upcomingReminders.append(reminder)
-                        logger.info("🎂 添加年度提醒: \(reminder.tag.name)，下次日期: \(nextYearlyDate)")
+            for reminder in allReminders {
+                // 获取每个提醒的下一次发生日期
+                if let nextReminderDate = getNextReminderDate(for: reminder, from: today) {
+                    // 如果下一次提醒日期是明天或以后
+                    let comparison = calendar.compare(nextReminderDate, to: today, toGranularity: .day)
+                    if comparison == .orderedDescending {
+                        // 检查是否在指定天数范围内
+                        let daysDifference = calendar.dateComponents([.day], from: today, to: nextReminderDate).day ?? 0
+                        if daysDifference <= daysAhead {
+                            upcomingReminders.append(reminder)
+                            logger.info("📈 未来安排: \(reminder.tag.name) - 日期: \(nextReminderDate)")
+                        }
                     }
                 }
             }
             
-            // 🔧 对于今天已完成的重复提醒，立即显示它们的下一个周期
-            let todayCompletedReminders = allReminders.filter { reminder in
-                // 检查是否是重复提醒且今天已完成
-                let isRepeating = reminder.repeatInterval != nil && reminder.repeatUnit != nil
-                let isCompletedToday = reminder.isCompletedToday
-                let needsTodayReminder = reminder.needsReminderOn(date: today)
-                
-                return isRepeating && isCompletedToday && needsTodayReminder
-            }
-            
-            // 为今天已完成的重复提醒计算下一个周期日期
-            for reminder in todayCompletedReminders {
-                if let nextCycleDate = calculateNextCycleDate(for: reminder, from: today) {
-                    // 检查下一个周期是否在未来7天内，且该提醒尚未包含在upcomingReminders中
-                    let daysDifference = calendar.dateComponents([.day], from: today, to: nextCycleDate).day ?? 0
-                    let isWithinRange = daysDifference > 0 && daysDifference <= daysAhead
-                    let notAlreadyIncluded = !upcomingReminders.contains { $0.id == reminder.id }
-                    
-                    if isWithinRange && notAlreadyIncluded {
-                        upcomingReminders.append(reminder)
-                        logger.info("🔄 添加已完成重复提醒的下一周期: \(reminder.tag.name)，下次日期: \(nextCycleDate)")
-                    }
-                }
-            }
-            
-            // 去重，一个模板可能在多个未来日期都有提醒
-            let uniqueUpcoming = Array(Set(upcomingReminders))
-            
-            logger.info("📈 获取未来提醒: 排除今日提醒后剩余 \(uniqueUpcoming.count) 条")
-            return uniqueUpcoming
+            logger.info("📈 获取未来提醒: 共 \(upcomingReminders.count) 条")
+            return upcomingReminders
             
         } catch {
             logger.error("获取未来提醒失败: \(error.localizedDescription)")
             return []
+        }
+    }
+    
+    /// 获取提醒的下一次发生日期（核心方法）
+    static func getNextReminderDate(for reminder: Reminder, from date: Date = Date()) -> Date? {
+        let calendar = Calendar.current
+        
+        // 如果是单次提醒
+        if reminder.repeatInterval == nil || reminder.repeatUnit == nil {
+            return reminder.startDate
+        }
+        
+        // 如果是重复提醒，计算下一次发生的日期
+        guard let interval = reminder.repeatInterval, 
+              let unit = reminder.repeatUnit,
+              interval > 0 else { 
+            return reminder.startDate
+        }
+        
+        // 从起始日期开始计算
+        var nextDate = reminder.startDate
+        
+        // 如果起始日期已经过了，计算下一个周期
+        while calendar.compare(nextDate, to: date, toGranularity: .day) == .orderedAscending {
+            switch unit {
+            case .daily:
+                nextDate = calendar.date(byAdding: .day, value: interval, to: nextDate) ?? nextDate
+            case .weekly:
+                nextDate = calendar.date(byAdding: .weekOfYear, value: interval, to: nextDate) ?? nextDate
+            case .monthly:
+                nextDate = calendar.date(byAdding: .month, value: interval, to: nextDate) ?? nextDate
+            case .yearly:
+                nextDate = calendar.date(byAdding: .year, value: interval, to: nextDate) ?? nextDate
+            }
+        }
+        
+        return nextDate
+    }
+    
+    /// 计算角标数字：逾期未完成 + 今日到期未完成的总数
+    static func calculateBadgeCount(modelContext: ModelContext) -> Int {
+        let today = Date()
+        let calendar = Calendar.current
+        let allRemindersDescriptor = FetchDescriptor<Reminder>()
+        
+        do {
+            let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            var badgeCount = 0
+            
+            for reminder in allReminders {
+                if let nextReminderDate = getNextReminderDate(for: reminder, from: today) {
+                    // 如果下一次提醒日期是今天或之前（逾期），且未完成
+                    let comparison = calendar.compare(nextReminderDate, to: today, toGranularity: .day)
+                    if (comparison == .orderedSame || comparison == .orderedAscending) && !reminder.isCompletedOn(date: nextReminderDate) {
+                        badgeCount += 1
+                    }
+                }
+            }
+            
+            logger.info("📱 计算角标数字: \(badgeCount)")
+            return badgeCount
+            
+        } catch {
+            logger.error("计算角标数字失败: \(error.localizedDescription)")
+            return 0
         }
     }
     

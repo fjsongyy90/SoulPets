@@ -590,7 +590,7 @@ struct RemindersView: View {
                 NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
                     ReminderCardView(
                         reminder: reminder,
-                        isToday: true,
+                        isCurrentlyToday: true,
                         accentColor: accentColor,
                         textColor: textColor,
                         labelColor: labelColor,
@@ -639,7 +639,7 @@ struct RemindersView: View {
                 NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
                     ReminderCardView(
                         reminder: reminder,
-                        isToday: false,
+                        isCurrentlyToday: false,
                         accentColor: accentColor,
                         textColor: textColor,
                         labelColor: labelColor,
@@ -688,7 +688,7 @@ struct RemindersView: View {
                 NavigationLink(destination: ReminderDetailView(reminder: reminder)) {
                     ReminderCardView(
                         reminder: reminder,
-                        isToday: false,
+                        isCurrentlyToday: false,
                         accentColor: accentColor,
                         textColor: textColor,
                         labelColor: labelColor,
@@ -755,7 +755,7 @@ struct RemindersView: View {
 // MARK: - 提醒卡片 - 重新设计以匹配Record风格
 struct ReminderCardView: View {
     let reminder: Reminder
-    let isToday: Bool
+    let isCurrentlyToday: Bool // 改名避免冲突
     let accentColor: Color
     let textColor: Color
     let labelColor: Color
@@ -785,24 +785,50 @@ struct ReminderCardView: View {
                 
                 Spacer()
                 
-                // 时间显示（所有提醒都显示时间）
-                HStack(spacing: 4) {
+                // 时间显示和倒计时
+                VStack(alignment: .trailing, spacing: 2) {
+                    // 具体日期时间
                     Text(formattedDate)
                         .font(.appSubheadline)
                         .foregroundColor(labelColor)
                     
-                    // 如果是明天的提醒，显示"Tomorrow"标签
-                    if isTomorrow {
-                        Text(String(localized: "Tomorrow"))
+                    // 倒计时或状态标签
+                    if isCurrentlyToday {
+                        if isOverdue {
+                            Text(String(localized: "Overdue"))
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.red.opacity(0.1))
+                                )
+                                .foregroundColor(Color.red)
+                        } else {
+                            Text(String(localized: "Today"))
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(accentColor.opacity(0.1))
+                                )
+                                .foregroundColor(accentColor)
+                        }
+                    } else if !isCurrentlyToday {
+                        // 显示倒计时
+                        Text(countdownText)
                             .font(.caption2)
                             .fontWeight(.medium)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(
                                 Capsule()
-                                    .fill(accentColor.opacity(0.1))
+                                    .fill(labelColor.opacity(0.1))
                             )
-                            .foregroundColor(accentColor)
+                            .foregroundColor(labelColor)
                     }
                 }
             }
@@ -823,7 +849,7 @@ struct ReminderCardView: View {
                 Spacer()
                 
                 // 完成按钮（仅今天未完成的提醒显示）
-                if isToday && !reminder.isCompletedToday {
+                if isCurrentlyToday && !reminder.isCompletedToday {
                     Button {
                         onComplete(reminder)
                     } label: {
@@ -916,21 +942,46 @@ struct ReminderCardView: View {
         }
     }
     
-    // 格式化日期 - 自定义格式 "Aug 12, 2025 at 16:44"
+    // 获取提醒的实际显示日期（下一次发生的日期）
+    private var actualReminderDate: Date {
+        return ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate
+    }
+    
+    // 格式化日期 - 显示实际的提醒日期
     private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, yyyy 'at' HH:mm"
         formatter.locale = Locale(identifier: "en_US_POSIX") // 确保英文月份缩写
-        return formatter.string(from: reminder.startDate)
+        return formatter.string(from: actualReminderDate)
     }
     
-    // 判断是否是明天的提醒
-    private var isTomorrow: Bool {
+    // 判断是否是今天的提醒
+    private var isToday: Bool {
         let calendar = Calendar.current
-        let startDate = reminder.startDate
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+        return calendar.isDate(actualReminderDate, inSameDayAs: Date())
+    }
+    
+    // 判断是否逾期
+    private var isOverdue: Bool {
+        let calendar = Calendar.current
+        let comparison = calendar.compare(actualReminderDate, to: Date(), toGranularity: .day)
+        return comparison == .orderedAscending
+    }
+    
+    // 倒计时文本
+    private var countdownText: String {
+        let calendar = Calendar.current
+        let today = Date()
         
-        return calendar.isDate(startDate, inSameDayAs: tomorrow)
+        if let days = calendar.dateComponents([.day], from: today, to: actualReminderDate).day {
+            if days == 1 {
+                return String(localized: "Tomorrow")
+            } else if days > 1 {
+                return String(localized: "In \(days) days")
+            }
+        }
+        
+        return ""
     }
 }
 

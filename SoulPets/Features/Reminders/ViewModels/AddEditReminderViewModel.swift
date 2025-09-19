@@ -237,60 +237,58 @@ class AddEditReminderViewModel: ObservableObject {
             errorMessage = nil
         }
         
-        do {
-            try await MainActor.run {
-                if isEditing, let existingReminder = reminderToEdit {
-                    // 更新现有提醒
-                    existingReminder.pets = selectedPets
-                    existingReminder.tag = tag
-                    existingReminder.startDate = startDate
-                    existingReminder.notes = notes.isEmpty ? nil : notes
-                    existingReminder.repeatInterval = isRepeating ? repeatInterval : nil
-                    existingReminder.repeatUnit = isRepeating ? repeatUnit : nil
-                    existingReminder.updatedAt = Date()
+        return await withCheckedContinuation { continuation in
+            Task { @MainActor in
+                do {
+                    if isEditing, let existingReminder = reminderToEdit {
+                        // 更新现有提醒
+                        existingReminder.pets = selectedPets
+                        existingReminder.tag = tag
+                        existingReminder.startDate = startDate
+                        existingReminder.notes = notes.isEmpty ? nil : notes
+                        existingReminder.repeatInterval = isRepeating ? repeatInterval : nil
+                        existingReminder.repeatUnit = isRepeating ? repeatUnit : nil
+                        existingReminder.updatedAt = Date()
+                        
+                        // 更新通知
+                        NotificationService.removeNotificationsForReminder(reminderId: existingReminder.id)
+                        ReminderService.setupNotificationsForReminder(reminder: existingReminder)
+                        
+                        logger.info("更新提醒: \(existingReminder.title)")
+                    } else {
+                        // 创建新提醒
+                        let newReminder = Reminder(
+                            startDate: startDate,
+                            notes: notes.isEmpty ? nil : notes,
+                            repeatInterval: isRepeating ? repeatInterval : nil,
+                            repeatUnit: isRepeating ? repeatUnit : nil,
+                            tag: tag,
+                            pets: selectedPets
+                        )
+                        
+                        modelContext.insert(newReminder)
+                        
+                        // 设置通知
+                        ReminderService.setupNotificationsForReminder(reminder: newReminder)
+                        
+                        logger.info("创建新提醒: \(newReminder.title)")
+                    }
                     
-                    // 更新通知
-                    NotificationService.removeNotificationsForReminder(reminderId: existingReminder.id)
-                    ReminderService.setupNotificationsForReminder(reminder: existingReminder)
+                    try modelContext.save()
                     
-                    logger.info("更新提醒: \(existingReminder.title)")
-                } else {
-                    // 创建新提醒
-                    let newReminder = Reminder(
-                        startDate: startDate,
-                        notes: notes.isEmpty ? nil : notes,
-                        repeatInterval: isRepeating ? repeatInterval : nil,
-                        repeatUnit: isRepeating ? repeatUnit : nil,
-                        tag: tag,
-                        pets: selectedPets
-                    )
+                    // 更新应用角标
+                    NotificationService.updateApplicationBadge(modelContext: modelContext)
                     
-                    modelContext.insert(newReminder)
+                    isLoading = false
+                    continuation.resume(returning: true)
                     
-                    // 设置通知
-                    ReminderService.setupNotificationsForReminder(reminder: newReminder)
-                    
-                    logger.info("创建新提醒: \(newReminder.title)")
+                } catch {
+                    logger.error("保存提醒失败: \(error.localizedDescription)")
+                    errorMessage = error.localizedDescription
+                    isLoading = false
+                    continuation.resume(returning: false)
                 }
-                
-                try modelContext.save()
-                
-                // 更新应用角标
-                NotificationService.updateApplicationBadge(modelContext: modelContext)
             }
-            
-            await MainActor.run {
-                isLoading = false
-            }
-            return true
-            
-        } catch {
-            await MainActor.run {
-                logger.error("保存提醒失败: \(error.localizedDescription)")
-                errorMessage = error.localizedDescription
-                isLoading = false
-            }
-            return false
         }
     }
     
