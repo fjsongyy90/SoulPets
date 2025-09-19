@@ -89,7 +89,7 @@ struct RemindersView: View {
                 }
             }
             .fullScreenCover(isPresented: $showingAddReminder) {
-                AddEditReminderView()
+                AddEditReminderView(modelContext: modelContext)
                     .onDisappear {
                         viewModel.loadReminders(from: modelContext)
                     }
@@ -108,7 +108,7 @@ struct RemindersView: View {
             }
             .sheet(isPresented: $showingEditReminder) {
                 if let reminder = reminderToEdit {
-                    AddEditReminderView(reminderToEdit: reminder)
+                    AddEditReminderView(reminderToEdit: reminder, modelContext: modelContext)
                         .onDisappear {
                             reminderToEdit = nil
                             viewModel.loadReminders(from: modelContext)

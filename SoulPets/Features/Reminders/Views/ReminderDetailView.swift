@@ -57,7 +57,7 @@ struct ReminderDetailView: View {
                 }
             }
             .sheet(isPresented: $showingEditView) {
-                AddEditReminderView(reminderToEdit: reminder)
+                AddEditReminderView(reminderToEdit: reminder, modelContext: modelContext)
             }
             .alert(
                 String(localized: "reminder.delete_title"),

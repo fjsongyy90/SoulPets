@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SwiftUI
 import OSLog
 
 // MARK: - 步骤枚举
@@ -8,32 +9,35 @@ enum ReminderCreationStep: CaseIterable {
     case reminderDetails
 }
 
-@Observable
-class AddEditReminderViewModel {
+class AddEditReminderViewModel: ObservableObject {
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AddEditReminderViewModel")
     
     // MARK: - 步骤管理
-    var currentStep: ReminderCreationStep = .selectPetsAndEvent
+    @Published var currentStep: ReminderCreationStep = .selectPetsAndEvent
     
     // MARK: - 编辑状态
-    var isEditing: Bool = false
+    @Published var isEditing: Bool = false
     var reminderToEdit: Reminder?
     
     // MARK: - 表单数据
-    var selectedPets: [Pet] = []
-    var selectedTag: Tag?
-    var startDate = Date()
-    var notes = ""
-    var isRepeating = false
-    var repeatInterval = 1
-    var repeatUnit: RepeatUnit = .weekly
+    @Published var selectedPets: [Pet] = []
+    @Published var selectedTag: Tag?
+    @Published var startDate = Date()
+    @Published var notes = ""
+    @Published var isRepeating = false
+    @Published var repeatInterval = 1
+    @Published var repeatUnit: RepeatUnit = .weekly
     
     // MARK: - UI 状态
-    var availableTags: [Tag] = []
-    var isLoading = false
-    var errorMessage: String?
-    var showingTagSelection = false
-    var showingPetSelection = false
+    @Published var availableTags: [Tag] = []
+    @Published var recentlyUsedTags: [Tag] = [] // 添加最近使用的标签支持
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    @Published var showingTagSelection = false
+    @Published var showingPetSelection = false
+    
+    // MARK: - ModelContext (为了复用Record组件)
+    var modelContext: ModelContext?
     
     // MARK: - 验证状态
     var isFormValid: Bool {
@@ -49,6 +53,10 @@ class AddEditReminderViewModel {
     
     init(reminder: Reminder) {
         setupForEditing(reminder)
+    }
+    
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
     }
     
     // MARK: - 步骤导航
@@ -93,11 +101,14 @@ class AddEditReminderViewModel {
     }
     
     // MARK: - 数据加载
-    func loadAvailableTags(from modelContext: ModelContext) {
+    func loadAvailableTags(from modelContext: ModelContext? = nil) {
+        let context = modelContext ?? self.modelContext
+        guard let context = context else { return }
+        
         Task { @MainActor in
             do {
                 let descriptor = FetchDescriptor<Tag>()
-                let allTags = try modelContext.fetch(descriptor)
+                let allTags = try context.fetch(descriptor)
                 
                 // 根据选择的宠物过滤标签
                 if self.selectedPets.isEmpty {
@@ -114,12 +125,50 @@ class AddEditReminderViewModel {
                     }
                 }
                 
+                // 加载最近使用的标签（为了复用Record组件）
+                self.loadRecentlyUsedTags(from: context)
+                
                 logger.info("加载了 \(self.availableTags.count) 个可用标签")
                 
             } catch {
                 logger.error("加载标签失败: \(error.localizedDescription)")
                 self.errorMessage = error.localizedDescription
             }
+        }
+    }
+    
+    // MARK: - 加载最近使用的标签 (复用Record组件需要)
+    private func loadRecentlyUsedTags(from modelContext: ModelContext) {
+        do {
+            // 获取最近的提醒记录，提取其中使用的标签
+            let descriptor = FetchDescriptor<Reminder>(
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
+            let recentReminders = try modelContext.fetch(descriptor)
+            
+            // 获取最近使用的标签，去重并限制数量
+            var usedTags: [Tag] = []
+            var seenTagIds: Set<UUID> = []
+            
+            for reminder in recentReminders.prefix(20) { // 最多查看最近20个提醒
+                let tag = reminder.tag
+                if !seenTagIds.contains(tag.id),
+                   !tag.isHidden,
+                   tag.defaultIsReminder {
+                    usedTags.append(tag)
+                    seenTagIds.insert(tag.id)
+                    
+                    if usedTags.count >= 6 { // 最多显示6个最近使用的标签
+                        break
+                    }
+                }
+            }
+            
+            self.recentlyUsedTags = usedTags
+            
+        } catch {
+            logger.error("加载最近使用标签失败: \(error.localizedDescription)")
+            self.recentlyUsedTags = []
         }
     }
     
@@ -132,9 +181,8 @@ class AddEditReminderViewModel {
         }
         
         // 当宠物选择改变时，重新加载可用标签
-        if !selectedPets.isEmpty {
-            // 这里应该触发标签的重新筛选，但由于这是同步方法，
-            // 我们需要在调用处处理这个逻辑
+        if let context = modelContext {
+            loadAvailableTags(from: context)
         }
     }
     
@@ -146,6 +194,13 @@ class AddEditReminderViewModel {
     func selectTag(_ tag: Tag) {
         selectedTag = tag
         showingTagSelection = false
+    }
+    
+    // MARK: - 加载标签方法 (为了兼容Record组件)
+    func loadTags() {
+        if let context = modelContext {
+            loadAvailableTags(from: context)
+        }
     }
     
     // MARK: - 重复设置

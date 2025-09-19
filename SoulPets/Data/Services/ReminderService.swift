@@ -20,18 +20,6 @@ class ReminderService {
             let todayReminders = allReminders.filter { reminder in
                 let needsReminder = reminder.needsReminderOn(date: today)
                 let isCompleted = reminder.isCompletedToday
-                
-                // 特别为生日提醒添加详细日志
-                if reminder.tag.code == "planning.birthday" {
-                    logger.info("🎂 生日提醒检查: \(reminder.tag.name)")
-                    logger.info("  - 开始日期: \(reminder.startDate)")
-                    logger.info("  - 检查日期: \(today)")
-                    logger.info("  - 需要提醒: \(needsReminder)")
-                    logger.info("  - 已完成: \(isCompleted)")
-                    logger.info("  - 重复单位: \(reminder.repeatUnit?.rawValue ?? "无")")
-                    logger.info("  - 重复间隔: \(reminder.repeatInterval ?? 0)")
-                }
-                
                 return needsReminder && !isCompleted
             }
             
@@ -183,10 +171,6 @@ class ReminderService {
         )
         
         modelContext.insert(completion)
-        
-        // 🔧 修复：移除错误的startDate更新逻辑
-        // 重复提醒的startDate应该保持不变，只需要记录完成情况即可
-        // 显示逻辑会基于重复计算和完成记录来判断是否需要显示
         
         do {
             try modelContext.save()

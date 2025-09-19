@@ -1,26 +1,65 @@
 import SwiftUI
 import SwiftData
 
+/// 适配器类：让ReminderViewModel能够与RecordViewModel的接口兼容
+/// 这样可以复用AddRecordPetAndEventView组件
+class ReminderRecordAdapter: RecordViewModel {
+    private let reminderViewModel: AddEditReminderViewModel
+    
+    init(reminderViewModel: AddEditReminderViewModel, modelContext: ModelContext) {
+        self.reminderViewModel = reminderViewModel
+        super.init(modelContext: modelContext)
+        
+        // 同步初始数据
+        self.selectedPets = reminderViewModel.selectedPets
+        self.selectedTag = reminderViewModel.selectedTag
+        self.recentlyUsedTags = reminderViewModel.recentlyUsedTags
+    }
+    
+    /// 重写宠物选择方法，同步到ReminderViewModel
+    override func togglePetSelection(pet: Pet) {
+        super.togglePetSelection(pet: pet)
+        // 同步到ReminderViewModel
+        reminderViewModel.selectedPets = self.selectedPets
+        // 触发ReminderViewModel的标签重新加载
+        reminderViewModel.loadTags()
+    }
+    
+    /// 重写标签选择方法，同步到ReminderViewModel
+    override func selectTag(_ tag: Tag) {
+        super.selectTag(tag)
+        // 同步到ReminderViewModel
+        reminderViewModel.selectedTag = self.selectedTag
+    }
+    
+    /// 重写标签加载方法，从ReminderViewModel获取数据
+    override func loadTags() {
+        reminderViewModel.loadTags()
+        // 同步最新的标签数据
+        self.recentlyUsedTags = reminderViewModel.recentlyUsedTags
+    }
+}
+
 struct AddEditReminderView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @State private var viewModel = AddEditReminderViewModel()
-    @State private var showingTagManagement = false  // 新增：标签管理状态
-    @Query private var allPets: [Pet]
-    @Query(sort: \Tag.sortOrder) private var allTags: [Tag]  // 修改：按sortOrder排序
-    
-    let reminderToEdit: Reminder?
+    @StateObject private var viewModel: AddEditReminderViewModel
     
     // 颜色定义 - 与Record模块保持一致
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
-    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
-    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
-    init(reminderToEdit: Reminder? = nil) {
+    init(reminderToEdit: Reminder? = nil, modelContext: ModelContext) {
         self.reminderToEdit = reminderToEdit
+        if let reminder = reminderToEdit {
+            _viewModel = StateObject(wrappedValue: AddEditReminderViewModel(reminder: reminder))
+        } else {
+            _viewModel = StateObject(wrappedValue: AddEditReminderViewModel(modelContext: modelContext))
+        }
     }
+    
+    let reminderToEdit: Reminder?
     
     var body: some View {
         NavigationStack {
@@ -32,9 +71,11 @@ struct AddEditReminderView: View {
                 VStack {
                     switch viewModel.currentStep {
                     case .selectPetsAndEvent:
-                        selectPetsAndEventView
+                        // 复用Record模块的组件
+                        AddRecordPetAndEventView(viewModel: adaptedRecordViewModel)
                     case .reminderDetails:
-                        reminderDetailsView
+                        // 使用新创建的独立提醒详情页
+                        AddReminderDetailsView(viewModel: viewModel)
                     }
                 }
             }
@@ -70,15 +111,6 @@ struct AddEditReminderView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingTagManagement) {
-                TagManagementView(modelContext: modelContext)
-            }
-            .onChange(of: showingTagManagement) { oldValue, newValue in
-                // 当标签管理页面关闭后，重新加载标签数据
-                if oldValue && !newValue {
-                    viewModel.loadAvailableTags(from: modelContext)
-                }
-            }
             .alert(
                 String(localized: "Error"),
                 isPresented: .constant(viewModel.errorMessage != nil)
@@ -92,6 +124,9 @@ struct AddEditReminderView: View {
                 }
             }
             .onAppear {
+                // 设置modelContext
+                viewModel.modelContext = modelContext
+                
                 if let reminder = reminderToEdit {
                     viewModel.setupForEditing(reminder)
                 }
@@ -100,252 +135,20 @@ struct AddEditReminderView: View {
         }
     }
     
-    // MARK: - 子视图
+    // MARK: - 适配器
     
-    /// 选择宠物和事件视图 - 参考Record模块
-    private var selectPetsAndEventView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // 宠物选择器
-                Text(String(localized: "Select Pets"))
-                    .font(.appHeadline)
-                    .foregroundColor(textColor)
-                    .padding(.horizontal)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
-                        ForEach(allPets) { pet in
-                            PetAvatarView(
-                                pet: pet, 
-                                isSelected: viewModel.selectedPets.contains(where: { $0.id == pet.id }), 
-                                accentColor: accentColor, 
-                                textColor: textColor
-                            )
-                            .onTapGesture {
-                                viewModel.togglePetSelection(pet: pet)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                
-                // 验证提示
-                if viewModel.selectedPets.isEmpty {
-                    Text(String(localized: "Select at least one pet"))
-                        .font(.appCaption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
-                }
-                
-                // 标签选择器标题和管理按钮
-                HStack {
-                    Text(String(localized: "Select Event Type"))
-                        .font(.appHeadline)
-                        .foregroundColor(textColor)
-                    
-                    Spacer()
-                    
-                    // 标签管理按钮
-                    Button(action: {
-                        showingTagManagement = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gear")
-                                .font(.caption)
-                            Text(String(localized: "Manage Tags"))
-                                .font(.appCaption)
-                        }
-                        .foregroundColor(accentColor)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top)
-                
-                // 按分类显示标签
-                ForEach(TagCategory.allCases, id: \.self) { category in
-                    let filteredTags = filterTags(for: category)
-                    if !filteredTags.isEmpty {
-                        VStack(alignment: .leading) {
-                            Text(String(localized: LocalizedStringResource(stringLiteral: category.rawValue)))
-                                .font(.appSubheadline)
-                                .foregroundColor(labelColor)
-                                .padding(.horizontal)
-                            
-                            tagGridView(tags: filteredTags)
-                        }
-                        .padding(.top, 10)
-                    }
-                }
-            }
-            .padding(.vertical)
-        }
+    /// 适配器：将AddEditReminderViewModel适配为RecordViewModel接口
+    /// 这样就可以复用AddRecordPetAndEventView组件
+    private var adaptedRecordViewModel: ReminderRecordAdapter {
+        ReminderRecordAdapter(reminderViewModel: viewModel, modelContext: modelContext)
     }
     
-    /// 提醒详情视图 - 参考Record模块
-    private var reminderDetailsView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // 日期和时间选择器
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "Date & Time"))
-                        .font(.appHeadline)
-                        .foregroundColor(textColor)
-                    
-                    DatePicker("", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
-                        .labelsHidden()
-                        .datePickerStyle(.compact)
-                        .colorScheme(.light) // 强制使用浅色模式
-                        .padding()
-                        .background(Color.white) // 强制使用白色背景
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                        .accentColor(accentColor)
-                }
-                .padding(.horizontal)
-                
-                // 重复设置
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "Repeat Settings"))
-                        .font(.appHeadline)
-                        .foregroundColor(textColor)
-                    
-                    VStack(spacing: 16) {
-                        // 重复开关
-                        HStack {
-                            Text(String(localized: "Repeat"))
-                                .font(.appBody)
-                                .foregroundColor(textColor)
-                            Spacer()
-                            Toggle("", isOn: $viewModel.isRepeating)
-                                .tint(accentColor)
-                        }
-                        
-                        // 重复间隔设置
-                        if viewModel.isRepeating {
-                            HStack {
-                                Text(String(localized: "Every"))
-                                    .font(.appBody)
-                                    .foregroundColor(textColor)
-                                
-                                Spacer()
-                                
-                                Picker("Interval", selection: $viewModel.repeatInterval) {
-                                    ForEach(1...30, id: \.self) { interval in
-                                        Text("\(interval)")
-                                            .tag(interval)
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .accentColor(accentColor)
-                                
-                                Picker("Unit", selection: $viewModel.repeatUnit) {
-                                    ForEach(RepeatUnit.allCases, id: \.self) { unit in
-                                        Text(String(localized: "repeat_unit.\(unit.rawValue.lowercased())"))
-                                            .tag(unit)
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .accentColor(accentColor)
-                            }
-                            
-                            // 重复规则预览
-                            if !viewModel.repeatRuleText.isEmpty {
-                                Text(viewModel.repeatRuleText)
-                                    .font(.appCaption)
-                                    .foregroundColor(labelColor)
-                                    .padding(.top, 4)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white) // 强制使用白色背景
-                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                    )
-                }
-                .padding(.horizontal)
-                
-                // 备注输入框
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "Notes"))
-                        .font(.appHeadline)
-                        .foregroundColor(textColor)
-                    
-                    TextEditor(text: $viewModel.notes)
-                        .foregroundColor(textColor)
-                        .frame(minHeight: 100)
-                        .padding()
-                        .background(Color.white) // 直接设置白色背景
-                        .colorScheme(.light) // 强制使用浅色模式
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                }
-                .padding(.horizontal)
-            }
-            .padding(.vertical)
-        }
-    }
-    
-    // MARK: - 辅助方法
-    
-    /// 标签网格视图 - 复用Record模块的设计
-    private func tagGridView(tags: [Tag]) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(tags) { tag in
-                    TagItemView(
-                        tag: tag, 
-                        isSelected: viewModel.selectedTag?.id == tag.id, 
-                        accentColor: accentColor, 
-                        textColor: textColor
-                    )
-                    .frame(width: 100) // 固定宽度确保一致性
-                    .onTapGesture {
-                        viewModel.selectTag(tag)
-                    }
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-    
-    /// 根据宠物类型和分类筛选标签 - 与Record模块保持一致
-    private func filterTags(for category: TagCategory) -> [Tag] {
-        // 如果没有选择宠物，返回空数组
-        guard !viewModel.selectedPets.isEmpty else { return [] }
-        
-        // 获取所有选中宠物的类型
-        let selectedPetTypes = viewModel.selectedPets.map { $0.petType }
-        
-        // 筛选同时适用于所有选中宠物类型的标签，并排除隐藏的标签，只显示可用于提醒的标签
-        return allTags.filter { tag in
-            // 检查标签是否属于当前分类
-            guard tag.category == category else { return false }
-            
-            // 排除隐藏的标签
-            guard !tag.isHidden else { return false }
-            
-            // 只显示可用于提醒的标签
-            guard tag.defaultIsReminder else { return false }
-            
-            // 检查标签是否适用于所有选中的宠物类型
-            return selectedPetTypes.allSatisfy { petType in
-                tag.isApplicableTo(petType: petType)
-            }
-        }
-    }
 }
 
 #Preview {
-    AddEditReminderView()
-        .modelContainer(for: [Pet.self, Reminder.self, Tag.self])
+    let modelContainer = try! ModelContainer(for: Pet.self, Reminder.self, Tag.self)
+    let modelContext = ModelContext(modelContainer)
+    
+    return AddEditReminderView(modelContext: modelContext)
+        .modelContainer(modelContainer)
 } 
