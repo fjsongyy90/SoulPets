@@ -124,7 +124,7 @@
 
 // 记录模块 - 详情页
 "Record Details" = "Record Details";
-"Notes" = "Notes";
+"Notes" = "Notes (optional)";
 "No notes" = "No notes";
 "Created on" = "Created on";
 "Last updated on" = "Last updated on";
