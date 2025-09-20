@@ -479,25 +479,25 @@ struct RemindersView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 if viewModel.selectedFilter == .upcoming {
-                    // 今日待办部分
-                    if !viewModel.filteredTodayReminders.isEmpty {
-                        todayRemindersSection
-                    } else {
-                        // 今日待办为空时的状态
-                        todayEmptyStateSection
-                    }
-                    
-                    // 未来提醒部分
-                    if !viewModel.filteredUpcomingReminders.isEmpty {
-                        upcomingRemindersSection
-                    } else if !viewModel.filteredTodayReminders.isEmpty {
-                        // 有今日待办但没有未来计划的状态
-                        upcomingEmptyStateSection
-                    }
-                    
                     // 完全没有提醒时的状态
                     if viewModel.filteredTodayReminders.isEmpty && viewModel.filteredUpcomingReminders.isEmpty {
                         completelyEmptyStateSection
+                    } else {
+                        // 今日待办部分
+                        if !viewModel.filteredTodayReminders.isEmpty {
+                            todayRemindersSection
+                        } else {
+                            // 今日待办为空时的状态（但未来计划有数据）
+                            todayEmptyStateSection
+                        }
+                        
+                        // 未来提醒部分
+                        if !viewModel.filteredUpcomingReminders.isEmpty {
+                            upcomingRemindersSection
+                        } else if !viewModel.filteredTodayReminders.isEmpty {
+                            // 有今日待办但没有未来计划的状态
+                            upcomingEmptyStateSection
+                        }
                     }
                 } else {
                     // 已完成提醒部分

@@ -189,9 +189,12 @@ class ReminderService {
     
     /// 标记提醒为已完成
     static func markReminderAsCompleted(reminder: Reminder, modelContext: ModelContext) {
+        // 获取提醒应该完成的日期（对于逾期提醒，使用应该完成的日期而不是当前日期）
+        let completionDate = getNextReminderDate(for: reminder) ?? Date()
+        
         // 创建完成记录
         let completion = ReminderCompletion(
-            completionDate: Date(),
+            completionDate: completionDate,
             reminder: reminder
         )
         
@@ -199,7 +202,7 @@ class ReminderService {
         
         do {
             try modelContext.save()
-            logger.info("已将提醒标记为完成: \(reminder.id)")
+            logger.info("已将提醒标记为完成: \(reminder.id), 完成日期: \(completionDate)")
         } catch {
             logger.error("标记提醒完成时出错: \(error.localizedDescription)")
         }
