@@ -764,7 +764,8 @@ struct RemindersView: View {
                         },
                         onDelete: { reminder in
                             handleReminderDeletion(reminder)
-                        }
+                        },
+                        isCompleted: false // 未来提醒都是未完成状态
                     )
                     .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                     .onTapGesture {
@@ -815,7 +816,8 @@ struct RemindersView: View {
                         },
                         onDelete: { reminder in
                             handleReminderDeletion(reminder)
-                        }
+                        },
+                        isCompleted: true // 已完成提醒不显示完成按钮
                     )
                     .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
                     .onTapGesture {
@@ -1295,6 +1297,7 @@ struct UpcomingReminderCardView: View {
     let onComplete: (Reminder) -> Void
     let onEdit: (Reminder) -> Void
     let onDelete: (Reminder) -> Void
+    let isCompleted: Bool // 新增参数，标识是否是已完成状态
     
     private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988)
     
@@ -1400,11 +1403,14 @@ struct UpcomingReminderCardView: View {
                 .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
         )
         .contextMenu {
-            Button {
-                onComplete(reminder)
-            } label: {
-                Label(String(localized: "Complete"), systemImage: "checkmark.circle")
-                    .foregroundColor(.appSuccess)
+            // 只有未完成的提醒才显示完成按钮
+            if !isCompleted {
+                Button {
+                    onComplete(reminder)
+                } label: {
+                    Label(String(localized: "Complete"), systemImage: "checkmark.circle")
+                        .foregroundColor(.appSuccess)
+                }
             }
             
             Button {
