@@ -797,6 +797,7 @@ struct RemindersView: View {
                     .clipShape(Capsule())
             }
             .padding(.horizontal)
+            .padding(.top, 12)
             
             // 已完成提醒 - 使用未来安排卡片样式
             LazyVStack(spacing: 8) {
