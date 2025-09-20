@@ -72,10 +72,12 @@ struct RemindersView: View {
                     // 主内容
                     if viewModel.isLoading {
                         loadingView
-                    } else if viewModel.isEmpty {
-                        emptyStateView
+                    } else if allPets.isEmpty {
+                        // 没有宠物的空状态
+                        noPetsEmptyState
                     } else {
-                        remindersList
+                        // 有宠物的情况下显示内容或空状态
+                        remindersContentView
                     }
                 }
             }
@@ -423,130 +425,87 @@ struct RemindersView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - 空状态视图 - 参考Record模块
-    private var emptyStateView: some View {
+    // MARK: - 没有宠物的空状态
+    private var noPetsEmptyState: some View {
         VStack(spacing: 20) {
             Spacer()
             
-            if allPets.isEmpty {
-                // 未添加宠物状态
-                Image("empty_reminder")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 180, height: 180)
-                    .clipShape(Circle())
-                    .opacity(0.4) // 降低透明度显示未激活状态
+            Image("empty_reminder")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 180, height: 180)
+                .clipShape(Circle())
+                .opacity(0.4) // 降低透明度显示未激活状态
+            
+            VStack(spacing: 20) {
+                Text("Never Miss a Moment of Care")
+                    .font(.appSemiBold(size: 22))
+                    .foregroundColor(textColor)
                 
-                VStack(spacing: 20) {
-                    Text("Never Miss a Moment of Care")
-                        .font(.appSemiBold(size: 22))
-                        .foregroundColor(textColor)
-                    
-                    Text(String(localized: "empty_state.reminders.subtitle"))
-                        .font(.appRegular(size: 16))
-                        .lineSpacing(6)
-                        .foregroundColor(labelColor)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                    
-                    Button(action: {
-                        showingAddPet = true
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 16, weight: .semibold))
-                            
-                                                    Text(String(localized: "Add Your First Pet"))
+                Text(String(localized: "empty_state.reminders.subtitle"))
+                    .font(.appRegular(size: 16))
+                    .lineSpacing(6)
+                    .foregroundColor(labelColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                
+                Button(action: {
+                    showingAddPet = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        Text(String(localized: "Add Your First Pet"))
                             .font(.appSemiBold(size: 17))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(accentColor)
-                        )
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(accentColor)
+                    )
                 }
-                .padding(.top, 40)
-            } else {
-                // 有宠物但无提醒状态
-                Image("empty_reminder")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 180, height: 180)
-                    .clipShape(Circle()) // 裁剪成圆形
-                
-                VStack(spacing: 20) {
-                    Text(emptyStateTitle)
-                        .font(.appSemiBold(size: 22))
-                        .foregroundColor(textColor)
-                    
-                    Text(emptyStateMessage)
-                        .font(.appRegular(size: 16))
-                        .lineSpacing(6)
-                        .foregroundColor(labelColor)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                    
-                    if viewModel.selectedFilter == .upcoming {
-                        Button(action: {
-                            showingAddReminder = true
-                        }) {
-                            Text("Add First Reminder")
-                                .font(.appSemiBold(size: 17))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 24)
-                                .padding(.vertical, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(accentColor)
-                                )
-                        }
-                    }
-                }
-                .padding(.top, 40)
             }
+            .padding(.top, 40)
             
             Spacer()
         }
     }
     
-    private var emptyStateTitle: String {
-        switch viewModel.selectedFilter {
-        case .upcoming:
-            return String(localized: "No Upcoming Reminders")
-        case .completed:
-            return String(localized: "No Completed Reminders")
-        }
-    }
-    
-    private var emptyStateMessage: String {
-        switch viewModel.selectedFilter {
-        case .upcoming:
-            return String(localized: "The digital heartbeat is peaceful. Time to enjoy the real one.")
-        case .completed:
-            return String(localized: "Completed reminders will appear here once you mark them as done.")
-        }
-    }
-    
-    // MARK: - 提醒列表 - 重新设计卡片样式
-    private var remindersList: some View {
+    // MARK: - 提醒内容视图（包含智能空状态）
+    private var remindersContentView: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                // 今日待办（仅在 upcoming 状态显示）
-                if viewModel.selectedFilter == .upcoming && !viewModel.filteredTodayReminders.isEmpty {
-                    todayRemindersSection
-                }
-                
-                // 未来提醒部分（仅在 upcoming 状态显示）
-                if viewModel.selectedFilter == .upcoming && !viewModel.filteredUpcomingReminders.isEmpty {
-                    upcomingRemindersSection
-                }
-                
-                // 已完成提醒（仅在 completed 状态显示）
-                if viewModel.selectedFilter == .completed && !viewModel.filteredCompletedReminders.isEmpty {
-                    completedRemindersSection
+                if viewModel.selectedFilter == .upcoming {
+                    // 今日待办部分
+                    if !viewModel.filteredTodayReminders.isEmpty {
+                        todayRemindersSection
+                    } else {
+                        // 今日待办为空时的状态
+                        todayEmptyStateSection
+                    }
+                    
+                    // 未来提醒部分
+                    if !viewModel.filteredUpcomingReminders.isEmpty {
+                        upcomingRemindersSection
+                    } else if !viewModel.filteredTodayReminders.isEmpty {
+                        // 有今日待办但没有未来计划的状态
+                        upcomingEmptyStateSection
+                    }
+                    
+                    // 完全没有提醒时的状态
+                    if viewModel.filteredTodayReminders.isEmpty && viewModel.filteredUpcomingReminders.isEmpty {
+                        completelyEmptyStateSection
+                    }
+                } else {
+                    // 已完成提醒部分
+                    if !viewModel.filteredCompletedReminders.isEmpty {
+                        completedRemindersSection
+                    } else {
+                        completedEmptyStateSection
+                    }
                 }
             }
             .padding(.bottom, 16)
@@ -555,6 +514,157 @@ struct RemindersView: View {
             ReminderDetailView(reminder: reminder)
         }
     }
+    
+    // MARK: - 今日待办空状态
+    private var todayEmptyStateSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // 标题区域
+            VStack(alignment: .leading, spacing: 6) {
+                Text(String(localized: "Today's To-do"))
+                    .font(.appTitle2)
+                    .fontWeight(.bold)
+                    .foregroundColor(textColor)
+                
+                Text(String(localized: "Time to show some love"))
+                    .font(.appCaption)
+                    .foregroundColor(labelColor)
+            }
+            .padding(.horizontal)
+            .padding(.top, 12)
+            
+            // 今日无事的空状态
+            VStack(spacing: 16) {
+                Image("empty_today_reminder")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+                
+                Text(String(localized: "Nothing for today, stay happy!"))
+                    .font(.appSubheadline)
+                    .foregroundColor(labelColor)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.6))
+                    .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+            )
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - 未来计划空状态
+    private var upcomingEmptyStateSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(localized: "Upcoming Plans"))
+                        .font(.appTitle3)
+                        .fontWeight(.bold)
+                        .foregroundColor(textColor)
+                    
+                    Text(String(localized: "Stay prepared for what's ahead"))
+                        .font(.appCaption)
+                        .foregroundColor(labelColor)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            // 无更多安排的状态
+            VStack(spacing: 12) {
+                Text(String(localized: "No more plans for now"))
+                    .font(.appSubheadline)
+                    .foregroundColor(labelColor)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.6))
+                    .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+            )
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - 完全没有提醒的空状态
+    private var completelyEmptyStateSection: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            Image("empty_reminder")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 180, height: 180)
+                .clipShape(Circle())
+            
+            VStack(spacing: 20) {
+                Text(String(localized: "No Upcoming Reminders"))
+                    .font(.appSemiBold(size: 22))
+                    .foregroundColor(textColor)
+                
+                Text(String(localized: "The digital heartbeat is peaceful. Time to enjoy the real one."))
+                    .font(.appRegular(size: 16))
+                    .lineSpacing(6)
+                    .foregroundColor(labelColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                
+                Button(action: {
+                    showingAddReminder = true
+                }) {
+                    Text("Add First Reminder")
+                        .font(.appSemiBold(size: 17))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(accentColor)
+                        )
+                }
+            }
+            .padding(.top, 40)
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - 已完成提醒空状态
+    private var completedEmptyStateSection: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            Image("empty_reminder")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 180, height: 180)
+                .clipShape(Circle())
+            
+            VStack(spacing: 20) {
+                Text(String(localized: "No Completed Reminders"))
+                    .font(.appSemiBold(size: 22))
+                    .foregroundColor(textColor)
+                
+                Text(String(localized: "Completed reminders will appear here once you mark them as done."))
+                    .font(.appRegular(size: 16))
+                    .lineSpacing(6)
+                    .foregroundColor(labelColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.top, 40)
+            
+            Spacer()
+        }
+    }
+    
     
     // MARK: - 今日待办部分 - TabView分页布局
     private var todayRemindersSection: some View {
@@ -718,14 +828,14 @@ struct RemindersView: View {
     
     // MARK: - 处理提醒完成
     private func handleReminderCompletion(_ reminder: Reminder) {
-        // 即时反馈：立即标记为完成并从列表中移除
-        viewModel.markReminderAsCompleted(reminder, modelContext: modelContext)
-        
         // 保存刚完成的提醒用于后续询问
         completedReminder = reminder
         
+        // 立即标记为完成并刷新数据
+        viewModel.markReminderAsCompleted(reminder, modelContext: modelContext)
+        
         // 短暂延迟后显示底部抽屉，让用户先看到即时反馈
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             showingCompletionSheet = true
         }
     }

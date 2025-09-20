@@ -176,15 +176,13 @@ class RemindersViewModel {
     }
     
     // MARK: - 提醒操作
-    func markReminderAsCompleted(_ reminder: Reminder, modelContext: ModelContext) {
+    @MainActor func markReminderAsCompleted(_ reminder: Reminder, modelContext: ModelContext) {
         // 标记提醒为完成（对于重复提醒会更新到下一个周期）
         ReminderService.markReminderAsCompleted(reminder: reminder, modelContext: modelContext)
         
         // 立即重新加载数据以反映更改
-        Task { @MainActor in
-            loadReminders(from: modelContext)
-            logger.info("已标记提醒为完成并刷新数据: \(reminder.title)")
-        }
+        loadReminders(from: modelContext)
+        logger.info("已标记提醒为完成并刷新数据: \(reminder.title)")
     }
     
     func deleteReminder(_ reminder: Reminder, modelContext: ModelContext) {
@@ -238,7 +236,7 @@ class RemindersViewModel {
         return ReminderService.createRecordFromReminder(reminder: reminder, modelContext: modelContext)
     }
     
-    // MARK: - 空状态检查
+    // MARK: - 空状态检查（已被细粒度检查替代，保留用于兼容性）
     var isEmpty: Bool {
         switch selectedFilter {
         case .upcoming:
