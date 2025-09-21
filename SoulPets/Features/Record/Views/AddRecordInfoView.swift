@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import OSLog
 
 /// 添加记录 - 记录详情信息视图
 struct AddRecordInfoView: View {
@@ -12,6 +13,13 @@ struct AddRecordInfoView: View {
     // 照片限制弹窗状态
     @State private var showingProInfoAlert = false
     
+    // 键盘工具栏相关状态
+    @FocusState private var isNotesFieldFocused: Bool
+    @FocusState private var isCostFieldFocused: Bool
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AddRecordInfoView")
+    
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
     private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
@@ -19,24 +27,109 @@ struct AddRecordInfoView: View {
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) { // 增加间距让布局更呼吸
-                // 日期和时间选择器
-                dateTimeSection
-                
-                // 备注输入框
-                notesSection
-                
-                // 照片选择器
-                photosSection
-                
-                // 花费输入框（为未来功能预留）
-                costSection
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) { // 增加间距让布局更呼吸
+                    // 日期和时间选择器
+                    dateTimeSection
+                    
+                    // 备注输入框
+                    notesSection
+                    
+                    // 照片选择器
+                    photosSection
+                    
+                    // 花费输入框（为未来功能预留）
+                    costSection
+                }
+                .padding(.vertical, 20) // 增加垂直padding
             }
-            .padding(.vertical, 20) // 增加垂直padding
+            
+            // 🔧 备用方案：浮动的Done按钮（当键盘激活时显示）
+            if isNotesFieldFocused || isCostFieldFocused {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button("Done") {
+                            logger.info("🔧 浮动Done按钮被点击")
+                            logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused), Cost: \(isCostFieldFocused)")
+                            
+                            // 关闭键盘
+                            isNotesFieldFocused = false
+                            isCostFieldFocused = false
+                            
+                            // 备用方法：使用 UIApplication 方式关闭键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            
+                            logger.info("🔧 键盘关闭操作已执行")
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(20)
+                        .shadow(radius: 5)
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
+                        .onAppear {
+                            logger.info("🔍 浮动Done按钮已显示")
+                        }
+                    }
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.3), value: isNotesFieldFocused || isCostFieldFocused)
+            }
         }
         // 都能继承这个更深、对比度更高的颜色。
         .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+        // 🔧 修复：为 fullScreenCover 模式添加键盘工具栏
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                HStack {
+                    Text("Debug: Toolbar Loaded")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .onAppear {
+                            logger.info("🛠️ 键盘工具栏视图已创建并显示")
+                        }
+                    
+                    Spacer()
+                    
+                    Button(String(localized: "Done")) {
+                        logger.info("🔧 键盘工具栏完成按钮被点击")
+                        logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused), Cost: \(isCostFieldFocused)")
+                        
+                        // 关闭键盘
+                        isNotesFieldFocused = false
+                        isCostFieldFocused = false
+                        
+                        // 备用方法：使用 UIApplication 方式关闭键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        logger.info("🔧 键盘关闭操作已执行")
+                    }
+                    .foregroundColor(accentColor)
+                    .onAppear {
+                        logger.info("🔧 Done按钮已创建")
+                    }
+                }
+            }
+        }
+        .onAppear {
+            logger.info("📱 AddRecordInfoView onAppear - 键盘工具栏应该已加载")
+            
+            // 检查工具栏是否正确配置
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                logger.info("🔍 延迟检查 - Notes焦点状态: \(isNotesFieldFocused), Cost焦点状态: \(isCostFieldFocused)")
+            }
+        }
+        .onChange(of: isNotesFieldFocused) { oldValue, newValue in
+            logger.info("📝 Notes焦点状态变化: \(oldValue) -> \(newValue)")
+        }
+        .onChange(of: isCostFieldFocused) { oldValue, newValue in
+            logger.info("💰 Cost焦点状态变化: \(oldValue) -> \(newValue)")
+        }
         .onChange(of: selectedItems) { oldValue, newValue in
             Task {
                 viewModel.recordPhotos.removeAll()
@@ -118,6 +211,18 @@ struct AddRecordInfoView: View {
                     .padding()
                     .background(Color.clear)
                     .colorScheme(.light)
+                    .focused($isNotesFieldFocused)
+                    .onTapGesture {
+                        logger.info("📝 Notes TextEditor被点击，设置焦点")
+                        logger.info("📝 点击前焦点状态: \(isNotesFieldFocused)")
+                        isNotesFieldFocused = true
+                        logger.info("📝 点击后焦点状态: \(isNotesFieldFocused)")
+                    }
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            logger.info("📝 Notes TextEditor simultaneousGesture 触发")
+                        }
+                    )
                 
                 // 情感化占位符
                 if viewModel.recordNotes.isEmpty {
@@ -272,6 +377,18 @@ struct AddRecordInfoView: View {
                     .padding(.horizontal, 16)
                     .frame(height: 48)
                     .background(Color.clear)
+                    .focused($isCostFieldFocused)
+                    .onTapGesture {
+                        logger.info("💰 Cost TextField被点击，设置焦点")
+                        logger.info("💰 点击前焦点状态: \(isCostFieldFocused)")
+                        isCostFieldFocused = true
+                        logger.info("💰 点击后焦点状态: \(isCostFieldFocused)")
+                    }
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            logger.info("💰 Cost TextField simultaneousGesture 触发")
+                        }
+                    )
                 
                 // 精致的占位符
                 if viewModel.recordCost.isEmpty {

@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import OSLog
 
 /// 添加记录主流程视图
 struct AddRecordView: View {
@@ -9,6 +10,9 @@ struct AddRecordView: View {
     
     // 照片限制弹窗状态
     @State private var showingProInfoAlert = false
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AddRecordView")
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -62,16 +66,6 @@ struct AddRecordView: View {
                         .disabled(!viewModel.formIsValid)
                         .foregroundColor(viewModel.formIsValid ? accentColor : .gray)
                     }
-                }
-                
-                // 统一的键盘工具栏 - 只显示一个Done按钮
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button(String(localized: "Done")) {
-                        // 关闭键盘
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }
-                    .foregroundColor(accentColor)
                 }
             }
             .confirmationDialog(
@@ -132,6 +126,9 @@ struct AddRecordView: View {
             } message: {
                 Text(String(localized: "With Pro features, you can track all expenses and generate annual reports."))
             }
+        }
+        .onAppear {
+            logger.info("📱 AddRecordView onAppear - fullScreenCover模式已启动")
         }
     }
 }
