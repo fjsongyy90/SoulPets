@@ -707,9 +707,15 @@ struct RemindersView: View {
                             .onTapGesture {
                                 selectedReminderForNavigation = reminder
                             }
+                            .scrollTransition { content, phase in
+                                content
+                                    .opacity(phase.isIdentity ? 1.0 : 0.8)
+                                    .scaleEffect(phase.isIdentity ? 1.0 : 0.95)
+                            }
                         }
                     }
                     .padding(.horizontal, 24) // 让卡片边缘可见，实现"边缘预览"效果
+                    .scrollTargetLayout() // 🔧 修复：添加scrollTargetLayout以支持viewAligned行为
                 }
                 .scrollTargetBehavior(.viewAligned) // iOS 17+ 分页吸附效果
                 .frame(height: 320) // 匹配卡片高度

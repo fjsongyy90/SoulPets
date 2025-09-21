@@ -292,10 +292,18 @@ final class SettingsService {
         let shareText = String(localized: "settings.support.share_app.text")
         let fullText = "\(shareText) \(appStoreURL)"
         
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let rootViewController = windowScene.windows.first?.rootViewController else {
+        // 🔧 修复：更好的方式获取当前视图控制器
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }),
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }),
+              let rootViewController = window.rootViewController else {
+            logger.error("无法获取当前视图控制器来显示分享界面")
             return
         }
+        
+        // 🔧 修复：获取最顶层的视图控制器
+        let topViewController = getTopViewController(from: rootViewController)
         
         let activityVC = UIActivityViewController(
             activityItems: [fullText],
@@ -304,14 +312,32 @@ final class SettingsService {
         
         // 对于 iPad，需要设置 popover 的源
         if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = rootViewController.view
-            popover.sourceRect = CGRect(x: rootViewController.view.bounds.midX, 
-                                      y: rootViewController.view.bounds.midY, 
+            popover.sourceView = topViewController.view
+            popover.sourceRect = CGRect(x: topViewController.view.bounds.midX, 
+                                      y: topViewController.view.bounds.midY, 
                                       width: 0, height: 0)
             popover.permittedArrowDirections = []
         }
         
-        rootViewController.present(activityVC, animated: true)
+        topViewController.present(activityVC, animated: true)
+        logger.info("显示分享应用界面")
+    }
+    
+    /// 获取最顶层的视图控制器
+    private static func getTopViewController(from rootViewController: UIViewController) -> UIViewController {
+        if let presentedViewController = rootViewController.presentedViewController {
+            return getTopViewController(from: presentedViewController)
+        }
+        
+        if let navigationController = rootViewController as? UINavigationController {
+            return getTopViewController(from: navigationController.visibleViewController ?? navigationController)
+        }
+        
+        if let tabBarController = rootViewController as? UITabBarController {
+            return getTopViewController(from: tabBarController.selectedViewController ?? tabBarController)
+        }
+        
+        return rootViewController
     }
     
     // MARK: - 关于
