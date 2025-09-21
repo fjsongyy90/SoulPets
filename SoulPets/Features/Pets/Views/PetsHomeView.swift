@@ -83,8 +83,7 @@ struct PetsHomeView: View {
                                 return min(520, screenSize.height * 0.65)
                             }
                         }())
-                        .padding(.top, 10)
-                        
+
                         // 页面指示器
                         if pets.count > 1 {
                             HStack(spacing: 12) {
@@ -97,11 +96,11 @@ struct PetsHomeView: View {
                             }
                             .padding(.top, 3)
                         }
-                        // 🔧 修复：在ScrollView中使用固定间距而不是Spacer
+                        // 🔧 修复：减少间距，确保底部slogan可见
                         VStack {
                             // 添加一些空间
                         }
-                        .frame(height: 40) // 固定间距
+                        .frame(height: 20) // 减少间距从40到20
                         
                         // 底部隐私承诺文案
                         VStack(spacing: 10) {
@@ -116,14 +115,15 @@ struct PetsHomeView: View {
                                 .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
                         }
                         .padding(.bottom, 25)
+                        Spacer()
                         
                     } else {
                         // 无宠物时的提示
                         noPetsView
                     }
                 }
-                // 🔧 修复：确保ScrollView内容有足够的高度
-                .frame(minHeight: UIScreen.main.bounds.height - 100) // 减去导航栏和安全区域的高度
+                // 🔧 修复：调整最小高度，让内容更紧凑
+                .frame(minHeight: UIScreen.main.bounds.height - 140) // 增加减去的高度，让内容更紧凑
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -360,11 +360,11 @@ struct PetsHomeView: View {
     // 无宠物时的视图
     private var noPetsView: some View {
         VStack(spacing: 0) {
-            // 🔧 修复：使用固定间距而不是Spacer，适应ScrollView
+            // 🔧 修复：减少顶部间距，确保内容可见
             VStack {
                 // 添加顶部空间
             }
-            .frame(height: 50)
+            .frame(height: 30) // 减少从50到30
             
             // 文案区域 - 标题放在图片上方
             VStack(spacing: 30) {
@@ -407,11 +407,11 @@ struct PetsHomeView: View {
                 }
             }
             
-            // 🔧 修复：使用固定间距
+            // 🔧 修复：减少底部间距
             VStack {
                 // 添加底部空间
             }
-            .frame(height: 80)
+            .frame(height: 70) // 减少从80到50
             
             // 底部隐私承诺文案
             VStack(spacing: 10) {
