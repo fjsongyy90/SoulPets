@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import OSLog
+import UserNotifications
 
 @main
 struct SoulPetsApp: App {
@@ -15,6 +16,9 @@ struct SoulPetsApp: App {
     @State private var showSplash = true
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
     private let startTime = Date()
+    
+    // 🔧 新增：通知代理，用于处理通知接收和角标更新
+    private let notificationDelegate = NotificationDelegate()
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema(ModelRegistration.models)
@@ -79,8 +83,9 @@ struct SoulPetsApp: App {
                         // 应用保存的外观设置
                         UserSettings.shared.applyCurrentAppearance()
                         
-                        // 请求通知权限
+                        // 请求通知权限并设置代理
                         requestNotificationPermission()
+                        setupNotificationDelegate()
                         
                         // 更新应用角标
                         NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
@@ -89,6 +94,15 @@ struct SoulPetsApp: App {
                         Task {
                             try? await initializeDatabase()
                         }
+                    }
+                    // 🔧 新增：监听应用生命周期事件
+                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                        logger.info("📱 应用即将进入前台，更新角标")
+                        NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                        logger.info("📱 应用已变为活跃状态，更新角标")
+                        NotificationService.updateApplicationBadge(modelContext: sharedModelContainer.mainContext)
                     }
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
@@ -120,6 +134,13 @@ struct SoulPetsApp: App {
                 logger.warning("🔔 未知的通知权限状态: \(status.rawValue)")
             }
         }
+    }
+    
+    // MARK: - 设置通知代理
+    private func setupNotificationDelegate() {
+        notificationDelegate.modelContext = sharedModelContainer.mainContext
+        UNUserNotificationCenter.current().delegate = notificationDelegate
+        logger.info("🔔 已设置通知代理")
     }
     
     // 在后台线程初始化数据库
@@ -157,5 +178,38 @@ struct SoulPetsApp: App {
             print("SwiftData存储目录不存在")
         }
         #endif
+    }
+}
+
+// MARK: - 通知代理类
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "NotificationDelegate")
+    var modelContext: ModelContext?
+    
+    // 当应用在前台时收到通知
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        logger.info("📱 应用在前台收到通知: \(notification.request.identifier)")
+        
+        // 更新角标
+        if let modelContext = modelContext {
+            NotificationService.updateApplicationBadge(modelContext: modelContext)
+        }
+        
+        // 在前台显示通知
+        completionHandler([.banner, .sound])
+    }
+    
+    // 用户点击通知时调用
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        logger.info("📱 用户点击了通知: \(response.notification.request.identifier)")
+        
+        // 更新角标
+        if let modelContext = modelContext {
+            NotificationService.updateApplicationBadge(modelContext: modelContext)
+        }
+        
+        // TODO: 可以在这里添加打开对应提醒页面的逻辑
+        
+        completionHandler()
     }
 }

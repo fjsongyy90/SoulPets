@@ -113,7 +113,10 @@ extension PetService {
             let totalTime = CFAbsoluteTimeGetCurrent() - startTime
             logger.info("🎉 [级联删除] 宠物删除成功: \(pet.name)，总耗时: \(String(format: "%.3f", totalTime))秒")
             
-            // 步骤7: 异步清理通知
+            // 步骤7: 更新应用角标（因为可能删除了提醒）
+            NotificationService.updateApplicationBadge(modelContext: modelContext)
+            
+            // 步骤8: 异步清理通知
             DispatchQueue.global(qos: .background).async {
                 NotificationService.removeAllPendingNotifications()
                 logger.info("✅ [级联删除] 通知清理完成")

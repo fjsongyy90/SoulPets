@@ -203,6 +203,9 @@ class ReminderService {
         do {
             try modelContext.save()
             logger.info("已将提醒标记为完成: \(reminder.id), 完成日期: \(completionDate)")
+            
+            // 🔧 新增：更新应用角标
+            NotificationService.updateApplicationBadge(modelContext: modelContext)
         } catch {
             logger.error("标记提醒完成时出错: \(error.localizedDescription)")
         }
