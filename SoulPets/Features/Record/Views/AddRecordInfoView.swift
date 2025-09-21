@@ -35,6 +35,8 @@ struct AddRecordInfoView: View {
             }
             .padding(.vertical, 20) // 增加垂直padding
         }
+        // 都能继承这个更深、对比度更高的颜色。
+        .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
         .onChange(of: selectedItems) { oldValue, newValue in
             Task {
                 viewModel.recordPhotos.removeAll()
