@@ -666,7 +666,7 @@ struct RemindersView: View {
     }
     
     
-    // MARK: - 今日待办部分 - TabView分页布局
+    // MARK: - 今日待办部分 - ScrollView卡片边缘预览布局
     private var todayRemindersSection: some View {
         VStack(alignment: .leading, spacing: 20) { // 增加spacing从16到20
             // 标题区域 - 移除计数徽章，简化视觉层次
@@ -683,32 +683,35 @@ struct RemindersView: View {
             .padding(.horizontal)
             .padding(.top, 12) // 与上方筛选器增加间距
             
-            // TabView分页的今日待办卡片
+            // ScrollView分页的今日待办卡片 - 支持边缘预览
             if !viewModel.filteredTodayReminders.isEmpty {
-                TabView {
-                    ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
-                        TodayReminderCardView(
-                            reminder: reminder,
-                            accentColor: accentColor,
-                            textColor: textColor,
-                            labelColor: labelColor,
-                            onComplete: { reminder in
-                                handleReminderCompletion(reminder)
-                            },
-                            onEdit: { reminder in
-                                editReminder(reminder)
-                            },
-                            onDelete: { reminder in
-                                handleReminderDeletion(reminder)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(Array(viewModel.filteredTodayReminders.enumerated()), id: \.offset) { index, reminder in
+                            TodayReminderCardView(
+                                reminder: reminder,
+                                accentColor: accentColor,
+                                textColor: textColor,
+                                labelColor: labelColor,
+                                onComplete: { reminder in
+                                    handleReminderCompletion(reminder)
+                                },
+                                onEdit: { reminder in
+                                    editReminder(reminder)
+                                },
+                                onDelete: { reminder in
+                                    handleReminderDeletion(reminder)
+                                }
+                            )
+                            .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
+                            .onTapGesture {
+                                selectedReminderForNavigation = reminder
                             }
-                        )
-                        .id("today_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
-                        .onTapGesture {
-                            selectedReminderForNavigation = reminder
                         }
                     }
+                    .padding(.horizontal, 24) // 让卡片边缘可见，实现"边缘预览"效果
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // 隐藏页面指示器
+                .scrollTargetBehavior(.viewAligned) // iOS 17+ 分页吸附效果
                 .frame(height: 320) // 匹配卡片高度
             }
         }
@@ -732,7 +735,7 @@ struct RemindersView: View {
                 
                 Spacer()
                 
-                // 计数标签
+                // 计数标签 - 添加数字变化动画
                 if viewModel.filteredUpcomingReminders.count > 0 {
                     Text("\(viewModel.filteredUpcomingReminders.count)")
                         .font(.appCaption)
@@ -744,9 +747,12 @@ struct RemindersView: View {
                             Capsule()
                                 .fill(labelColor.opacity(0.1))
                         )
+                        .contentTransition(.numericText()) // iOS 16+ 数字变化动画
+                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.filteredUpcomingReminders.count)
                 }
             }
             .padding(.horizontal)
+            .padding(.top, 32) // 从24增加到32，增强与今日待办的呼吸感
             
             // 纵向滚动的未来安排卡片
             LazyVStack(spacing: 8) {
@@ -1133,7 +1139,7 @@ struct TodayReminderCardView: View {
                 .padding(.bottom, 16)
             }
         }
-        .frame(width: max(300, UIScreen.main.bounds.width - 48), height: 320) // 增加高度确保内容完整显示
+        .frame(width: UIScreen.main.bounds.width * 0.85, height: 320) // 卡片宽度为屏幕的85%，支持边缘预览
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(cardColor)
@@ -1204,9 +1210,9 @@ struct TodayReminderCardView: View {
         let maxDragDistance = trackWidth - pawSize - 16
         
         ZStack(alignment: .leading) {
-            // 轨道背景
+            // 轨道背景 - 使用品牌色增强可操作性
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.gray.opacity(0.1))
+                .fill(accentColor.opacity(0.1)) // 从灰色改为品牌色，提升示能性
                 .frame(height: 40)
             
             // 进度填充
@@ -1313,10 +1319,10 @@ struct UpcomingReminderCardView: View {
                     .clipShape(Circle())
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    // 提醒标题
+                    // 提醒标题 - 增强字重到semibold
                     Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
                         .font(.appSubheadline)
-                        .fontWeight(.semibold)
+                        .fontWeight(.bold) // 从semibold提升到bold，增强对比度
                         .foregroundColor(textColor)
                         .lineLimit(1)
                     
@@ -1389,13 +1395,13 @@ struct UpcomingReminderCardView: View {
                         )
                 }
                 
-                // 具体日期
+                // 具体日期 - 降低透明度，增强层次感
                 Text(formattedDate)
                     .font(.appCaption)
-                    .foregroundColor(labelColor)
+                    .foregroundColor(labelColor.opacity(0.8)) // 降低透明度，让主次更分明
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20) // 从16增加到20，让内容离卡片边缘更远
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
