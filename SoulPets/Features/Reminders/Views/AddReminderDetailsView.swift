@@ -1,9 +1,16 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 /// 添加提醒 - 提醒详情信息视图
 struct AddReminderDetailsView: View {
     @ObservedObject var viewModel: AddEditReminderViewModel
+    
+    // 键盘工具栏相关状态
+    @FocusState private var isNotesFieldFocused: Bool
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AddReminderDetailsView")
     
     // 颜色定义 - 与Record模块保持一致
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -24,6 +31,36 @@ struct AddReminderDetailsView: View {
                 notesSection
             }
             .padding(.vertical, 20) // 增加垂直padding
+        }
+        .toolbar {
+            // 🔧 键盘工具栏完成按钮（仅在有焦点时显示）
+            if isNotesFieldFocused {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(String(localized: "Done")) {
+                        logger.info("🔧 AddReminderDetails键盘工具栏完成按钮被点击")
+                        logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused)")
+                        
+                        // 关闭键盘
+                        isNotesFieldFocused = false
+                        
+                        // 备用方法：使用 UIApplication 方式关闭键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        logger.info("🔧 键盘关闭操作已执行")
+                    }
+                    .foregroundColor(accentColor)
+                    .onAppear {
+                        logger.info("🔧 AddReminderDetails Done按钮已创建")
+                    }
+                }
+            }
+        }
+        .onChange(of: isNotesFieldFocused) { oldValue, newValue in
+            logger.info("📝 AddReminderDetails Notes焦点状态变化: \(oldValue) -> \(newValue)")
+        }
+        .onAppear {
+            logger.info("📱 AddReminderDetailsView onAppear - 键盘工具栏应该已加载")
         }
     }
     
@@ -211,6 +248,13 @@ struct AddReminderDetailsView: View {
                     .padding()
                     .background(Color.clear)
                     .colorScheme(.light)
+                    .focused($isNotesFieldFocused)
+                    .simultaneousGesture(
+                        TapGesture()
+                            .onEnded {
+                                logger.info("📝 AddReminderDetails Notes TextEditor simultaneousGesture 触发")
+                            }
+                    )
                 
                 // 情感化占位符 - 针对提醒场景优化
                 if viewModel.notes.isEmpty {

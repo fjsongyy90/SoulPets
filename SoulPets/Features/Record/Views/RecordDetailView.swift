@@ -49,40 +49,7 @@ struct RecordDetailView: View {
                     .padding()
                 }
                 
-                // 🔧 浮动Done按钮（编辑模式下当键盘激活时显示）
-                if isEditing && isNotesFieldFocused {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            Button("Done") {
-                                logger.info("🔧 RecordDetail浮动Done按钮被点击")
-                                logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused)")
-                                
-                                // 关闭键盘
-                                isNotesFieldFocused = false
-                                
-                                // 备用方法：使用 UIApplication 方式关闭键盘
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                
-                                logger.info("🔧 键盘关闭操作已执行")
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(20)
-                            .shadow(radius: 5)
-                            .padding(.trailing, 20)
-                            .padding(.bottom, 20)
-                            .onAppear {
-                                logger.info("🔍 RecordDetail浮动Done按钮已显示")
-                            }
-                        }
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .animation(.easeInOut(duration: 0.3), value: isNotesFieldFocused)
-                }
+                // 🔧 修复：移除浮动Done按钮，避免重复显示
             }
             .navigationTitle(String(localized: "Record Details"))
             .navigationBarTitleDisplayMode(.inline)
@@ -130,6 +97,26 @@ struct RecordDetailView: View {
                         }
                     }
                 }
+                
+                // 🔧 键盘工具栏完成按钮（仅在编辑模式且有焦点时显示）
+                if isEditing && isNotesFieldFocused {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(String(localized: "Done")) {
+                            logger.info("🔧 RecordDetail键盘工具栏完成按钮被点击")
+                            logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused)")
+                            
+                            // 关闭键盘
+                            isNotesFieldFocused = false
+                            
+                            // 备用方法：使用 UIApplication 方式关闭键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            
+                            logger.info("🔧 键盘关闭操作已执行")
+                        }
+                        .foregroundColor(accentColor)
+                    }
+                }
             }
             .alert(String(localized: "Delete Record"), isPresented: $showingDeleteAlert) {
                 Button(String(localized: "Cancel"), role: .cancel) { }
@@ -138,25 +125,6 @@ struct RecordDetailView: View {
                 }
             } message: {
                 Text(String(localized: "Are you sure you want to delete this record? This action cannot be undone."))
-            }
-        }
-        .toolbar {
-            // 🔧 键盘工具栏完成按钮
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button(String(localized: "Done")) {
-                    logger.info("🔧 RecordDetail键盘工具栏完成按钮被点击")
-                    logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused)")
-                    
-                    // 关闭键盘
-                    isNotesFieldFocused = false
-                    
-                    // 备用方法：使用 UIApplication 方式关闭键盘
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    
-                    logger.info("🔧 键盘关闭操作已执行")
-                }
-                .foregroundColor(accentColor)
             }
         }
         .onChange(of: isNotesFieldFocused) { oldValue, newValue in

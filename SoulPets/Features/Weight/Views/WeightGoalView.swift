@@ -95,40 +95,7 @@ struct WeightGoalView: View {
                     .padding()
                 }
                 
-                // 🔧 浮动Done按钮（当键盘激活时显示）
-                if isTargetWeightFieldFocused {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            Button("Done") {
-                                logger.info("🔧 WeightGoal浮动Done按钮被点击")
-                                logger.info("🔧 当前焦点状态 - TargetWeight: \(isTargetWeightFieldFocused)")
-                                
-                                // 关闭键盘
-                                isTargetWeightFieldFocused = false
-                                
-                                // 备用方法：使用 UIApplication 方式关闭键盘
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                
-                                logger.info("🔧 键盘关闭操作已执行")
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(Color.appAccent)
-                            .foregroundColor(.white)
-                            .cornerRadius(20)
-                            .shadow(radius: 5)
-                            .padding(.trailing, 20)
-                            .padding(.bottom, 20)
-                            .onAppear {
-                                logger.info("🔍 WeightGoal浮动Done按钮已显示")
-                            }
-                        }
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .animation(.easeInOut(duration: 0.3), value: isTargetWeightFieldFocused)
-                }
+                // 🔧 修复：移除浮动Done按钮，避免重复显示
             }
             .navigationTitle(titleText)
             .navigationBarTitleDisplayMode(.inline)
@@ -148,24 +115,26 @@ struct WeightGoalView: View {
                     .disabled(!isFormValid)
                 }
                 
-                // 🔧 键盘工具栏完成按钮
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button(String(localized: "Done")) {
-                        logger.info("🔧 WeightGoal键盘工具栏完成按钮被点击")
-                        logger.info("🔧 当前焦点状态 - TargetWeight: \(isTargetWeightFieldFocused)")
-                        
-                        // 关闭键盘
-                        isTargetWeightFieldFocused = false
-                        
-                        // 备用方法：使用 UIApplication 方式关闭键盘
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        logger.info("🔧 键盘关闭操作已执行")
-                    }
-                    .foregroundColor(.appAccent)
-                    .onAppear {
-                        logger.info("🔧 WeightGoal Done按钮已创建")
+                // 🔧 键盘工具栏完成按钮（仅在有焦点时显示）
+                if isTargetWeightFieldFocused {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(String(localized: "Done")) {
+                            logger.info("🔧 WeightGoal键盘工具栏完成按钮被点击")
+                            logger.info("🔧 当前焦点状态 - TargetWeight: \(isTargetWeightFieldFocused)")
+                            
+                            // 关闭键盘
+                            isTargetWeightFieldFocused = false
+                            
+                            // 备用方法：使用 UIApplication 方式关闭键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            
+                            logger.info("🔧 键盘关闭操作已执行")
+                        }
+                        .foregroundColor(.appAccent)
+                        .onAppear {
+                            logger.info("🔧 WeightGoal Done按钮已创建")
+                        }
                     }
                 }
             }
