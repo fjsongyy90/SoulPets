@@ -26,7 +26,7 @@ struct WeightView: View {
                 // 背景色
                 Color.appBackground.ignoresSafeArea()
                 
-                if viewModel.isLoading {
+                if (viewModel.selectedPet == nil && !allPets.isEmpty) || viewModel.isLoading {
                     loadingView
                 } else if allPets.isEmpty {
                     noPetsView
