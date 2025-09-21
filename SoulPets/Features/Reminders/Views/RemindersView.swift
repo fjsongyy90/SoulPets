@@ -863,6 +863,9 @@ struct RemindersView: View {
         // 关闭抽屉并清理状态
         showingCompletionSheet = false
         completedReminder = nil
+        
+        // 🔧 修复：无论用户是否创建记录，都需要刷新数据以移除已完成的提醒
+        viewModel.loadReminders(from: modelContext)
     }
     
     // MARK: - 处理提醒删除
@@ -944,6 +947,8 @@ struct RemindersView: View {
                     Button {
                         showingCompletionSheet = false
                         completedReminder = nil
+                        // 🔧 修复：不创建记录时也要刷新数据
+                        viewModel.loadReminders(from: modelContext)
                     } label: {
                         Text(String(localized: "reminder.no_thanks"))
                             .font(.appSubheadline)
@@ -1408,23 +1413,25 @@ struct UpcomingReminderCardView: View {
                 .fill(cardColor)
                 .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
         )
-        .contextMenu {
-            // 只有未完成的提醒才显示完成按钮
+        .swipeActions(edge: .leading) {
+            // 左滑：最高频操作 - 完成（仅未完成的提醒显示）
             if !isCompleted {
                 Button {
                     onComplete(reminder)
                 } label: {
-                    Label(String(localized: "Complete"), systemImage: "checkmark.circle")
-                        .foregroundColor(.appSuccess)
+                    Label(String(localized: "Complete"), systemImage: "checkmark.circle.fill")
                 }
+                .tint(.appSuccess)
             }
-            
+        }
+        .swipeActions(edge: .trailing) {
+            // 右滑：次要/破坏性操作 - 编辑和删除
             Button {
                 onEdit(reminder)
             } label: {
                 Label(String(localized: "Edit"), systemImage: "pencil")
-                    .foregroundColor(accentColor)
             }
+            .tint(accentColor)
             
             Button(role: .destructive) {
                 onDelete(reminder)
