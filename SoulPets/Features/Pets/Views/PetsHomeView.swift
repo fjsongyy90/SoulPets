@@ -100,7 +100,7 @@ struct PetsHomeView: View {
                         VStack {
                             // 添加一些空间
                         }
-                        .frame(height: 20) // 减少间距从40到20
+                        .frame(height: 50)
                         
                         // 底部隐私承诺文案
                         VStack(spacing: 10) {
