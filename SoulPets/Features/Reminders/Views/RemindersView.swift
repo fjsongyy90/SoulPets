@@ -757,11 +757,12 @@ struct RemindersView: View {
             // 纵向滚动的未来安排卡片
             LazyVStack(spacing: 8) {
                 ForEach(Array(viewModel.filteredUpcomingReminders.enumerated()), id: \.offset) { index, reminder in
-                    UpcomingReminderCardView(
+                    SwipeableReminderCardView(
                         reminder: reminder,
                         accentColor: accentColor,
                         textColor: textColor,
                         labelColor: labelColor,
+                        isCompleted: false,
                         onComplete: { reminder in
                             handleReminderCompletion(reminder)
                         },
@@ -771,12 +772,11 @@ struct RemindersView: View {
                         onDelete: { reminder in
                             handleReminderDeletion(reminder)
                         },
-                        isCompleted: false // 未来提醒都是未完成状态
+                        onTap: { reminder in
+                            selectedReminderForNavigation = reminder
+                        }
                     )
                     .id("upcoming_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
-                    .onTapGesture {
-                        selectedReminderForNavigation = reminder
-                    }
                 }
             }
             .padding(.horizontal)
@@ -806,14 +806,15 @@ struct RemindersView: View {
             .padding(.horizontal)
             .padding(.top, 12)
             
-            // 已完成提醒 - 使用未来安排卡片样式
+            // 已完成提醒
             LazyVStack(spacing: 8) {
                 ForEach(Array(viewModel.filteredCompletedReminders.enumerated()), id: \.offset) { index, reminder in
-                    UpcomingReminderCardView(
+                    SwipeableReminderCardView(
                         reminder: reminder,
                         accentColor: accentColor,
                         textColor: textColor,
                         labelColor: labelColor,
+                        isCompleted: true,
                         onComplete: { reminder in
                             handleReminderCompletion(reminder)
                         },
@@ -823,12 +824,11 @@ struct RemindersView: View {
                         onDelete: { reminder in
                             handleReminderDeletion(reminder)
                         },
-                        isCompleted: true // 已完成提醒不显示完成按钮
+                        onTap: { reminder in
+                            selectedReminderForNavigation = reminder
+                        }
                     )
                     .id("completed_\(reminder.id)_\(reminder.pets?.map { "\($0.id)_\($0.avatar?.hashValue ?? 0)" }.joined(separator: "_") ?? "")")
-                    .onTapGesture {
-                        selectedReminderForNavigation = reminder
-                    }
                 }
             }
             .padding(.horizontal)
@@ -1299,7 +1299,161 @@ struct TodayReminderCardView: View {
     }
 }
 
-// MARK: - 未来安排卡片 - 信息密度高的紧凑设计
+// MARK: - 可滑动的提醒卡片 - 自定义手势实现
+struct SwipeableReminderCardView: View {
+    let reminder: Reminder
+    let accentColor: Color
+    let textColor: Color
+    let labelColor: Color
+    let isCompleted: Bool
+    let onComplete: (Reminder) -> Void
+    let onEdit: (Reminder) -> Void
+    let onDelete: (Reminder) -> Void
+    let onTap: (Reminder) -> Void
+    
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging = false
+    @State private var showingActionButtons = false
+    
+    private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988)
+    private let actionButtonWidth: CGFloat = 80
+    
+    var body: some View {
+        ZStack {
+            // 背景操作按钮
+            HStack(spacing: 0) {
+                // 右滑时显示的按钮（完成）- 放在左侧
+                if showingActionButtons && !isCompleted && dragOffset > 0 {
+                    Button {
+                        onComplete(reminder)
+                        withAnimation {
+                            resetPosition()
+                        }
+                    } label: {
+                        VStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("Complete")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.white)
+                        .frame(width: actionButtonWidth, height: 60)
+                        .background(Color.green)
+                    }
+                }
+                
+                Spacer()
+                
+                // 左滑时显示的按钮（编辑和删除）- 放在右侧
+                if showingActionButtons && dragOffset < 0 {
+                    HStack(spacing: 0) {
+                        Button {
+                            onEdit(reminder)
+                            withAnimation {
+                                resetPosition()
+                            }
+                        } label: {
+                            VStack {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Edit")
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: actionButtonWidth, height: 60)
+                            .background(accentColor)
+                        }
+                        
+                        Button {
+                            onDelete(reminder)
+                            withAnimation {
+                                resetPosition()
+                            }
+                        } label: {
+                            VStack {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Delete")
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: actionButtonWidth, height: 60)
+                            .background(Color.red)
+                        }
+                    }
+                }
+            }
+            
+            // 主卡片内容
+            UpcomingReminderCardView(
+                reminder: reminder,
+                accentColor: accentColor,
+                textColor: textColor,
+                labelColor: labelColor,
+                onComplete: onComplete,
+                onEdit: onEdit,
+                onDelete: onDelete,
+                isCompleted: isCompleted
+            )
+            .offset(x: dragOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        isDragging = true
+                        dragOffset = value.translation.width
+                        
+                        // 显示操作按钮的阈值
+                        if abs(dragOffset) > 50 {
+                            showingActionButtons = true
+                        }
+                    }
+                    .onEnded { value in
+                        isDragging = false
+                        
+                        let threshold: CGFloat = 100
+                        
+                        if abs(value.translation.width) > threshold {
+                            // 滑动距离足够，保持显示操作按钮
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                if value.translation.width > 0 {
+                                    // 右滑 - 显示左侧按钮（完成）
+                                    dragOffset = isCompleted ? 0 : actionButtonWidth
+                                } else {
+                                    // 左滑 - 显示右侧按钮（编辑和删除）
+                                    dragOffset = -(actionButtonWidth * 2)
+                                }
+                                showingActionButtons = true
+                            }
+                        } else {
+                            // 滑动距离不够，回到原位
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                resetPosition()
+                            }
+                        }
+                    }
+            )
+            .onTapGesture {
+                if showingActionButtons {
+                    // 如果正在显示操作按钮，点击收起
+                    withAnimation {
+                        resetPosition()
+                    }
+                } else {
+                    // 否则执行点击操作
+                    onTap(reminder)
+                }
+            }
+        }
+        .clipped()
+    }
+    
+    private func resetPosition() {
+        dragOffset = 0
+        showingActionButtons = false
+    }
+}
+
+// MARK: - 原始未来安排卡片 - 信息密度高的紧凑设计
 struct UpcomingReminderCardView: View {
     let reminder: Reminder
     let accentColor: Color
@@ -1413,32 +1567,6 @@ struct UpcomingReminderCardView: View {
                 .fill(cardColor)
                 .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
         )
-        .swipeActions(edge: .leading) {
-            // 左滑：最高频操作 - 完成（仅未完成的提醒显示）
-            if !isCompleted {
-                Button {
-                    onComplete(reminder)
-                } label: {
-                    Label(String(localized: "Complete"), systemImage: "checkmark.circle.fill")
-                }
-                .tint(.appSuccess)
-            }
-        }
-        .swipeActions(edge: .trailing) {
-            // 右滑：次要/破坏性操作 - 编辑和删除
-            Button {
-                onEdit(reminder)
-            } label: {
-                Label(String(localized: "Edit"), systemImage: "pencil")
-            }
-            .tint(accentColor)
-            
-            Button(role: .destructive) {
-                onDelete(reminder)
-            } label: {
-                Label(String(localized: "Delete"), systemImage: "trash")
-            }
-        }
     }
     
     // MARK: - 计算属性
