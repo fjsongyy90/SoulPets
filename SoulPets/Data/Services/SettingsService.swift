@@ -288,39 +288,57 @@ final class SettingsService {
     
     /// 分享应用
     static func shareApp() {
-        let appStoreURL = "https://apps.apple.com/app/soulpets/id123456789" // 替换为实际的 App Store URL
-        let shareText = String(localized: "settings.support.share_app.text")
-        let fullText = "\(shareText) \(appStoreURL)"
-        
-        // 🔧 修复：更好的方式获取当前视图控制器
-        guard let windowScene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }),
-              let window = windowScene.windows.first(where: { $0.isKeyWindow }),
-              let rootViewController = window.rootViewController else {
-            logger.error("无法获取当前视图控制器来显示分享界面")
-            return
+        // 🔧 修复：异步执行分享操作，避免阻塞主线程
+        DispatchQueue.main.async {
+            let appStoreURL = "https://apps.apple.com/app/soulpets/id123456789" // 替换为实际的 App Store URL
+            let shareText = String(localized: "settings.support.share_app.text")
+            let fullText = "\(shareText) \(appStoreURL)"
+            
+            // 🔧 修复：更好的方式获取当前视图控制器
+            guard let windowScene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+                  let window = windowScene.windows.first(where: { $0.isKeyWindow }),
+                  let rootViewController = window.rootViewController else {
+                logger.error("无法获取当前视图控制器来显示分享界面")
+                return
+            }
+            
+            // 🔧 修复：获取最顶层的视图控制器
+            let topViewController = getTopViewController(from: rootViewController)
+            
+            let activityVC = UIActivityViewController(
+                activityItems: [fullText],
+                applicationActivities: nil
+            )
+            
+            // 🔧 新增：设置完成回调，减少系统错误
+            activityVC.completionWithItemsHandler = { activityType, completed, returnedItems, error in
+                if let error = error {
+                    logger.error("分享操作出错: \(error.localizedDescription)")
+                } else if completed {
+                    logger.info("分享操作完成")
+                } else {
+                    logger.info("分享操作被取消")
+                }
+            }
+            
+            // 对于 iPad，需要设置 popover 的源
+            if let popover = activityVC.popoverPresentationController {
+                popover.sourceView = topViewController.view
+                popover.sourceRect = CGRect(x: topViewController.view.bounds.midX, 
+                                          y: topViewController.view.bounds.midY, 
+                                          width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
+            
+            // 🔧 修复：添加短暂延迟，让UI完全准备好
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                topViewController.present(activityVC, animated: true) {
+                    logger.info("分享应用界面已显示")
+                }
+            }
         }
-        
-        // 🔧 修复：获取最顶层的视图控制器
-        let topViewController = getTopViewController(from: rootViewController)
-        
-        let activityVC = UIActivityViewController(
-            activityItems: [fullText],
-            applicationActivities: nil
-        )
-        
-        // 对于 iPad，需要设置 popover 的源
-        if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = topViewController.view
-            popover.sourceRect = CGRect(x: topViewController.view.bounds.midX, 
-                                      y: topViewController.view.bounds.midY, 
-                                      width: 0, height: 0)
-            popover.permittedArrowDirections = []
-        }
-        
-        topViewController.present(activityVC, animated: true)
-        logger.info("显示分享应用界面")
     }
     
     /// 获取最顶层的视图控制器

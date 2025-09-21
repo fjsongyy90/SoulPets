@@ -33,13 +33,14 @@ struct PetsHomeView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
+            // 🔧 修复：使用ScrollView替代ZStack，解决横屏滑动问题
+            ScrollView {
                 // 背景色 - 使用新的设计规范颜色
                 Color(hex: "FDFBF8").ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     if !pets.isEmpty {
-                        // 宠物卡片滑动区域
+                        // 宠物卡片滑动区域 - 动态高度适应横竖屏
                         GeometryReader { geometry in
                             TabView(selection: $selectedPetIndex) {
                                 ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
@@ -70,7 +71,18 @@ struct PetsHomeView: View {
                             }
                             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                         }
-                        .frame(height: min(520, UIScreen.main.bounds.height * 0.65))
+                        // 🔧 修复：动态计算高度，横屏时使用更小的比例
+                        .frame(height: {
+                            let screenSize = UIScreen.main.bounds
+                            let isLandscape = screenSize.width > screenSize.height
+                            if isLandscape {
+                                // 横屏时使用固定高度或更小比例
+                                return min(400, screenSize.height * 0.85)
+                            } else {
+                                // 竖屏时使用原来的逻辑
+                                return min(520, screenSize.height * 0.65)
+                            }
+                        }())
                         .padding(.top, 10)
                         
                         // 页面指示器
@@ -85,8 +97,11 @@ struct PetsHomeView: View {
                             }
                             .padding(.top, 3)
                         }
-                        
-                        Spacer()
+                        // 🔧 修复：在ScrollView中使用固定间距而不是Spacer
+                        VStack {
+                            // 添加一些空间
+                        }
+                        .frame(height: 40) // 固定间距
                         
                         // 底部隐私承诺文案
                         VStack(spacing: 10) {
@@ -107,6 +122,8 @@ struct PetsHomeView: View {
                         noPetsView
                     }
                 }
+                // 🔧 修复：确保ScrollView内容有足够的高度
+                .frame(minHeight: UIScreen.main.bounds.height - 100) // 减去导航栏和安全区域的高度
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -343,7 +360,11 @@ struct PetsHomeView: View {
     // 无宠物时的视图
     private var noPetsView: some View {
         VStack(spacing: 0) {
-            Spacer()
+            // 🔧 修复：使用固定间距而不是Spacer，适应ScrollView
+            VStack {
+                // 添加顶部空间
+            }
+            .frame(height: 50)
             
             // 文案区域 - 标题放在图片上方
             VStack(spacing: 30) {
@@ -386,7 +407,11 @@ struct PetsHomeView: View {
                 }
             }
             
-            Spacer()
+            // 🔧 修复：使用固定间距
+            VStack {
+                // 添加底部空间
+            }
+            .frame(height: 80)
             
             // 底部隐私承诺文案
             VStack(spacing: 10) {
