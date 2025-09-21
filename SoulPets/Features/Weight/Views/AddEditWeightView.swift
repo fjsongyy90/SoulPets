@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 /// 添加/编辑体重记录视图
 struct AddEditWeightView: View {
@@ -15,6 +16,9 @@ struct AddEditWeightView: View {
     @State private var selectedDate: Date = Date()
     @State private var showingValidationError = false
     @State private var errorMessage = ""
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AddEditWeightView")
     
     // 移除硬编码颜色定义，使用统一的颜色系统
     
@@ -73,6 +77,41 @@ struct AddEditWeightView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 20)
                 }
+                
+                // 🔧 浮动Done按钮（当键盘激活时显示）
+                if weightFieldFocused {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Button("Done") {
+                                logger.info("🔧 AddEditWeight浮动Done按钮被点击")
+                                logger.info("🔧 当前焦点状态 - Weight: \(weightFieldFocused)")
+                                
+                                // 关闭键盘
+                                weightFieldFocused = false
+                                
+                                // 备用方法：使用 UIApplication 方式关闭键盘
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                
+                                logger.info("🔧 键盘关闭操作已执行")
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.appAccent)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 5)
+                            .padding(.trailing, 20)
+                            .padding(.bottom, 20)
+                            .onAppear {
+                                logger.info("🔍 AddEditWeight浮动Done按钮已显示")
+                            }
+                        }
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.easeInOut(duration: 0.3), value: weightFieldFocused)
+                }
             }
             .navigationTitle(titleText)
             .navigationBarTitleDisplayMode(.inline)
@@ -92,13 +131,24 @@ struct AddEditWeightView: View {
                     .disabled(!isFormValid)
                 }
                 ToolbarItemGroup(placement: .keyboard) {
-                            Spacer() // 将按钮推到右侧
-                            
-                            Button(String(localized: "Done")) {
-                                weightFieldFocused = false // 点击“完成”按钮，取消焦点
-                            }
-                            .foregroundColor(Color.appAccent)
-                        }
+                    Spacer() // 将按钮推到右侧
+                    
+                    Button(String(localized: "Done")) {
+                        logger.info("🔧 AddEditWeight键盘工具栏完成按钮被点击")
+                        logger.info("🔧 当前焦点状态 - Weight: \(weightFieldFocused)")
+                        
+                        weightFieldFocused = false // 点击“完成”按钮，取消焦点
+                        
+                        // 备用方法：使用 UIApplication 方式关闭键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        logger.info("🔧 键盘关闭操作已执行")
+                    }
+                    .foregroundColor(Color.appAccent)
+                    .onAppear {
+                        logger.info("🔧 AddEditWeight Done按钮已创建")
+                    }
+                }
             }
             .alert(
                 String(localized: "Validation Error"),
@@ -109,11 +159,15 @@ struct AddEditWeightView: View {
                 Text(errorMessage)
             }
             .onAppear {
+                logger.info("📱 AddEditWeightView onAppear - 键盘工具栏应该已加载")
                 setupInitialValues()
                 // 确保视图加载完成后再聚焦，触发键盘弹起
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     weightFieldFocused = true
                 }
+            }
+            .onChange(of: weightFieldFocused) { oldValue, newValue in
+                logger.info("⚖️ AddEditWeight Weight焦点状态变化: \(oldValue) -> \(newValue)")
             }
         }
     }
@@ -190,6 +244,10 @@ struct AddEditWeightView: View {
                             )
                     )
                     .cornerRadius(12)
+                    .onTapGesture {
+                        logger.info("⚖️ AddEditWeight Weight TextField被点击，设置焦点")
+                        weightFieldFocused = true
+                    }
                 
                 // 自定义单位选择器
                 customUnitSelector

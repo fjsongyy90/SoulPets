@@ -19,6 +19,9 @@ struct WeightGoalView: View {
     @State private var errorMessage = ""
     @State private var existingGoal: WeightGoal?
     
+    // 键盘工具栏相关状态
+    @FocusState private var isTargetWeightFieldFocused: Bool
+    
     // 使用统一的颜色定义
     
     /// 是否为编辑模式
@@ -91,6 +94,41 @@ struct WeightGoalView: View {
                     }
                     .padding()
                 }
+                
+                // 🔧 浮动Done按钮（当键盘激活时显示）
+                if isTargetWeightFieldFocused {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Button("Done") {
+                                logger.info("🔧 WeightGoal浮动Done按钮被点击")
+                                logger.info("🔧 当前焦点状态 - TargetWeight: \(isTargetWeightFieldFocused)")
+                                
+                                // 关闭键盘
+                                isTargetWeightFieldFocused = false
+                                
+                                // 备用方法：使用 UIApplication 方式关闭键盘
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                
+                                logger.info("🔧 键盘关闭操作已执行")
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.appAccent)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 5)
+                            .padding(.trailing, 20)
+                            .padding(.bottom, 20)
+                            .onAppear {
+                                logger.info("🔍 WeightGoal浮动Done按钮已显示")
+                            }
+                        }
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.easeInOut(duration: 0.3), value: isTargetWeightFieldFocused)
+                }
             }
             .navigationTitle(titleText)
             .navigationBarTitleDisplayMode(.inline)
@@ -108,6 +146,27 @@ struct WeightGoalView: View {
                     }
                     .foregroundColor(isFormValid ? .appAccent : .appTextSecondary)
                     .disabled(!isFormValid)
+                }
+                
+                // 🔧 键盘工具栏完成按钮
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(String(localized: "Done")) {
+                        logger.info("🔧 WeightGoal键盘工具栏完成按钮被点击")
+                        logger.info("🔧 当前焦点状态 - TargetWeight: \(isTargetWeightFieldFocused)")
+                        
+                        // 关闭键盘
+                        isTargetWeightFieldFocused = false
+                        
+                        // 备用方法：使用 UIApplication 方式关闭键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        logger.info("🔧 键盘关闭操作已执行")
+                    }
+                    .foregroundColor(.appAccent)
+                    .onAppear {
+                        logger.info("🔧 WeightGoal Done按钮已创建")
+                    }
                 }
             }
             .alert(
@@ -129,7 +188,11 @@ struct WeightGoalView: View {
                 isDestructive: true
             )
             .onAppear {
+                logger.info("📱 WeightGoalView onAppear - 键盘工具栏应该已加载")
                 setupInitialValues()
+            }
+            .onChange(of: isTargetWeightFieldFocused) { oldValue, newValue in
+                logger.info("🎯 WeightGoal TargetWeight焦点状态变化: \(oldValue) -> \(newValue)")
             }
         }
     }
@@ -225,6 +288,11 @@ struct WeightGoalView: View {
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                     )
                     .cornerRadius(8)
+                    .focused($isTargetWeightFieldFocused)
+                    .onTapGesture {
+                        logger.info("🎯 WeightGoal TargetWeight TextField被点击，设置焦点")
+                        isTargetWeightFieldFocused = true
+                    }
                 
                 // 单位选择器
                 Picker(String(localized: "Unit"), selection: $selectedUnit) {
