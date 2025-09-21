@@ -1,11 +1,15 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 /// 宠物重要日期设置视图
 struct PetImportantDatesView: View {
     @ObservedObject var viewModel: PetViewModel
     @FocusState private var isWeightFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
+    
+    // 日志
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "PetImportantDatesView")
     
     // 新增：用于处理保存和完成的回调
     var onSaveAndFinish: (() -> Void)?
@@ -97,6 +101,12 @@ struct PetImportantDatesView: View {
                                 .foregroundColor(textColor)
                                 .focused($isWeightFocused)
                                 .multilineTextAlignment(.trailing)
+                                .simultaneousGesture(
+                                    TapGesture()
+                                        .onEnded {
+                                            logger.info("⚖️ PetImportantDates Weight TextField simultaneousGesture 触发")
+                                        }
+                                )
                                 .onChange(of: viewModel.initialWeight) { oldValue, newValue in
                                     // 确保只输入数字和小数点
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
@@ -172,6 +182,33 @@ struct PetImportantDatesView: View {
         .onTapGesture {
             // 点击空白处收起键盘
             isWeightFocused = false
+        }
+        .toolbar {
+            // 🔧 键盘工具栏完成按钮（仅在有焦点时显示）
+            if isWeightFocused {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(String(localized: "Done")) {
+                        logger.info("🔧 PetImportantDates键盘工具栏完成按钮被点击")
+                        logger.info("🔧 当前焦点状态 - Weight: \(isWeightFocused)")
+                        
+                        // 关闭键盘
+                        isWeightFocused = false
+                        
+                        // 备用方法：使用 UIApplication 方式关闭键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        logger.info("🔧 键盘关闭操作已执行")
+                    }
+                    .foregroundColor(accentColor)
+                    .onAppear {
+                        logger.info("🔧 PetImportantDates Done按钮已创建")
+                    }
+                }
+            }
+        }
+        .onChange(of: isWeightFocused) { oldValue, newValue in
+            logger.info("⚖️ PetImportantDates Weight焦点状态变化: \(oldValue) -> \(newValue)")
         }
         .onAppear {
             // 监听键盘通知

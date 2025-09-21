@@ -11,6 +11,13 @@ struct EditPetView: View {
     let pet: Pet
     @StateObject private var viewModel: PetViewModel
     
+    // 键盘工具栏相关状态
+    @FocusState private var focusedField: EditPetField?
+    
+    enum EditPetField {
+        case name, breed, personality, story, microchip, insurance
+    }
+    
     init(pet: Pet) {
         self.pet = pet
         // 创建一个临时的ViewModel，使用一个空的ModelContext
@@ -57,7 +64,35 @@ struct EditPetView: View {
                     .foregroundColor(viewModel.formIsValid ? Color(red: 0.60, green: 0.35, blue: 0.15) : .gray)
                 }
             }
+            .toolbar {
+                // 🔧 键盘工具栏完成按钮（仅在有焦点时显示）
+                if focusedField != nil {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(String(localized: "Done")) {
+                            logger.info("🔧 EditPet键盘工具栏完成按钮被点击")
+                            logger.info("🔧 当前焦点状态: \(String(describing: focusedField))")
+                            
+                            // 关闭键盘
+                            focusedField = nil
+                            
+                            // 备用方法：使用 UIApplication 方式关闭键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            
+                            logger.info("🔧 键盘关闭操作已执行")
+                        }
+                        .foregroundColor(Color(red: 0.60, green: 0.35, blue: 0.15))
+                        .onAppear {
+                            logger.info("🔧 EditPet Done按钮已创建")
+                        }
+                    }
+                }
+            }
+            .onChange(of: focusedField) { oldValue, newValue in
+                logger.info("📝 EditPet 焦点状态变化: \(String(describing: oldValue)) -> \(String(describing: newValue))")
+            }
             .onAppear {
+                logger.info("📱 EditPetView onAppear - 键盘工具栏应该已加载")
                 // 在视图出现时，使用环境中的modelContext
                 viewModel.updateModelContext(modelContext)
                 // 加载宠物数据到表单
@@ -105,6 +140,13 @@ struct EditPetView: View {
             
             TextField(String(localized: "Name"), text: $viewModel.name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .focused($focusedField, equals: .name)
+                .simultaneousGesture(
+                    TapGesture()
+                        .onEnded {
+                            logger.info("📝 EditPet Name TextField simultaneousGesture 触发")
+                        }
+                )
                 .onChange(of: viewModel.name) { _, _ in
                     viewModel.validateForm()
                 }
@@ -140,6 +182,13 @@ struct EditPetView: View {
             
             TextField(String(localized: "Breed / Color"), text: $viewModel.breed)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .focused($focusedField, equals: .breed)
+                .simultaneousGesture(
+                    TapGesture()
+                        .onEnded {
+                            logger.info("📝 EditPet Breed TextField simultaneousGesture 触发")
+                        }
+                )
         }
     }
     
@@ -281,6 +330,13 @@ struct EditPetView: View {
                 set: { viewModel.personality = $0.isEmpty ? nil : $0 }
             ))
             .textFieldStyle(RoundedBorderTextFieldStyle())
+            .focused($focusedField, equals: .personality)
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded {
+                        logger.info("📝 EditPet Personality TextField simultaneousGesture 触发")
+                    }
+            )
         }
     }
     
@@ -304,6 +360,13 @@ struct EditPetView: View {
                         .stroke(Color(UIColor.systemGray4), lineWidth: 1)
                 )
                 .cornerRadius(8)
+                .focused($focusedField, equals: .story)
+                .simultaneousGesture(
+                    TapGesture()
+                        .onEnded {
+                            logger.info("📝 EditPet Story TextEditor simultaneousGesture 触发")
+                        }
+                )
                 
                 // 当内容为空时，显示这里的占位符文本
                 if (viewModel.story ?? "").isEmpty {
@@ -342,6 +405,13 @@ struct EditPetView: View {
             
             TextField(String(localized: "Microchip ID (Optional)"), text: $viewModel.microchipID)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .focused($focusedField, equals: .microchip)
+                .simultaneousGesture(
+                    TapGesture()
+                        .onEnded {
+                            logger.info("📝 EditPet Microchip TextField simultaneousGesture 触发")
+                        }
+                )
         }
     }
     
@@ -353,6 +423,13 @@ struct EditPetView: View {
             
             TextField(String(localized: "Insurance Policy No. (Optional)"), text: $viewModel.insurancePolicyNo)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .focused($focusedField, equals: .insurance)
+                .simultaneousGesture(
+                    TapGesture()
+                        .onEnded {
+                            logger.info("📝 EditPet Insurance TextField simultaneousGesture 触发")
+                        }
+                )
         }
     }
     
