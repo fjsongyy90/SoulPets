@@ -299,30 +299,39 @@ struct DataSummaryView: View {
     }
 }
 
+
+// 1. 创建一个专门用于预览的包装视图
+struct DataSummaryView_PreviewWrapper: View {
+    // 2. 将 @State 变量移到这里
+    @State private var showingGoal = false
+    
+    var body: some View {
+        // 3. 在这里准备数据并创建要预览的视图
+        let container = try! ModelContainer(for: Pet.self, Weight.self, WeightGoal.self)
+        let context = container.mainContext
+        
+        let samplePet = Pet(
+            name: "Fluffy",
+            petType: .cat,
+            breed: "Persian",
+            gender: .female,
+            isNeutered: true,
+            birthday: Date(),
+            adoptionDay: Date()
+        )
+        context.insert(samplePet)
+        
+        let viewModel = WeightViewModel()
+        viewModel.loadWeightData(for: samplePet, modelContext: context)
+        
+        return DataSummaryView(viewModel: viewModel, showingWeightGoal: $showingGoal)
+            .modelContainer(container)
+            .padding()
+            .background(Color.appBackground)
+    }
+}
+
+// 4. #Preview 现在变得非常简洁
 #Preview {
-    let container = try! ModelContainer(for: Pet.self, Weight.self, WeightGoal.self)
-    let context = container.mainContext
-    
-    // 创建示例数据
-    let samplePet = Pet(
-        name: "Fluffy",
-        petType: .cat,
-        breed: "Persian",
-        gender: .female,
-        isNeutered: true,
-        birthday: Date(),
-        adoptionDay: Date()
-    )
-    
-    context.insert(samplePet)
-    
-    let viewModel = WeightViewModel()
-    viewModel.loadWeightData(for: samplePet, modelContext: context)
-    
-    @State var showingGoal = false
-    
-    return DataSummaryView(viewModel: viewModel, showingWeightGoal: $showingGoal)
-        .modelContainer(container)
-        .padding()
-        .background(Color.appBackground)
+    DataSummaryView_PreviewWrapper()
 }

@@ -148,45 +148,53 @@ struct WeightHistoryListView: View {
 }
 
 
+// 1. 创建包装视图
+struct WeightHistoryListView_PreviewWrapper: View {
+    // 2. 将所有的 @State 变量都移到这里
+    @State private var weightToEdit: Weight? = nil
+    @State private var weightToDelete: Weight? = nil
+    @State private var showingDeleteAlert = false
+    
+    var body: some View {
+        // 3. 准备数据和视图
+        let container = try! ModelContainer(for: Pet.self, Weight.self, WeightGoal.self)
+        let context = container.mainContext
+        
+        let samplePet = Pet(
+            name: "Fluffy",
+            petType: .cat,
+            breed: "Persian",
+            gender: .female,
+            isNeutered: true,
+            birthday: Date(),
+            adoptionDay: Date()
+        )
+        context.insert(samplePet)
+        
+        let weight1 = Weight(date: Date().addingTimeInterval(-86400 * 7), weightInKg: 4.5, pet: samplePet)
+        let weight2 = Weight(date: Date().addingTimeInterval(-86400 * 3), weightInKg: 4.3, pet: samplePet)
+        let weight3 = Weight(date: Date(), weightInKg: 4.2, pet: samplePet)
+        
+        context.insert(weight1)
+        context.insert(weight2)
+        context.insert(weight3)
+        
+        let viewModel = WeightViewModel()
+        viewModel.loadWeightData(for: samplePet, modelContext: context)
+        
+        return WeightHistoryListView(
+            viewModel: viewModel,
+            weightToEdit: $weightToEdit,
+            weightToDelete: $weightToDelete,
+            showingDeleteAlert: $showingDeleteAlert
+        )
+        .modelContainer(container)
+        .padding()
+        .background(Color.appBackground)
+    }
+}
+
+// 4. #Preview 变得非常简洁
 #Preview {
-    // ... Preview 代码保持不变 ...
-    let container = try! ModelContainer(for: Pet.self, Weight.self, WeightGoal.self)
-    let context = container.mainContext
-    
-    let samplePet = Pet(
-        name: "Fluffy",
-        petType: .cat,
-        breed: "Persian",
-        gender: .female,
-        isNeutered: true,
-        birthday: Date(),
-        adoptionDay: Date()
-    )
-    
-    context.insert(samplePet)
-    
-    let weight1 = Weight(date: Date().addingTimeInterval(-86400 * 7), weightInKg: 4.5, pet: samplePet)
-    let weight2 = Weight(date: Date().addingTimeInterval(-86400 * 3), weightInKg: 4.3, pet: samplePet)
-    let weight3 = Weight(date: Date(), weightInKg: 4.2, pet: samplePet)
-    
-    context.insert(weight1)
-    context.insert(weight2)
-    context.insert(weight3)
-    
-    let viewModel = WeightViewModel()
-    viewModel.loadWeightData(for: samplePet, modelContext: context)
-    
-    @State var weightToEdit: Weight? = nil
-    @State var weightToDelete: Weight? = nil
-    @State var showingDeleteAlert = false
-    
-    return WeightHistoryListView(
-        viewModel: viewModel,
-        weightToEdit: $weightToEdit,
-        weightToDelete: $weightToDelete,
-        showingDeleteAlert: $showingDeleteAlert
-    )
-    .modelContainer(container)
-    .padding()
-    .background(Color.appBackground)
+    WeightHistoryListView_PreviewWrapper()
 }
