@@ -119,7 +119,6 @@ struct WeightView: View {
                 }
             }
         }
-        .preferredColorScheme(.light)
     }
     
     // MARK: - 子视图

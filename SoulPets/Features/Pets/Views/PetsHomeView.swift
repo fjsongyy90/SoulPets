@@ -224,6 +224,7 @@ struct PetsHomeView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
         .onDisappear {
             // 清理延迟任务
             delayedCleanupTask?.cancel()
