@@ -34,7 +34,7 @@ struct AddReminderDetailsView: View {
                 .padding(.vertical, 20) // 增加垂直padding
             }
             
-            // 🔧 备用方案：浮动的Done按钮（当键盘激活时显示）- 参考Record模块
+            // 🔧 浮动Done按钮 - fullScreenCover 模式下显示（参考Record模块）
             if isNotesFieldFocused {
                 VStack {
                     Spacer()

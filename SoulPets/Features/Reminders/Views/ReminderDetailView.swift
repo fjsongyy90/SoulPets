@@ -67,8 +67,8 @@ struct ReminderDetailView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingEditView) {
-                // 🔧 从详情页编辑：直接显示详情编辑页，不需要重新选择宠物和事件
+            .fullScreenCover(isPresented: $showingEditView) {
+                // 🔧 从详情页编辑：直接显示详情编辑页，使用 fullScreenCover 保持与新增提醒一致
                 NavigationStack {
                     AddReminderDetailsView(viewModel: AddEditReminderViewModel(reminder: reminder))
                         .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))

@@ -112,8 +112,8 @@ struct RemindersView: View {
                         }
                     }
             }
-            .sheet(item: $reminderToEdit) { reminder in
-                // 🔧 使用 .sheet(item:) 确保 reminder 不为 nil
+            .fullScreenCover(item: $reminderToEdit) { reminder in
+                // 🔧 使用 fullScreenCover 保持与新增提醒一致的体验
                 if isEditingFromList {
                     // 从列表编辑：显示完整流程
                     AddEditReminderView(reminderToEdit: reminder, modelContext: modelContext)
