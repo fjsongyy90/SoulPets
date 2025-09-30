@@ -399,6 +399,16 @@ struct RecordDetailView: View {
                     }
                 }
                 
+                // 🔧 非会员照片超限提示 - 在编辑模式下且照片总数超过限制时显示
+                if isEditing && !UserPreferencesService.shared.isProMember && allPhotos.count >= UserPreferencesService.shared.maxPhotosPerRecord {
+                    Text(String(localized: "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos."))
+                        .font(.appFootnote)
+                        .foregroundColor(.orange)
+                        .multilineTextAlignment(.center)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 4)
+                }
+                
                 if !allPhotos.isEmpty {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
                         ForEach(Array(allPhotos.enumerated()), id: \.offset) { index, photoItem in
@@ -412,14 +422,6 @@ struct RecordDetailView: View {
                             .font(.appBody)
                             .foregroundColor(labelColor)
                             .italic()
-                        
-                        // 非会员限制提示
-                        if !UserPreferencesService.shared.isProMember && getAllPhotos().count >= UserPreferencesService.shared.maxPhotosPerRecord {
-                            Text(String(localized: "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos."))
-                                .font(.appFootnote)
-                                .foregroundColor(.orange)
-                                .multilineTextAlignment(.center)
-                        }
                     }
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity, alignment: .center)
