@@ -438,7 +438,7 @@ struct RemindersView: View {
                 .opacity(0.4) // 降低透明度显示未激活状态
             
             VStack(spacing: 20) {
-                Text("Never Miss a Moment of Care")
+                Text(String(localized: "Never Miss a Moment of Care"))
                     .font(.appSemiBold(size: 22))
                     .foregroundColor(textColor)
                 
@@ -619,7 +619,7 @@ struct RemindersView: View {
                 Button(action: {
                     showingAddReminder = true
                 }) {
-                    Text("Add First Reminder")
+                    Text(String(localized: "Add First Reminder"))
                         .font(.appSemiBold(size: 17))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)

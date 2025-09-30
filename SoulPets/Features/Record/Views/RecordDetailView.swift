@@ -323,7 +323,7 @@ struct RecordDetailView: View {
                     
                     // 情感化占位符
                     if editedNotes.isEmpty {
-                        Text("What's a sweet memory you made just now?")
+                        Text(String(localized: "What's a sweet memory you made just now?"))
                             .font(.appBody)
                             .foregroundColor(labelColor.opacity(0.7))
                             .italic()
@@ -376,7 +376,7 @@ struct RecordDetailView: View {
                     // 显示照片限制提示
                     if !UserPreferencesService.shared.isProMember {
                         HStack(spacing: 2) {
-                            Text("Max")
+                            Text(String(localized: "Max"))
                                 .font(.appCaption2)
                                 .foregroundColor(labelColor)
                             Text("\(UserPreferencesService.shared.maxPhotosPerRecord)")
@@ -519,7 +519,7 @@ struct RecordDetailView: View {
                             Spacer()
                             HStack {
                                 Spacer()
-                                Text("NEW")
+                                Text(String(localized: "NEW"))
                                     .font(.caption2)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)

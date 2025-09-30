@@ -434,7 +434,7 @@ struct EditPetView: View {
     }
     
     private var privacyText: some View {
-        Text("Your pet's data never leaves your device.")
+        Text(String(localized: "Your pet's data never leaves your device."))
             .font(.appCaption)
             .foregroundColor(.gray)
             .multilineTextAlignment(.center)

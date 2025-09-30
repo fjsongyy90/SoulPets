@@ -399,6 +399,42 @@
 "Add Your First Pet" = "Add Your First Pet";
 "Latest Weight" = "Latest Weight";
 
+// 欢迎引导页 (Onboarding)
+"Skip" = "Skip";
+"The digital heartbeat of your bond with pets." = "The digital heartbeat of your bond with pets.";
+"All-in-One, for Your One and Only." = "All-in-One, for Your One and Only.";
+"Effortlessly track records, reminders, and health. All in one private space." = "Effortlessly track records, reminders, and health. All in one private space.";
+"Your Privacy is Our Foundation." = "Your Privacy is Our Foundation.";
+"Your pet's data never leaves your device." = "Your pet's data never leaves your device.";
+"No accounts, no tracking, 100% yours." = "No accounts, no tracking, 100% yours.";
+"Ready to Start the Journey?" = "Ready to Start the Journey?";
+"Get Started" = "Get Started";
+"We'll ask for permission to send timely reminders." = "We'll ask for permission to send timely reminders.";
+
+// 启动页 (Splash)
+"SoulPets" = "SoulPets";
+"The digital heartbeat of your\nbond with pets." = "The digital heartbeat of your\nbond with pets.";
+
+// 添加记录 - 选择宠物和事件
+"%d pet(s) selected" = "%d pet(s) selected";
+"Recently Used" = "Recently Used";
+"No recently used tags for selected pets" = "No recently used tags for selected pets";
+
+// 宠物类型选择页面
+"What kind of friend are you welcoming?" = "What kind of friend are you welcoming?";
+"We are working hard and will support more cute friends soon!" = "We are working hard and will support more cute friends soon!";
+"We're working hard to support more lovely pets soon!" = "We're working hard to support more lovely pets soon!";
+
+// 宠物类型 - 未来支持
+"Rabbit" = "Rabbit";
+"Bird" = "Bird";
+"Fish" = "Fish";
+"Turtle" = "Turtle";
+"Lizard" = "Lizard";
+"Mouse" = "Mouse";
+"Insect" = "Insect";
+"Add Custom Tag (Pro)" = "Add Custom Tag (Pro)";
+
 // 空状态页面副标题文案
 "empty_state.reminders.subtitle" = "Add a pet to schedule their vaccines, birthdays, and playtime.";
 "empty_state.records.subtitle" = "Add a pet to cherish every moment, from their first meow to every nap.";
@@ -410,6 +446,26 @@
 "Learn More About Pro" = "Learn More About Pro";
 "Maybe Later" = "Maybe Later";
 "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos." = "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos.";
+"Max" = "Max";
+
+// 空状态文案
+"Never Miss a Moment of Care" = "Never Miss a Moment of Care";
+"Add First Reminder" = "Add First Reminder";
+"Every Memory is a Treasure" = "Every Memory is a Treasure";
+"No Records Yet" = "No Records Yet";
+"Give your bond a digital heartbeat. Add the first record." = "Give your bond a digital heartbeat. Add the first record.";
+"Add First Record" = "Add First Record";
+
+// 记录和提醒详情
+"What's a sweet memory you made just now?" = "What's a sweet memory you made just now?";
+"Any special notes for this reminder?" = "Any special notes for this reminder?";
+"NEW" = "NEW";
+"Complete" = "Complete";
+"Edit" = "Edit";
+"+%d" = "+%d";
+"overdue %d days" = "overdue %d days";
+"Today" = "Today";
+"%@ +%d" = "%@ +%d";
 
 // 提醒模块 - 新增空状态文案
 "Nothing for today, stay happy!" = "Nothing for today, stay happy!";

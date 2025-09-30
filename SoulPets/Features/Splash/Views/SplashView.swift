@@ -21,13 +21,13 @@ struct SplashView: View {
                         .frame(width: 120, height: 120)
                         .scaleEffect(logoScale)
                     
-                    Text("SoulPets")
+                    Text(String(localized: "SoulPets"))
                         .font(.custom("Nunito-ExtraBold", size: 36)) // 优化字体
                         .foregroundColor(Color(hex: "#8B6F62"))   // 优化颜色
                 }
                 
                 // Slogan
-                Text("The digital heartbeat of your\nbond with pets.")
+                Text(String(localized: "The digital heartbeat of your\nbond with pets."))
                     .font(.custom("Nunito-Regular", size: 17)) // 优化字体
                     .foregroundColor(Color(hex: "#A88C7D"))   // 优化颜色
                     .multilineTextAlignment(.center)

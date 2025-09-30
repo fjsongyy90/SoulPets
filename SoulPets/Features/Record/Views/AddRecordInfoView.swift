@@ -87,13 +87,7 @@ struct AddRecordInfoView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {
-                    Text("Debug: Toolbar Loaded")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .onAppear {
-                            logger.info("🛠️ 键盘工具栏视图已创建并显示")
-                        }
-                    
+                    // Debug: Toolbar 已加载（隐藏不显示）
                     Spacer()
                     
                     Button(String(localized: "Done")) {
@@ -226,7 +220,7 @@ struct AddRecordInfoView: View {
                 
                 // 情感化占位符
                 if viewModel.recordNotes.isEmpty {
-                    Text("What's a sweet memory you made just now?")
+                    Text(String(localized: "What's a sweet memory you made just now?"))
                         .font(.appBody) // 使用温暖的字体样式
                         .foregroundColor(labelColor.opacity(0.7))
                         .italic()
@@ -252,7 +246,7 @@ struct AddRecordInfoView: View {
                 // 显示照片限制提示 - 精致字体
                 if !UserPreferencesService.shared.isProMember {
                     HStack(spacing: 2) {
-                        Text("Max")
+                        Text(String(localized: "Max"))
                             .font(.appCaption2)
                             .foregroundColor(labelColor)
                         Text("\(UserPreferencesService.shared.maxPhotosPerRecord)")

@@ -258,7 +258,7 @@ struct AddReminderDetailsView: View {
                 
                 // 情感化占位符 - 针对提醒场景优化
                 if viewModel.notes.isEmpty {
-                    Text("Any special notes for this reminder?")
+                    Text(String(localized: "Any special notes for this reminder?"))
                         .font(.appBody) // 使用温暖的字体样式
                         .foregroundColor(labelColor.opacity(0.7))
                         .italic()

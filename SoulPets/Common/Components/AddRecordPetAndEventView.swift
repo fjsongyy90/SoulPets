@@ -79,7 +79,7 @@ struct AddRecordPetAndEventView: View {
                     }
                     Text(viewModel.selectedPets.isEmpty ?
                          String(localized: "Select at least one pet") :
-                         String(localized: "\(viewModel.selectedPets.count) pet(s) selected"))
+                         String.localizedStringWithFormat(NSLocalizedString("%d pet(s) selected", comment: ""), viewModel.selectedPets.count))
                         .font(.appCaption2) // 使用更小但清晰的字体
                         .fontWeight(.semibold) // 突出显示
                         .foregroundColor(viewModel.selectedPets.isEmpty ? Color.red.opacity(0.8) : Color.green.opacity(0.8))

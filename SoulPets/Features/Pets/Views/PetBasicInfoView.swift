@@ -187,7 +187,7 @@ struct PetBasicInfoView: View {
                         // 隐私文案和Next按钮作为整体
                         VStack(spacing: 8) {
                             // 隐私承诺文案
-                            Text("Your pet's data never leaves your device.")
+                            Text(String(localized: "Your pet's data never leaves your device."))
                                 .font(.appLightCaption)
                                 .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
@@ -237,7 +237,7 @@ struct PetBasicInfoView: View {
                     Button {
                         focusedField = nil
                     } label: {
-                        Text("完成")
+                        Text(String(localized: "Done"))
                             .fontWeight(.semibold)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 16)

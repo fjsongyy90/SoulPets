@@ -617,7 +617,7 @@ struct RecordsView: View {
                     .opacity(0.4) // 降低透明度显示未激活状态
                 
                 VStack(spacing: 20) {
-                    Text("Every Memory is a Treasure")
+                    Text(String(localized: "Every Memory is a Treasure"))
                         .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
@@ -657,11 +657,11 @@ struct RecordsView: View {
                     .clipShape(Circle()) // 裁剪成圆形
                 
                 VStack(spacing: 20) {
-                    Text("No Records Yet")
+                    Text(String(localized: "No Records Yet"))
                         .font(.appSemiBold(size: 22))
                         .foregroundColor(textColor)
                     
-                    Text("Give your bond a digital heartbeat. Add the first record.")
+                    Text(String(localized: "Give your bond a digital heartbeat. Add the first record."))
                         .font(.appRegular(size: 16))
                         .lineSpacing(6)
                         .foregroundColor(labelColor)
@@ -671,7 +671,7 @@ struct RecordsView: View {
                     Button(action: {
                         showingAddRecordSheet = true
                     }) {
-                        Text("Add First Record")
+                        Text(String(localized: "Add First Record"))
                             .font(.appSemiBold(size: 17))
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
