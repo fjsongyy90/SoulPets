@@ -282,6 +282,58 @@ class ReminderService {
         }
     }
     
+    /// 获取最近完成的提醒（显示在Completed列表中）
+    /// - Parameters:
+    ///   - modelContext: 数据上下文
+    ///   - daysBack: 显示最近多少天内完成的提醒，默认30天
+    /// - Returns: 最近完成的提醒列表，按完成日期降序排列
+    static func getRecentlyCompletedReminders(modelContext: ModelContext, daysBack: Int = 30) -> [Reminder] {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // 计算起始日期（例如30天前）
+        guard let startDate = calendar.date(byAdding: .day, value: -daysBack, to: today) else {
+            logger.error("无法计算起始日期")
+            return []
+        }
+        
+        do {
+            // 获取所有提醒
+            let allRemindersDescriptor = FetchDescriptor<Reminder>()
+            let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            
+            // 存储已完成的提醒及其最近完成日期
+            var completedRemindersWithDate: [(reminder: Reminder, completionDate: Date)] = []
+            
+            for reminder in allReminders {
+                // 获取该提醒的所有完成记录
+                guard let completions = reminder.completions, !completions.isEmpty else { continue }
+                
+                // 找出最近30天内的完成记录
+                let recentCompletions = completions.filter { completion in
+                    completion.completionDate >= startDate && completion.completionDate <= today
+                }
+                
+                // 如果有最近的完成记录，取最新的一条
+                if let latestCompletion = recentCompletions.sorted(by: { $0.completionDate > $1.completionDate }).first {
+                    completedRemindersWithDate.append((reminder: reminder, completionDate: latestCompletion.completionDate))
+                }
+            }
+            
+            // 按完成日期降序排列（最近完成的在前面）
+            let sortedReminders = completedRemindersWithDate
+                .sorted { $0.completionDate > $1.completionDate }
+                .map { $0.reminder }
+            
+            logger.info("📋 获取最近完成的提醒: 共 \(sortedReminders.count) 条")
+            return sortedReminders
+            
+        } catch {
+            logger.error("获取最近完成的提醒失败: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
     /// 创建从提醒完成到记录的桥梁
     static func createRecordFromReminder(reminder: Reminder, modelContext: ModelContext) -> Record? {
         guard let pets = reminder.pets, !pets.isEmpty else {

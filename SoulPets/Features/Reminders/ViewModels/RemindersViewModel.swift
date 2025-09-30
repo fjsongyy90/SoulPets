@@ -87,9 +87,12 @@ class RemindersViewModel {
                     self.logger.info("  - Upcoming: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
                 }
                 
-                // 获取已完成提醒
-                self.completedReminders = ReminderService.getReminders(isCompleted: true, modelContext: context)
+                // 获取已完成提醒（最近30天内完成的）
+                self.completedReminders = ReminderService.getRecentlyCompletedReminders(modelContext: context)
                 self.logger.info("✅ Completed Reminders: \(self.completedReminders.count)")
+                for reminder in self.completedReminders {
+                    self.logger.info("  - Completed: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
+                }
                 
                 // 检查重复ID
                 let todayIds = Set(self.todayReminders.map { $0.id })
