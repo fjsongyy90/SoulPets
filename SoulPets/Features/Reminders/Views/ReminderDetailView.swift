@@ -68,7 +68,34 @@ struct ReminderDetailView: View {
                 }
             }
             .sheet(isPresented: $showingEditView) {
-                AddEditReminderView(reminderToEdit: reminder, modelContext: modelContext)
+                // 🔧 从详情页编辑：直接显示详情编辑页，不需要重新选择宠物和事件
+                NavigationStack {
+                    AddReminderDetailsView(viewModel: AddEditReminderViewModel(reminder: reminder))
+                        .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button(String(localized: "Cancel")) {
+                                    showingEditView = false
+                                }
+                                .foregroundColor(accentColor)
+                            }
+                            
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button(String(localized: "Save")) {
+                                    Task {
+                                        let viewModel = AddEditReminderViewModel(reminder: reminder)
+                                        if await viewModel.saveReminder(modelContext: modelContext) {
+                                            showingEditView = false
+                                            // 刷新视图（触发父视图更新）
+                                            dismiss()
+                                        }
+                                    }
+                                }
+                                .foregroundColor(accentColor)
+                            }
+                        }
+                }
             }
             .alert(String(localized: "Delete Reminder"), isPresented: $showingDeleteAlert) {
                 Button(String(localized: "Cancel"), role: .cancel) { }

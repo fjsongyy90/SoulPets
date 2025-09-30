@@ -17,6 +17,7 @@ struct RemindersView: View {
     @State private var selectedReminderForNavigation: Reminder? // 程序化导航状态
     @State private var showingCompletionSheet = false // 底部抽屉状态
     @State private var completedReminder: Reminder? // 刚完成的提醒
+    @State private var isEditingFromList = false // 标识是否从列表编辑
     
     // 新增状态管理 - 参考Record模块
     @State private var showingPetSelector = false
@@ -111,13 +112,46 @@ struct RemindersView: View {
                         }
                     }
             }
-            .sheet(isPresented: $showingEditReminder) {
-                if let reminder = reminderToEdit {
+            .sheet(item: $reminderToEdit) { reminder in
+                // 🔧 使用 .sheet(item:) 确保 reminder 不为 nil
+                if isEditingFromList {
+                    // 从列表编辑：显示完整流程
                     AddEditReminderView(reminderToEdit: reminder, modelContext: modelContext)
                         .onDisappear {
-                            reminderToEdit = nil
+                            isEditingFromList = false
                             viewModel.loadReminders(from: modelContext)
                         }
+                } else {
+                    // 从详情页编辑：只显示详情编辑页
+                    NavigationStack {
+                        AddReminderDetailsView(viewModel: AddEditReminderViewModel(reminder: reminder))
+                            .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button(String(localized: "Cancel")) {
+                                        reminderToEdit = nil
+                                    }
+                                    .foregroundColor(accentColor)
+                                }
+                                
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    Button(String(localized: "Save")) {
+                                        Task {
+                                            let vm = AddEditReminderViewModel(reminder: reminder)
+                                            if await vm.saveReminder(modelContext: modelContext) {
+                                                reminderToEdit = nil
+                                                viewModel.loadReminders(from: modelContext)
+                                            }
+                                        }
+                                    }
+                                    .foregroundColor(accentColor)
+                                }
+                            }
+                    }
+                    .onDisappear {
+                        viewModel.loadReminders(from: modelContext)
+                    }
                 }
             }
             .sheet(isPresented: $showingCompletionSheet) {
@@ -887,8 +921,10 @@ struct RemindersView: View {
             return
         }
         
+        // 🔧 标记为从列表编辑
+        isEditingFromList = true
+        // 🔧 先赋值 reminderToEdit，触发 sheet
         reminderToEdit = reminder
-        showingEditReminder = true
     }
     
     // MARK: - 底部抽屉视图
