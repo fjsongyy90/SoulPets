@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Charts
 
 /// 宠物主页视图
 struct PetsHomeView: View {
@@ -24,6 +25,9 @@ struct PetsHomeView: View {
     // 新增：使用pet ID来避免对象引用问题
     @State private var detailViewPetID: UUID?
     
+    // Charts 框架预加载标志
+    @State private var shouldPreloadCharts = true
+    
     // 背景和强调色
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
@@ -38,6 +42,11 @@ struct PetsHomeView: View {
                 // 背景色 - 使用新的设计规范颜色
                 Color(hex: "FDFBF8").ignoresSafeArea()
                 
+                // 🚀 性能优化：隐形图表预加载 Charts 框架
+                if shouldPreloadCharts {
+                    preloadChartsView
+                }
+                
                 VStack(spacing: 0) {
                     if !pets.isEmpty {
                         // 宠物卡片滑动区域 - 动态高度适应横竖屏
@@ -49,11 +58,11 @@ struct PetsHomeView: View {
                                         petName: pet.name,
                                         petInfo: formatPetInfo(pet: pet),
                                         ageValue: formatAge(pet: pet),
-                                        ageLabel: "Time in this world",
-                                        togetherValue: formatTogetherTime(pet: pet),
-                                        togetherLabel: "Guarding each other for",
-                                        birthdayValue: formatNextBirthday(pet: pet),
-                                        birthdayLabel: "Next celebration in",
+                        ageLabel: String(localized: "Time in this world"),
+                        togetherValue: formatTogetherTime(pet: pet),
+                        togetherLabel: String(localized: "Guarding each other for"),
+                        birthdayValue: formatNextBirthday(pet: pet),
+                        birthdayLabel: String(localized: "Next celebration in"),
                                         onViewProfile: {
                                             // 设置要显示的宠物ID
                                             detailViewPetID = pet.id
@@ -110,7 +119,7 @@ struct PetsHomeView: View {
                                 .frame(width: 60, height: 1)
                             
                             // slogan文字
-                        Text("The digital heartbeat of your bond with pets.")
+                        Text(String(localized: "The digital heartbeat of your bond with pets."))
                                 .font(.custom("Nunito-Italic", size: 13))
                                 .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
                         }
@@ -250,7 +259,7 @@ struct PetsHomeView: View {
                         .navigationBarTitleDisplayMode(.large)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarLeading) {
-                                Button("Close") {
+                                Button(String(localized: "Close")) {
                                     showingPetDetailSheet = false
                                 }
                                 .foregroundColor(accentColor)
@@ -272,7 +281,7 @@ struct PetsHomeView: View {
                         .navigationBarTitleDisplayMode(.large)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarLeading) {
-                                Button("Close") {
+                                Button(String(localized: "Close")) {
                                     showingPetDetailSheet = false
                                 }
                                 .foregroundColor(accentColor)
@@ -295,7 +304,7 @@ struct PetsHomeView: View {
                         .navigationBarTitleDisplayMode(.large)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarLeading) {
-                                Button("Close") {
+                                Button(String(localized: "Close")) {
                                     showingPetDetailSheet = false
                                 }
                                 .foregroundColor(accentColor)
@@ -312,7 +321,7 @@ struct PetsHomeView: View {
             }
             // 最后的兜底逻辑
             else {
-                Text("No pet selected")
+                Text(String(localized: "No pet selected"))
                     .onAppear {
                         // 如果没有找到宠物，自动关闭sheet
                         DispatchQueue.main.async {
@@ -323,6 +332,29 @@ struct PetsHomeView: View {
         }
         .fullScreenCover(isPresented: $showingSettingsSheet) {
             SettingsView()
+        }
+    }
+    
+    // MARK: - Charts 框架预加载
+    
+    /// 隐形图表视图，用于提前加载 Charts 框架
+    /// 这样当用户切换到体重页面时，框架已经加载完毕，避免卡顿
+    private var preloadChartsView: some View {
+        Chart {
+            // 创建一个最简单的图表，只为预加载框架
+            LineMark(
+                x: .value("X", 0),
+                y: .value("Y", 0)
+            )
+        }
+        .frame(width: 1, height: 1)
+        .opacity(0.001) // 几乎完全透明，用户看不到
+        .allowsHitTesting(false) // 不响应用户交互
+        .onAppear {
+            // 框架加载后，1秒后移除这个视图以释放资源
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                shouldPreloadCharts = false
+            }
         }
     }
     
@@ -342,7 +374,7 @@ struct PetsHomeView: View {
     /// 格式化陪伴时间
     private func formatTogetherTime(pet: Pet) -> String {
         if let days = pet.daysWithOwner {
-            return "\(days) days"
+            return String.localizedStringWithFormat(NSLocalizedString("%d days", comment: ""), days)
         } else {
             return "∞ days" // 如果没有领养日，显示无限符号
         }
@@ -352,9 +384,9 @@ struct PetsHomeView: View {
     private func formatNextBirthday(pet: Pet) -> String {
         let days = pet.daysToNextBirthday
         if days == 0 {
-            return "Today!"
+            return String(localized: "Today!")
         } else {
-            return "in \(days) days"
+            return String.localizedStringWithFormat(NSLocalizedString("in %d days", comment: ""), days)
         }
     }
     
@@ -381,7 +413,7 @@ struct PetsHomeView: View {
                     Text(String(localized: "Ready to listen to their story?"))
                         .font(.appTitle2)
                         .foregroundColor(textColor)
-                    Text("Let's give their journey a digital heartbeat.")
+                    Text(String(localized: "Let's give their journey a digital heartbeat."))
                         .font(.appBody)
                         .multilineTextAlignment(.center)
                         .foregroundColor(labelColor)
@@ -422,7 +454,7 @@ struct PetsHomeView: View {
                     .frame(width: 60, height: 1)
                 
                 // slogan文字
-            Text("The digital heartbeat of your bond with pets.")
+            Text(String(localized: "The digital heartbeat of your bond with pets."))
                     .font(.custom("Nunito-Italic", size: 13))
                     .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
             }

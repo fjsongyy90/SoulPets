@@ -107,14 +107,15 @@ struct WeightView: View {
                 isDestructive: true
             )
             .onAppear {
+                // 🚀 性能优化：首次加载时显示 loading，提升用户体验
                 // 使用全局状态中的选中宠物
                 if let selectedPet = appState.selectedPet {
-                    viewModel.loadWeightData(for: selectedPet, modelContext: modelContext)
+                    viewModel.loadWeightData(for: selectedPet, modelContext: modelContext, showLoading: true)
                     logger.info("🐾 体重页面使用全局选中的宠物: \(selectedPet.name)")
                 } else if let firstPet = allPets.first {
                     // 如果全局状态没有选中宠物，选择第一只宠物
                     appState.setSelectedPet(firstPet)
-                    viewModel.loadWeightData(for: firstPet, modelContext: modelContext)
+                    viewModel.loadWeightData(for: firstPet, modelContext: modelContext, showLoading: true)
                     logger.info("🐾 体重页面设置默认宠物: \(firstPet.name)")
                 }
             }
@@ -148,7 +149,7 @@ struct WeightView: View {
                 .opacity(0.4) // 降低透明度显示未激活状态
             
             VStack(spacing: 20) {
-                    Text("Track Their Healthy Growth")
+                    Text(String(localized: "Track Their Healthy Growth"))
                         .font(.appSemiBold(size: 22))
                         .foregroundColor(.appTextPrimary)
                     
@@ -215,11 +216,11 @@ struct WeightView: View {
                 .clipShape(Circle()) // 裁剪成圆形
             
             VStack(spacing: 20) {
-                Text("No Weight Records")
+                Text(String(localized: "No Weight Records"))
                     .font(.appSemiBold(size: 22))
                     .foregroundColor(.appTextPrimary)
                 
-                Text("The first beat of their digital heartbeat is weight. Let's start tracking.")
+                Text(String(localized: "The first beat of their digital heartbeat is weight. Let's start tracking."))
                     .font(.appRegular(size: 16))
                     .lineSpacing(6)
                     .multilineTextAlignment(.center)
@@ -229,7 +230,7 @@ struct WeightView: View {
                 Button {
                     showingAddWeight = true
                 } label: {
-                    Text("Add First Weight Record")
+                    Text(String(localized: "Add First Weight Record"))
                         .font(.appSemiBold(size: 17))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
@@ -288,9 +289,10 @@ struct WeightView: View {
                         size: 60
                     )
                     .onTapGesture {
+                        // 🚀 性能优化：切换宠物时显示 loading
                         // 更新全局状态
                         appState.setSelectedPet(pet)
-                        viewModel.loadWeightData(for: pet, modelContext: modelContext)
+                        viewModel.loadWeightData(for: pet, modelContext: modelContext, showLoading: true)
                         logger.info("🐾 体重页面切换到宠物: \(pet.name)")
                     }
                 }

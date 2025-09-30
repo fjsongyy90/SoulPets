@@ -125,7 +125,11 @@ struct WeightChartView: View {
                     .foregroundStyle(Color.appWarning)
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [8, 4]))
                     .annotation(position: .topTrailing) {
-                        Text("Target: \(goal.targetWeight, specifier: "%.1f") \(goal.pet.weightUnitPreference.rawValue)")
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("Target: %.1f %@", comment: ""),
+                            goal.targetWeight,
+                            goal.pet.weightUnitPreference.rawValue
+                        ))
                             .font(.appCaption)
                             .foregroundColor(.appWarning)
                             .padding(.horizontal, 8)
