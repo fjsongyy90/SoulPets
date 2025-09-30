@@ -414,7 +414,7 @@ struct RecordDetailView: View {
                             .italic()
                         
                         // 非会员限制提示
-                        if !UserPreferencesService.shared.isProMember {
+                        if !UserPreferencesService.shared.isProMember && getAllPhotos().count >= UserPreferencesService.shared.maxPhotosPerRecord {
                             Text(String(localized: "Free version allows up to 2 photos per record. Upgrade to SoulPets Pro for unlimited photos."))
                                 .font(.appFootnote)
                                 .foregroundColor(.orange)
