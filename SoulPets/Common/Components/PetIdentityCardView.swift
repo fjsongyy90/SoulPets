@@ -66,13 +66,13 @@ struct PetIdentityCardView: View {
                 
                 // 宠物昵称
                 Text(petName)
-                    .font(.custom("Nunito-ExtraBold", size: 32))
+                    .font(.appPetCardName)
                     .foregroundColor(Color(hex: "8B6F62"))
                     .padding(.top, 8)
                 
                 // 宠物信息
                 Text(petInfo)
-                    .font(.custom("Nunito-Regular", size: 15))
+                    .font(.appPetInfo)
                     .foregroundColor(Color(hex: "A88C7D"))
                     .padding(.top, 8)
                 
@@ -130,7 +130,7 @@ struct PetIdentityCardView: View {
                     }
                 }) {
                     Text("View Profile")
-                        .font(.custom("Nunito-SemiBold", size: 16))
+                        .font(.appCallout)
                         .foregroundColor(.white)
                         .frame(height: 48)
                         .frame(maxWidth: .infinity)

@@ -22,14 +22,14 @@ struct SplashView: View {
                         .scaleEffect(logoScale)
                     
                     Text(String(localized: "SoulPets"))
-                        .font(.custom("Nunito-ExtraBold", size: 36)) // 优化字体
-                        .foregroundColor(Color(hex: "#8B6F62"))   // 优化颜色
+                        .font(.appBrandTitle)
+                        .foregroundColor(Color(hex: "#8B6F62"))
                 }
                 
                 // Slogan
                 Text(String(localized: "The digital heartbeat of your\nbond with pets."))
-                    .font(.custom("Nunito-Regular", size: 17)) // 优化字体
-                    .foregroundColor(Color(hex: "#A88C7D"))   // 优化颜色
+                    .font(.appBody)
+                    .foregroundColor(Color(hex: "#A88C7D"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(6) // 优化行间距
             }

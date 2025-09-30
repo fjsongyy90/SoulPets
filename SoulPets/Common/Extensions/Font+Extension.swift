@@ -11,8 +11,12 @@ extension Font {
     // MARK: - 超大标题类字体 (ExtraBold)
     /// 超大标题 - 用于特别重要的标题
     static let appExtraLargeTitle = Font.custom("Nunito-ExtraBold", size: 40)
+    /// 启动页品牌标题 - 用于 SplashView 品牌名称
+    static let appBrandTitle = Font.custom("Nunito-ExtraBold", size: 36)
     /// 特大标题 - 用于页面主标题
     static let appLargeTitle = Font.custom("Nunito-ExtraBold", size: 34)
+    /// 宠物卡片名称 - 用于宠物身份卡的昵称
+    static let appPetCardName = Font.custom("Nunito-ExtraBold", size: 32)
     
     // MARK: - 标题类字体 (Bold)
     /// 标题1 - 用于重要标题
@@ -21,6 +25,8 @@ extension Font {
     static let appTitle2 = Font.custom("Nunito-Bold", size: 24)
     /// 标题3 - 用于小标题
     static let appTitle3 = Font.custom("Nunito-Bold", size: 20)
+    /// 数据项数值 - 用于情感化数据项的数值显示
+    static let appDataValue = Font.custom("Nunito-Bold", size: 18)
     /// 标题行 - 用于按钮、导航栏标题
     static let appHeadline = Font.custom("Nunito-Bold", size: 17)
     
@@ -33,8 +39,14 @@ extension Font {
     static let appFootnote = Font.custom("Nunito-SemiBold", size: 13)
     
     // MARK: - 正文类字体 (Regular)
+    /// 欢迎页副标题 - 用于 Onboarding 页面的副标题
+    static let appOnboardingSubtitle = Font.custom("Nunito-Regular", size: 18)
     /// 正文 - 用于所有常规文本
     static let appBody = Font.custom("Nunito-Regular", size: 17)
+    /// 宠物信息 - 用于宠物卡片的品种、性别等信息
+    static let appPetInfo = Font.custom("Nunito-Regular", size: 15)
+    /// 小文字 - 用于小号的说明、提示文本
+    static let appSmallText = Font.custom("Nunito-Regular", size: 14)
     /// 说明文字 - 用于描述、提示文本
     static let appCaption = Font.custom("Nunito-Regular", size: 12)
     /// 小说明文字 - 用于最小的说明文本

@@ -120,7 +120,7 @@ struct PetsHomeView: View {
                             
                             // slogan文字
                         Text(String(localized: "The digital heartbeat of your bond with pets."))
-                                .font(.custom("Nunito-Italic", size: 13))
+                                .font(.appItalicFootnote)
                                 .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
                         }
                         .padding(.bottom, 25)
@@ -455,7 +455,7 @@ struct PetsHomeView: View {
                 
                 // slogan文字
             Text(String(localized: "The digital heartbeat of your bond with pets."))
-                    .font(.custom("Nunito-Italic", size: 13))
+                    .font(.appItalicFootnote)
                     .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
             }
             .padding(.bottom, 25)

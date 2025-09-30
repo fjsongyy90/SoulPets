@@ -9,13 +9,13 @@ struct EmotionalDataItemView: View {
         VStack(alignment: .leading, spacing: 4) {
             // 数值 - 顶部显示
             Text(value)
-                .font(.custom("Nunito-Bold", size: 18))
+                .font(.appDataValue)
                 .foregroundColor(Color(hex: "A88C7D"))
                 .frame(maxWidth: .infinity, alignment: .center)
             
             // 标签 - 底部显示情感化文案
             Text(label)
-                .font(.custom("Nunito-Regular", size: 12))
+                .font(.appCaption)
                 .foregroundColor(Color(hex: "A88C7D").opacity(0.8))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)

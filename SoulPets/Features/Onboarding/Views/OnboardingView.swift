@@ -41,8 +41,7 @@ struct OnboardingView: View {
                                 hasCompletedOnboarding = true
                             }
                         }
-                        // 优化：使用Nunito字体
-                        .font(.custom("Nunito-SemiBold", size: 16))
+                        .font(.appCallout)
                         .foregroundColor(.black.opacity(0.6))
                         .padding(.trailing, 20)
                         .padding(.top, 10)
@@ -83,12 +82,12 @@ struct WelcomePageView: View {
             VStack(spacing: 12) { // 优化：缩小主副标题间距
                 // 主标题
                 Text(String(localized: "Welcome to SoulPets"))
-                    .font(.custom("Nunito-ExtraBold", size: 32)) // 优化：使用Nunito字体
+                    .font(.appPetCardName)
                     .foregroundColor(.black)
                 
                 // 副标题
                 Text(String(localized: "The digital heartbeat of your bond with pets."))
-                    .font(.custom("Nunito-Regular", size: 18)) // 优化：使用Nunito字体
+                    .font(.appOnboardingSubtitle)
                     .foregroundColor(.black.opacity(0.7))
                     .lineSpacing(5) // 优化：增加行间距
                     .multilineTextAlignment(.center)
@@ -128,13 +127,13 @@ struct FeaturesPageView: View {
             VStack(spacing: 12) {
                 // 主标题
                 Text(String(localized: "All-in-One, for Your One and Only."))
-                    .font(.custom("Nunito-Bold", size: 28)) // 优化：使用Nunito字体
+                    .font(.appTitle)
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                 
                 // 副标题
                 Text(String(localized: "Effortlessly track records, reminders, and health. All in one private space."))
-                    .font(.custom("Nunito-Regular", size: 16)) // 优化：使用Nunito字体
+                    .font(.appCallout)
                     .foregroundColor(.black.opacity(0.7))
                     .lineSpacing(4) // 优化：增加行间距
                     .multilineTextAlignment(.center)
@@ -174,7 +173,7 @@ struct PrivacyPageView: View {
             VStack(spacing: 24) { // 优化：调整间距
                 // 主标题
                 Text(String(localized: "Your Privacy is Our Foundation."))
-                    .font(.custom("Nunito-Bold", size: 28)) // 优化：使用Nunito字体
+                    .font(.appTitle)
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                 
@@ -182,15 +181,15 @@ struct PrivacyPageView: View {
                 VStack(spacing: 10) {
                     // 优化：强化核心承诺，增加背景使其突出
                     Text(String(localized: "Your pet's data never leaves your device."))
-                        .font(.custom("Nunito-Bold", size: 20)) // 优化：加粗加大
-                        .foregroundColor(Color(hex: "#C98B5F")) // 优化：使用更深的强调色
+                        .font(.appTitle3)
+                        .foregroundColor(Color(hex: "#C98B5F"))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .background(Color(hex: "#E5B487").opacity(0.15))
                         .cornerRadius(12)
                     
                     Text(String(localized: "No accounts, no tracking, 100% yours."))
-                        .font(.custom("Nunito-SemiBold", size: 16)) // 优化：使用Nunito字体并加重
+                        .font(.appCallout)
                         .foregroundColor(.black.opacity(0.7))
                 }
                 .multilineTextAlignment(.center)
@@ -233,7 +232,7 @@ struct GetStartedPageView: View {
             VStack(spacing: 40) { // 优化：拉开标题与按钮的距离
                 // 主标题
                 Text(String(localized: "Ready to Start the Journey?"))
-                    .font(.custom("Nunito-Bold", size: 28)) // 优化：使用Nunito字体
+                    .font(.appTitle)
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                 
@@ -246,7 +245,7 @@ struct GetStartedPageView: View {
                         }
                     }) {
                         Text(String(localized: "Get Started"))
-                            .font(.custom("Nunito-Bold", size: 18)) // 优化：使用Nunito字体
+                            .font(.appDataValue)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
@@ -268,7 +267,7 @@ struct GetStartedPageView: View {
                     // 权限说明
                     // 优化：精简文案
                     Text(String(localized: "We'll ask for permission to send timely reminders."))
-                        .font(.custom("Nunito-Regular", size: 14)) // 优化：使用Nunito字体
+                        .font(.appSmallText)
                         .foregroundColor(.black.opacity(0.6))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 45) // 优化：调整内边距
