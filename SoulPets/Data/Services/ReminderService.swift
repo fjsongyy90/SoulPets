@@ -291,32 +291,47 @@ class ReminderService {
         let calendar = Calendar.current
         let today = Date()
         
-        // 计算起始日期（例如30天前）
-        guard let startDate = calendar.date(byAdding: .day, value: -daysBack, to: today) else {
+        // 计算起始日期（例如30天前）的开始时间（00:00:00）
+        let startOfToday = calendar.startOfDay(for: today)
+        guard let startDate = calendar.date(byAdding: .day, value: -daysBack, to: startOfToday) else {
             logger.error("无法计算起始日期")
             return []
         }
+        
+        logger.info("📅 查询最近完成的提醒: 从 \(startDate) 到 \(today)")
         
         do {
             // 获取所有提醒
             let allRemindersDescriptor = FetchDescriptor<Reminder>()
             let allReminders = try modelContext.fetch(allRemindersDescriptor)
+            logger.info("📋 总共有 \(allReminders.count) 个提醒")
             
             // 存储已完成的提醒及其最近完成日期
             var completedRemindersWithDate: [(reminder: Reminder, completionDate: Date)] = []
             
             for reminder in allReminders {
                 // 获取该提醒的所有完成记录
-                guard let completions = reminder.completions, !completions.isEmpty else { continue }
+                guard let completions = reminder.completions, !completions.isEmpty else { 
+                    logger.debug("提醒 \(reminder.tag.name) 没有完成记录")
+                    continue 
+                }
                 
-                // 找出最近30天内的完成记录
+                logger.debug("提醒 \(reminder.tag.name) 有 \(completions.count) 条完成记录")
+                
+                // 找出最近30天内的完成记录（使用日期比较）
                 let recentCompletions = completions.filter { completion in
-                    completion.completionDate >= startDate && completion.completionDate <= today
+                    let compDate = calendar.startOfDay(for: completion.completionDate)
+                    let isAfterStart = calendar.compare(compDate, to: startDate, toGranularity: .day) != .orderedAscending
+                    let isBeforeToday = calendar.compare(compDate, to: startOfToday, toGranularity: .day) != .orderedDescending
+                    
+                    logger.debug("  - 完成日期: \(completion.completionDate), 是否在范围内: \(isAfterStart && isBeforeToday)")
+                    return isAfterStart && isBeforeToday
                 }
                 
                 // 如果有最近的完成记录，取最新的一条
                 if let latestCompletion = recentCompletions.sorted(by: { $0.completionDate > $1.completionDate }).first {
                     completedRemindersWithDate.append((reminder: reminder, completionDate: latestCompletion.completionDate))
+                    logger.info("✅ 找到已完成提醒: \(reminder.tag.name), 完成日期: \(latestCompletion.completionDate)")
                 }
             }
             
