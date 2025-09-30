@@ -157,24 +157,19 @@ struct RemindersView: View {
             .sheet(isPresented: $showingCompletionSheet) {
                 completionBottomSheet
             }
-            .confirmationDialog(
-                String(localized: "Delete Reminder"),
+            .customConfirmAlert(
+                title: String(localized: "Delete Reminder"),
+                message: String(localized: "This action cannot be undone."),
                 isPresented: $showingDeleteAlert,
-                titleVisibility: .visible
-            ) {
-                Button(String(localized: "Delete"), role: .destructive) {
+                confirmTitle: String(localized: "Delete"),
+                confirmAction: {
                     if let reminder = reminderToDelete {
                         viewModel.deleteReminder(reminder, modelContext: modelContext)
                         reminderToDelete = nil
                     }
-                }
-                
-                Button(String(localized: "Cancel"), role: .cancel) {
-                    reminderToDelete = nil
-                }
-            } message: {
-                Text(String(localized: "This action cannot be undone."))
-            }
+                },
+                isDestructive: true
+            )
             .onChange(of: searchText) { oldValue, newValue in
                 // 实现搜索功能
                 viewModel.searchText = newValue

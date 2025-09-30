@@ -59,7 +59,8 @@ class ReminderService {
                     if comparison == .orderedDescending {
                         // 检查是否在指定天数范围内
                         let daysDifference = calendar.dateComponents([.day], from: today, to: nextReminderDate).day ?? 0
-                        if daysDifference <= daysAhead {
+                        // 🔧 关键修复：检查该日期的提醒是否已完成
+                        if daysDifference <= daysAhead && !reminder.isCompletedOn(date: nextReminderDate) {
                             upcomingReminders.append(reminder)
                             logger.info("📈 未来安排: \(reminder.tag.name) - 日期: \(nextReminderDate)")
                         }
