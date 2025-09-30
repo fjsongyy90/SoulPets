@@ -37,102 +37,104 @@ struct PetsHomeView: View {
     
     var body: some View {
         NavigationStack {
-            // 🔧 修复：使用ScrollView替代ZStack，解决横屏滑动问题
-            ScrollView {
-                // 背景色 - 使用新的设计规范颜色
-                Color(hex: "FDFBF8").ignoresSafeArea()
-                
-                // 🚀 性能优化：隐形图表预加载 Charts 框架
+            ZStack {
+                // 🚀 性能优化：隐形图表预加载 Charts 框架（放在最底层）
                 if shouldPreloadCharts {
                     preloadChartsView
                 }
                 
-                VStack(spacing: 0) {
-                    if !pets.isEmpty {
-                        // 宠物卡片滑动区域 - 动态高度适应横竖屏
-                        GeometryReader { geometry in
-                            TabView(selection: $selectedPetIndex) {
-                                ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
-                                    PetIdentityCardView(
-                                        petAvatar: pet.avatar,
-                                        petName: pet.name,
-                                        petInfo: formatPetInfo(pet: pet),
-                                        ageValue: formatAge(pet: pet),
-                        ageLabel: String(localized: "Time in this world"),
-                        togetherValue: formatTogetherTime(pet: pet),
-                        togetherLabel: String(localized: "Guarding each other for"),
-                        birthdayValue: formatNextBirthday(pet: pet),
-                        birthdayLabel: String(localized: "Next celebration in"),
-                                        onViewProfile: {
-                                            // 设置要显示的宠物ID
-                                            detailViewPetID = pet.id
-                                            
-                                            // 使用两层异步确保状态完全更新
-                                            DispatchQueue.main.async {
+                // 🔧 修复：使用ScrollView替代ZStack，解决横屏滑动问题
+                ScrollView {
+                    // 背景色 - 使用新的设计规范颜色
+                    Color(hex: "FDFBF8").ignoresSafeArea()
+                    
+                    VStack(spacing: 0) {
+                        if !pets.isEmpty {
+                            // 宠物卡片滑动区域 - 动态高度适应横竖屏
+                            GeometryReader { geometry in
+                                TabView(selection: $selectedPetIndex) {
+                                    ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
+                                        PetIdentityCardView(
+                                            petAvatar: pet.avatar,
+                                            petName: pet.name,
+                                            petInfo: formatPetInfo(pet: pet),
+                                            ageValue: formatAge(pet: pet),
+                                            ageLabel: String(localized: "Time in this world"),
+                                            togetherValue: formatTogetherTime(pet: pet),
+                                            togetherLabel: String(localized: "Guarding each other for"),
+                                            birthdayValue: formatNextBirthday(pet: pet),
+                                            birthdayLabel: String(localized: "Next celebration in"),
+                                            onViewProfile: {
+                                                // 设置要显示的宠物ID
+                                                detailViewPetID = pet.id
+                                                
+                                                // 使用两层异步确保状态完全更新
                                                 DispatchQueue.main.async {
-                                                    showingPetDetailSheet = true
+                                                    DispatchQueue.main.async {
+                                                        showingPetDetailSheet = true
+                                                    }
                                                 }
                                             }
-                                        }
-                                    )
-                                        .tag(index)
+                                        )
+                                            .tag(index)
+                                    }
                                 }
+                                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                             }
-                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                        }
-                        // 🔧 修复：动态计算高度，横屏时使用更小的比例
-                        .frame(height: {
-                            let screenSize = UIScreen.main.bounds
-                            let isLandscape = screenSize.width > screenSize.height
-                            if isLandscape {
-                                // 横屏时使用固定高度或更小比例
-                                return min(400, screenSize.height * 0.85)
-                            } else {
-                                // 竖屏时使用原来的逻辑
-                                return min(520, screenSize.height * 0.65)
-                            }
-                        }())
+                            // 🔧 修复：动态计算高度，横屏时使用更小的比例
+                            .frame(height: {
+                                let screenSize = UIScreen.main.bounds
+                                let isLandscape = screenSize.width > screenSize.height
+                                if isLandscape {
+                                    // 横屏时使用固定高度或更小比例
+                                    return min(400, screenSize.height * 0.85)
+                                } else {
+                                    // 竖屏时使用原来的逻辑
+                                    return min(520, screenSize.height * 0.65)
+                                }
+                            }())
 
-                        // 页面指示器
-                        if pets.count > 1 {
-                            HStack(spacing: 12) {
-                                ForEach(0..<pets.count, id: \.self) { index in
-                                    Image(systemName: "pawprint.fill")
-                                        .font(.system(size: 10))
-                                        .foregroundColor(selectedPetIndex == index ? Color(hex: "E5B487") : Color.gray.opacity(0.3))
-                                        .animation(.easeInOut(duration: 0.2), value: selectedPetIndex)
+                            // 页面指示器
+                            if pets.count > 1 {
+                                HStack(spacing: 12) {
+                                    ForEach(0..<pets.count, id: \.self) { index in
+                                        Image(systemName: "pawprint.fill")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(selectedPetIndex == index ? Color(hex: "E5B487") : Color.gray.opacity(0.3))
+                                            .animation(.easeInOut(duration: 0.2), value: selectedPetIndex)
+                                    }
                                 }
+                                .padding(.top, 3)
                             }
-                            .padding(.top, 3)
-                        }
-                        // 🔧 修复：减少间距，确保底部slogan可见
-                        VStack {
-                            // 添加一些空间
-                        }
-                        .frame(height: 50)
-                        
-                        // 底部隐私承诺文案
-                        VStack(spacing: 10) {
-                            // 短分隔线
-                            RoundedRectangle(cornerRadius: 0.5)
-                                .fill(Color(hex: "E5B487").opacity(0.5))
-                                .frame(width: 60, height: 1)
+                            // 🔧 修复：减少间距，确保底部slogan可见
+                            VStack {
+                                // 添加一些空间
+                            }
+                            .frame(height: 50)
                             
-                            // slogan文字
-                        Text(String(localized: "The digital heartbeat of your bond with pets."))
-                                .font(.appItalicFootnote)
-                                .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
-                        }
-                        .padding(.bottom, 25)
-                        Spacer()
+                            // 底部隐私承诺文案
+                            VStack(spacing: 10) {
+                                // 短分隔线
+                                RoundedRectangle(cornerRadius: 0.5)
+                                    .fill(Color(hex: "E5B487").opacity(0.5))
+                                    .frame(width: 60, height: 1)
+                                
+                                // slogan文字
+                                Text(String(localized: "The digital heartbeat of your bond with pets."))
+                                    .font(.appItalicFootnote)
+                                    .foregroundColor(Color(hex: "A88C7D").opacity(0.7))
+                            }
+                            .padding(.bottom, 25)
+                            Spacer()
                         
-                    } else {
-                        // 无宠物时的提示
-                        noPetsView
+                        } else {
+                            // 无宠物时的提示
+                            noPetsView
+                        }
                     }
+                    // 🔧 修复：调整最小高度，让内容更紧凑
+                    .frame(minHeight: UIScreen.main.bounds.height - 140) // 增加减去的高度，让内容更紧凑
                 }
-                // 🔧 修复：调整最小高度，让内容更紧凑
-                .frame(minHeight: UIScreen.main.bounds.height - 140) // 增加减去的高度，让内容更紧凑
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -347,8 +349,8 @@ struct PetsHomeView: View {
                 y: .value("Y", 0)
             )
         }
-        .frame(width: 1, height: 1)
-        .opacity(0.001) // 几乎完全透明，用户看不到
+        .frame(width: 0, height: 0)
+        .opacity(0) // 几乎完全透明，用户看不到
         .allowsHitTesting(false) // 不响应用户交互
         .onAppear {
             // 框架加载后，1秒后移除这个视图以释放资源
