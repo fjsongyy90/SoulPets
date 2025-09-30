@@ -228,7 +228,7 @@ struct RemindersView: View {
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                            Image(pet.petType.defaultImageName)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
@@ -353,7 +353,7 @@ struct RemindersView: View {
                                             .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
-                                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                                Image(pet.petType.defaultImageName)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 40, height: 40)
@@ -1111,7 +1111,7 @@ struct TodayReminderCardView: View {
                                             .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                                             .frame(width: 24, height: 24)
                                         
-                                        Image(firstPet.petType == .dog ? "pet_dog" : "pet_cat")
+                                        Image(firstPet.petType.defaultImageName)
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 16, height: 16)
@@ -1511,7 +1511,7 @@ struct UpcomingReminderCardView: View {
                                             .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                                             .frame(width: 16, height: 16)
                                         
-                                        Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                                        Image(pet.petType.defaultImageName)
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 10, height: 10)

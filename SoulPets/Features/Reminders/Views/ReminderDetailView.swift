@@ -327,7 +327,7 @@ struct ReminderDetailView: View {
                     .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                     .frame(width: size, height: size)
                 
-                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                Image(pet.petType.defaultImageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: size * 0.7, height: size * 0.7)

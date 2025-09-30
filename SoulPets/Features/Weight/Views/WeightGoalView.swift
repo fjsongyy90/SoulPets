@@ -179,7 +179,7 @@ struct WeightGoalView: View {
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
             } else {
-                Image(pet.petType == .dog ? "pet_dog" : "pet_cat")
+                Image(pet.petType.defaultImageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 50, height: 50)

@@ -44,7 +44,7 @@ struct PetBasicInfoView: View {
                                     .frame(width: 120, height: 120)
                                     .clipShape(Circle())
                             } else {
-                                Image(viewModel.petType == .dog ? "pet_dog" : "pet_cat")
+                                Image(viewModel.petType.defaultImageName)
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 120, height: 120)
