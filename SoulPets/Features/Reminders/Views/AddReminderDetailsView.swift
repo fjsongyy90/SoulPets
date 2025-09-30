@@ -19,26 +19,63 @@ struct AddReminderDetailsView: View {
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) { // 增加间距让布局更呼吸
-                // 日期和时间选择器
-                dateTimeSection
-                
-                // 重复设置
-                repeatSettingsSection
-                
-                // 备注输入框
-                notesSection
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) { // 增加间距让布局更呼吸
+                    // 日期和时间选择器
+                    dateTimeSection
+                    
+                    // 重复设置
+                    repeatSettingsSection
+                    
+                    // 备注输入框
+                    notesSection
+                }
+                .padding(.vertical, 20) // 增加垂直padding
             }
-            .padding(.vertical, 20) // 增加垂直padding
-        }
-        .toolbar {
-            // 🔧 键盘工具栏完成按钮（仅在有焦点时显示）
+            
+            // 🔧 备用方案：浮动的Done按钮（当键盘激活时显示）- 参考Record模块
             if isNotesFieldFocused {
-                ToolbarItemGroup(placement: .keyboard) {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(String(localized: "Done")) {
+                            logger.info("🔧 浮动Done按钮被点击")
+                            logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused)")
+                            
+                            // 关闭键盘
+                            isNotesFieldFocused = false
+                            
+                            // 备用方法：使用 UIApplication 方式关闭键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            
+                            logger.info("🔧 键盘关闭操作已执行")
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(20)
+                        .shadow(radius: 5)
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
+                        .onAppear {
+                            logger.info("🔍 浮动Done按钮已显示")
+                        }
+                    }
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(.easeInOut(duration: 0.3), value: isNotesFieldFocused)
+            }
+        }
+        // 🔧 修复：移除条件判断，让键盘工具栏总是存在 - 参考Record模块
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                HStack {
                     Spacer()
                     Button(String(localized: "Done")) {
-                        logger.info("🔧 AddReminderDetails键盘工具栏完成按钮被点击")
+                        logger.info("🔧 键盘工具栏完成按钮被点击")
                         logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused)")
                         
                         // 关闭键盘
@@ -51,7 +88,7 @@ struct AddReminderDetailsView: View {
                     }
                     .foregroundColor(accentColor)
                     .onAppear {
-                        logger.info("🔧 AddReminderDetails Done按钮已创建")
+                        logger.info("🔧 Done按钮已创建")
                     }
                 }
             }
