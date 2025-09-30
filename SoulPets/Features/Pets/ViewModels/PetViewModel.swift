@@ -177,18 +177,13 @@ class PetViewModel: ObservableObject {
     }
     
     /// 删除宠物
-    func deletePet(_ pet: Pet) throws {
-        do {
-            logger.info("开始删除宠物档案: \(pet.id.uuidString)")
-            
-            // 使用级联删除方法
-            PetService.deletePet(pet: pet, modelContext: modelContext)
-            
-            logger.info("成功删除宠物档案")
-        } catch {
-            logger.error("删除宠物失败，错误: \(error.localizedDescription)")
-            throw error
-        }
+    func deletePet(_ pet: Pet) {
+        logger.info("开始删除宠物档案: \(pet.id.uuidString)")
+        
+        // 使用级联删除方法
+        PetService.deletePet(pet: pet, modelContext: modelContext)
+        
+        logger.info("成功删除宠物档案")
     }
     
     /// 加载宠物数据到表单

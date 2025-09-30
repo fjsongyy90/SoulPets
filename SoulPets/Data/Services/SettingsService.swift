@@ -134,18 +134,14 @@ final class SettingsService {
             return
         }
         
-        do {
-            // 使用新的UserSettings清理方法
-            UserSettings.clearAllSettings()
-            
-            // 清理应用的所有UserDefaults数据
-            UserDefaults.standard.removePersistentDomain(forName: bundleID)
-            UserDefaults.standard.synchronize()
-            
-            logger.info("UserDefaults 重置成功")
-        } catch {
-            logger.error("重置UserDefaults时出错: \(error.localizedDescription)")
-        }
+        // 使用新的UserSettings清理方法
+        UserSettings.clearAllSettings()
+        
+        // 清理应用的所有UserDefaults数据
+        UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        UserDefaults.standard.synchronize()
+        
+        logger.info("UserDefaults 重置成功")
     }
     
     /// 重置数据库
@@ -275,13 +271,10 @@ final class SettingsService {
             return
         }
         
-        // 使用新的 API（iOS 18.0+）或旧的 API
-        if #available(iOS 18.0, *) {
-            // 使用新的 AppStore API
-            // 注意：这个 API 在 iOS 18.0 中引入，但可能需要导入 AppStore 框架
-            // 暂时继续使用旧 API，直到新 API 完全稳定
-            SKStoreReviewController.requestReview(in: scene)
-        } else {
+        // 使用 SKStoreReviewController 请求评论
+        // 注意：在 iOS 18.0+ 中，这个 API 已被标记为弃用，但仍然可用
+        // 新的 AppStore.requestReview(in:) 需要导入 StoreKit 框架并使用不同的API
+        if #available(iOS 14.0, *) {
             SKStoreReviewController.requestReview(in: scene)
         }
     }

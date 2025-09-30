@@ -100,10 +100,6 @@ class RemindersViewModel {
                 }
                 
                 self.logger.info("成功加载提醒数据 - 今日: \(self.todayReminders.count), 未来: \(self.upcomingReminders.count), 已完成: \(self.completedReminders.count)")
-                
-            } catch {
-                self.logger.error("加载提醒数据失败: \(error.localizedDescription)")
-                self.errorMessage = error.localizedDescription
             }
             
             self.isLoading = false

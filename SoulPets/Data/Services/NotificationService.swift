@@ -198,34 +198,29 @@ class NotificationService {
     /// 更新应用角标数量 - 显示逾期未完成 + 今日未完成的待办数量
     static func updateApplicationBadge(modelContext: ModelContext) {
         Task {
-            do {
-                // 🔧 修复：使用ReminderService的正确计算方法（包含逾期）
-                let uncompletedCount = ReminderService.calculateBadgeCount(modelContext: modelContext)
-                
-                // 在主线程更新应用角标
-                await MainActor.run {
-                    // 使用UNUserNotificationCenter设置角标数量，替代已弃用的applicationIconBadgeNumber
-                    UNUserNotificationCenter.current().setBadgeCount(uncompletedCount) { error in
-                        if let error = error {
-                            logger.error("设置角标数量失败: \(error.localizedDescription)")
-                        } else {
-                            logger.info("更新应用角标数量: \(uncompletedCount) (逾期未完成 + 今日未完成)")
-                        }
+            // 🔧 修复：使用ReminderService的正确计算方法（包含逾期）
+            let uncompletedCount = ReminderService.calculateBadgeCount(modelContext: modelContext)
+            
+            // 在主线程更新应用角标
+            await MainActor.run {
+                // 使用UNUserNotificationCenter设置角标数量，替代已弃用的applicationIconBadgeNumber
+                UNUserNotificationCenter.current().setBadgeCount(uncompletedCount) { error in
+                    if let error = error {
+                        logger.error("设置角标数量失败: \(error.localizedDescription)")
+                    } else {
+                        logger.info("更新应用角标数量: \(uncompletedCount) (逾期未完成 + 今日未完成)")
                     }
                 }
-                
-                // 保存最后更新角标的日期
-                UserDefaults.standard.set(Date(), forKey: "lastBadgeUpdateDate")
-            } catch {
-                logger.error("更新应用角标时出错: \(error.localizedDescription)")
             }
+            
+            // 保存最后更新角标的日期
+            UserDefaults.standard.set(Date(), forKey: "lastBadgeUpdateDate")
         }
     }
     
     /// 获取今天未完成的提醒数量
     static func getTodayUncompletedRemindersCount(modelContext: ModelContext) -> Int {
         let today = Calendar.current.startOfDay(for: Date())
-        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: today)!.addingTimeInterval(-1)
         
         // 获取所有提醒
         let allRemindersDescriptor = FetchDescriptor<Reminder>()

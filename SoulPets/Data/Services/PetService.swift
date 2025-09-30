@@ -207,7 +207,6 @@ class PetService {
 			
 			// 🔧 修复：使用宠物的实际生日作为起始日期，而不是计算下一个生日
 			// 这样年度重复提醒会从宠物的生日开始，每年重复
-			let calendar = Calendar.current
 			
 			// 创建提醒 - 使用宠物的实际生日作为起始日期
 			let birthdayText = String(localized: "\(pet.name)'s Birthday")
