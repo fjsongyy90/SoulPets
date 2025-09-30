@@ -266,15 +266,18 @@ final class SettingsService {
     }
     
     /// 在 App Store 中评分
+    @MainActor
     static func rateApp() {
         guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
             return
         }
         
-        // 使用 SKStoreReviewController 请求评论
-        // 注意：在 iOS 18.0+ 中，这个 API 已被标记为弃用，但仍然可用
-        // 新的 AppStore.requestReview(in:) 需要导入 StoreKit 框架并使用不同的API
-        if #available(iOS 14.0, *) {
+        // 使用新的 API（iOS 18.0+）或旧的 API（iOS 14.0-17.x）
+        if #available(iOS 18.0, *) {
+            // iOS 18.0+ 使用新的 AppStore API（需要在主线程调用）
+            AppStore.requestReview(in: scene)
+        } else {
+            // iOS 14.0-17.x 使用旧的 SKStoreReviewController API
             SKStoreReviewController.requestReview(in: scene)
         }
     }
