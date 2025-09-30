@@ -345,6 +345,17 @@ struct SettingsView: View {
             Divider()
                 .padding(.leading, 16)
             
+            // iCloud 同步状态行
+            SettingsRowView(
+                icon: "icloud.fill", // 使用 iCloud 图标
+                title: String(localized: "settings.privacy.icloud_sync"), // 标题: "iCloud Sync"
+                rightText: String(localized: "settings.privacy.icloud_sync.enabled"), // 状态: "Enabled"
+                showChevron: false // 不需要箭头，因为它只是显示信息
+            )
+            
+            Divider()
+                .padding(.leading, 16)
+            
             // 我们的隐私承诺
             SettingsRowView(
                 icon: "lock.shield",

@@ -354,6 +354,8 @@
 "settings.privacy.title" = "Data & Privacy";
 "settings.privacy.slogan" = "Your pet's data never leaves your device.";
 "settings.privacy.promise" = "Our Privacy Promise";
+"settings.privacy.icloud_sync" = "iCloud Sync";
+"settings.privacy.icloud_sync.enabled" = "Enabled";
 
 // 设置页面 - 隐私承诺详情页
 "settings.privacy.promise.title" = "A Private Space for You and Your Pet";
