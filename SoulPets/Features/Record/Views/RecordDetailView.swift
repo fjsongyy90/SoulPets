@@ -15,6 +15,8 @@ struct RecordDetailView: View {
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var newPhotos: [(id: UUID, image: UIImage)] = []
     @State private var showingDeleteAlert = false
+    @State private var showingFullScreenPhoto = false
+    @State private var selectedPhotoIndex = 0
     
     // 键盘工具栏相关状态
     @FocusState private var isNotesFieldFocused: Bool
@@ -125,6 +127,12 @@ struct RecordDetailView: View {
                 }
             } message: {
                 Text(String(localized: "Are you sure you want to delete this record? This action cannot be undone."))
+            }
+            .fullScreenCover(isPresented: $showingFullScreenPhoto) {
+                FullScreenPhotoViewer(
+                    photos: getAllPhotos(),
+                    selectedIndex: $selectedPhotoIndex
+                )
             }
         }
         .onChange(of: isNotesFieldFocused) { oldValue, newValue in
@@ -458,24 +466,18 @@ struct RecordDetailView: View {
     
     // MARK: - 照片管理辅助方法
     
-    /// 照片项目类型
-    enum PhotoItem {
-        case existing(RecordPhoto)
-        case new(id: UUID, image: UIImage)
-    }
-    
     /// 获取所有照片（现有 + 新增）
     private func getAllPhotos() -> [PhotoItem] {
         var allPhotos: [PhotoItem] = []
         
         // 添加现有照片
         if let photos = record.photos {
-            allPhotos.append(contentsOf: photos.map { .existing($0) })
+            allPhotos.append(contentsOf: photos.map { PhotoItem.existing($0) })
         }
         
         // 添加新增照片
         for photoItem in newPhotos {
-            allPhotos.append(.new(id: photoItem.id, image: photoItem.image))
+            allPhotos.append(PhotoItem.new(id: photoItem.id, image: photoItem.image))
         }
         
         return allPhotos
@@ -539,6 +541,25 @@ struct RecordDetailView: View {
                 },
                 alignment: .topTrailing
             )
+            .onTapGesture {
+                if !isEditing {
+                    // 打开全屏查看
+                    let allPhotos = getAllPhotos()
+                    if let index = allPhotos.firstIndex(where: { 
+                        switch ($0, photoItem) {
+                        case (.existing(let photo1), .existing(let photo2)):
+                            return photo1.id == photo2.id
+                        case (.new(let id1, _), .new(let id2, _)):
+                            return id1 == id2
+                        default:
+                            return false
+                        }
+                    }) {
+                        selectedPhotoIndex = index
+                        showingFullScreenPhoto = true
+                    }
+                }
+            }
     }
     
     /// 删除照片项

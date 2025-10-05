@@ -10,6 +10,8 @@ struct PetPhotosView: View {
     @State private var isSelectionMode = false
     @State private var selectedPhotos: Set<UUID> = []
     @State private var showingDeleteAlert = false
+    @State private var showingFullScreenPhoto = false
+    @State private var selectedPhotoIndex = 0
     
     // 颜色定义
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
@@ -32,6 +34,11 @@ struct PetPhotosView: View {
             record.photos ?? []
         }.flatMap { $0 }
         .sorted { $0.createdAt > $1.createdAt }
+    }
+    
+    // 转换为PhotoItem数组用于全屏查看
+    private var photoItems: [PhotoItem] {
+        petPhotos.map { .existing($0) }
     }
     
     // 智能删除确认消息
@@ -136,6 +143,12 @@ struct PetPhotosView: View {
                 },
                 isDestructive: true
             )
+            .fullScreenCover(isPresented: $showingFullScreenPhoto) {
+                FullScreenPhotoViewer(
+                    photos: photoItems,
+                    selectedIndex: $selectedPhotoIndex
+                )
+            }
         }
     }
     
@@ -195,7 +208,11 @@ struct PetPhotosView: View {
             if isSelectionMode {
                 togglePhotoSelection(photo: photo)
             } else {
-                // 可以在这里添加查看大图的功能
+                // 打开全屏查看
+                if let index = petPhotos.firstIndex(where: { $0.id == photo.id }) {
+                    selectedPhotoIndex = index
+                    showingFullScreenPhoto = true
+                }
             }
         }
     }
