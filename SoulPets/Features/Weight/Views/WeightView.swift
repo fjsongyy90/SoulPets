@@ -18,13 +18,17 @@ struct WeightView: View {
     @State private var weightToEdit: Weight?
     @State private var weightToDelete: Weight?
     
-    // 使用统一的颜色定义
+    // 使用统一的颜色定义 - 与提醒/记录页面保持一致
+    private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
+    private let textColor = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let labelColor = Color(red: 0.4, green: 0.4, blue: 0.4)
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
     
     var body: some View {
         NavigationStack {
             ZStack {
                 // 背景色
-                Color.appBackground.ignoresSafeArea()
+                backgroundColor.ignoresSafeArea()
                 
                 if (viewModel.selectedPet == nil && !allPets.isEmpty) || viewModel.isLoading {
                     loadingView
@@ -46,7 +50,7 @@ struct WeightView: View {
                         showingAddWeight = true
                     } label: {
                         Image("add_icon")
-                            .foregroundColor(.appAccent)
+                            .foregroundColor(accentColor)
                     }
                     .disabled(viewModel.selectedPet == nil)
                 }
@@ -131,7 +135,7 @@ struct WeightView: View {
                 .scaleEffect(1.5)
             Text(String(localized: "Loading..."))
                 .font(.appBody)
-                .foregroundColor(.appTextSecondary)
+                .foregroundColor(labelColor)
                 .padding(.top)
         }
     }
@@ -151,12 +155,12 @@ struct WeightView: View {
             VStack(spacing: 20) {
                     Text(String(localized: "Track Their Healthy Growth"))
                         .font(.appSemiBold(size: 22))
-                        .foregroundColor(.appTextPrimary)
+                        .foregroundColor(textColor)
                     
                     Text(String(localized: "empty_state.weight.subtitle"))
                         .font(.appRegular(size: 16))
                         .lineSpacing(6)
-                        .foregroundColor(.appTextSecondary)
+                        .foregroundColor(labelColor)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 
@@ -175,7 +179,7 @@ struct WeightView: View {
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.appAccent)
+                            .fill(accentColor)
                     )
                 }
             }
@@ -190,7 +194,7 @@ struct WeightView: View {
         VStack(spacing: 20) {
                 Text(String(localized: "Select a Pet"))
                     .font(.appSemiBold(size: 22))
-                    .foregroundColor(.appTextPrimary)
+                    .foregroundColor(textColor)
             
             petSelectorView
         }
@@ -218,13 +222,13 @@ struct WeightView: View {
             VStack(spacing: 20) {
                 Text(String(localized: "No Weight Records"))
                     .font(.appSemiBold(size: 22))
-                    .foregroundColor(.appTextPrimary)
+                    .foregroundColor(textColor)
                 
                 Text(String(localized: "The first beat of their digital heartbeat is weight. Let's start tracking."))
                     .font(.appRegular(size: 16))
                     .lineSpacing(6)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.appTextSecondary)
+                    .foregroundColor(labelColor)
                     .padding(.horizontal, 40)
                 
                 Button {
@@ -237,7 +241,7 @@ struct WeightView: View {
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.appAccent)
+                                .fill(accentColor)
                         )
                 }
             }
@@ -284,8 +288,8 @@ struct WeightView: View {
                     PetAvatarView(
                         pet: pet,
                         isSelected: viewModel.selectedPet?.id == pet.id,
-                        accentColor: .appAccent,
-                        textColor: .appTextPrimary,
+                        accentColor: accentColor,
+                        textColor: textColor,
                         size: 60
                     )
                     .onTapGesture {
