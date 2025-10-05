@@ -8,6 +8,9 @@ struct TagManagementView: View {
     @Environment(\.dismiss) private var dismiss
     // 移除编辑模式，使用自定义拖动手柄
     
+    // 折叠状态管理
+    @State private var collapsedCategories: Set<TagCategory> = []
+    
     // 调试日志
     private let logger = Logger(subsystem: "com.soulpets.app", category: "TagManagementView")
     
@@ -144,28 +147,31 @@ struct TagManagementView: View {
             ForEach(viewModel.sortedCategories, id: \.self) { category in
                 Section {
                     if let tags = viewModel.tagsByCategory[category] {
-                        ForEach(tags, id: \.id) { tag in
-                            TagItemManagementView(
-                                tag: tag,
-                                onToggleReminder: {
-                                    logger.info("点击提醒开关 - 标签: \(tag.name)")
-                                    viewModel.toggleReminderAvailability(for: tag)
-                                },
-                                onToggleVisibility: {
-                                    logger.info("点击可见性开关 - 标签: \(tag.name)")
-                                    viewModel.toggleVisibility(for: tag)
-                                },
-                                usageStats: viewModel.getUsageStats(for: tag),
-                                isHidden: viewModel.isTagHidden(tag)
-                            )
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                        }
-                        .onMove { source, destination in
-                            logger.info("🎯 开始拖动操作 - 分类: \(category.rawValue)")
-                            logger.info("🎯 源索引: \(source.description), 目标索引: \(destination)")
-                            viewModel.reorderTags(in: category, from: source, to: destination)
+                        // 根据折叠状态决定是否显示标签
+                        if !collapsedCategories.contains(category) {
+                            ForEach(tags, id: \.id) { tag in
+                                TagItemManagementView(
+                                    tag: tag,
+                                    onToggleReminder: {
+                                        logger.info("点击提醒开关 - 标签: \(tag.name)")
+                                        viewModel.toggleReminderAvailability(for: tag)
+                                    },
+                                    onToggleVisibility: {
+                                        logger.info("点击可见性开关 - 标签: \(tag.name)")
+                                        viewModel.toggleVisibility(for: tag)
+                                    },
+                                    usageStats: viewModel.getUsageStats(for: tag),
+                                    isHidden: viewModel.isTagHidden(tag)
+                                )
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            }
+                            .onMove { source, destination in
+                                logger.info("🎯 开始拖动操作 - 分类: \(category.rawValue)")
+                                logger.info("🎯 源索引: \(source.description), 目标索引: \(destination)")
+                                viewModel.reorderTags(in: category, from: source, to: destination)
+                            }
                         }
                     }
                 } header: {
@@ -179,6 +185,17 @@ struct TagManagementView: View {
                         Text("\(viewModel.tagsByCategory[category]?.count ?? 0) tags")
                             .font(.appCaption)
                             .foregroundColor(.secondary)
+                        
+                        // 折叠按钮
+                        Button(action: {
+                            toggleCategoryCollapse(category)
+                        }) {
+                            Image(systemName: collapsedCategories.contains(category) ? "chevron.right" : "chevron.down")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(accentColor)
+                                .animation(.easeInOut(duration: 0.2), value: collapsedCategories.contains(category))
+                        }
+                        .padding(.leading, 8)
                     }
                     .padding(.top, 16)
                     .textCase(.none)
@@ -233,6 +250,21 @@ struct TagManagementView: View {
         }
         .disabled(true)
         .foregroundColor(.appAccent)
+    }
+    
+    // MARK: - 辅助方法
+    
+    /// 切换分类的折叠状态
+    private func toggleCategoryCollapse(_ category: TagCategory) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if collapsedCategories.contains(category) {
+                collapsedCategories.remove(category)
+                logger.info("展开分类: \(category.rawValue)")
+            } else {
+                collapsedCategories.insert(category)
+                logger.info("折叠分类: \(category.rawValue)")
+            }
+        }
     }
 }
 
