@@ -203,9 +203,24 @@ class ReminderService {
         
         do {
             try modelContext.save()
-            logger.info("已将提醒标记为完成: \(reminder.id), 完成日期: \(completionDate)")
+            logger.info("✅ 已将提醒标记为完成: \(reminder.id), 完成日期: \(completionDate)")
             
-            // 🔧 新增：更新应用角标
+            // 🔧 关键修复：取消该提醒的所有待处理通知
+            NotificationService.removeNotificationsForReminder(reminderId: reminder.id)
+            logger.info("🔔 已取消提醒ID \(reminder.id) 的所有通知")
+            
+            // 🔧 如果是重复提醒，为下一个周期重新创建通知
+            if reminder.repeatInterval != nil && reminder.repeatUnit != nil {
+                // 重新设置通知（NotificationService会自动处理重复提醒）
+                if let pets = reminder.pets, !pets.isEmpty {
+                    for pet in pets {
+                        NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pet)
+                    }
+                    logger.info("🔔 已为重复提醒的未来周期重新创建通知")
+                }
+            }
+            
+            // 更新应用角标
             NotificationService.updateApplicationBadge(modelContext: modelContext)
         } catch {
             logger.error("标记提醒完成时出错: \(error.localizedDescription)")
@@ -376,11 +391,15 @@ class ReminderService {
         }
     }
     
-    /// 完成提醒
+    /// 完成提醒（旧方法，保留用于兼容性）
     static func completeReminder(_ reminder: Reminder, context: ModelContext) {
         // 创建完成记录
         let completion = ReminderCompletion(completionDate: Date(), reminder: reminder)
         context.insert(completion)
+        
+        // 🔧 先取消当前的所有通知
+        NotificationService.removeNotificationsForReminder(reminderId: reminder.id)
+        logger.info("🔔 已取消提醒ID \(reminder.id) 的所有通知")
         
         // 如果是重复提醒，计算下一次提醒时间
         if let repeatInterval = reminder.repeatInterval, let repeatUnit = reminder.repeatUnit {
@@ -394,6 +413,7 @@ class ReminderService {
                     for pet in pets {
                         NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
                     }
+                    logger.info("🔔 已为重复提醒的下一个周期创建通知")
                 }
             }
         }

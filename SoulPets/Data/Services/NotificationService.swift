@@ -105,8 +105,11 @@ class NotificationService {
             // 创建多个未来的通知实例（最多10个）
             for i in 0..<maxNotifications {
                 if let nextDate = calendar.date(byAdding: repeatUnit.calendarComponent, value: repeatInterval * i, to: reminder.startDate) {
-                    // 只为未来的日期创建通知
-                    if nextDate > Date() {
+                    // 只为未来的日期创建通知，且该日期未被标记为完成
+                    let isInFuture = nextDate > Date()
+                    let isNotCompleted = !reminder.isCompletedOn(date: nextDate)
+                    
+                    if isInFuture && isNotCompleted {
                         scheduleIndividualNotification(reminder: reminder, pet: pet, triggerDate: nextDate, instanceIndex: i)
                     }
                 } else {
