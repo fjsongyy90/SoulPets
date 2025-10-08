@@ -245,7 +245,7 @@ final class SettingsService {
     
     /// 功能建议 - 打开邮件应用
     static func suggestFeature() {
-        let email = "feedback@soulpets.app"
+        let email = "support@soulpets.app"
         let subject = String(localized: "settings.support.suggest_feature.email_subject")
         let body = String(localized: "settings.support.suggest_feature.email_body")
         
