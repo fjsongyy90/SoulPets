@@ -77,21 +77,24 @@ class RemindersViewModel {
                 self.todayReminders = ReminderService.getTodayReminders(modelContext: context)
                 self.logger.info("📅 Today Reminders: \(self.todayReminders.count)")
                 for reminder in self.todayReminders {
-                    self.logger.info("  - Today: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
+                    let tagName = reminder.tag?.name ?? "Unknown"
+                    self.logger.info("  - Today: \(tagName) (ID: \(reminder.id.uuidString.prefix(8)))")
                 }
                 
                 // 获取未来提醒
                 self.upcomingReminders = ReminderService.getUpcomingReminders(modelContext: context)
                 self.logger.info("🔮 Upcoming Reminders: \(self.upcomingReminders.count)")
                 for reminder in self.upcomingReminders {
-                    self.logger.info("  - Upcoming: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
+                    let tagName = reminder.tag?.name ?? "Unknown"
+                    self.logger.info("  - Upcoming: \(tagName) (ID: \(reminder.id.uuidString.prefix(8)))")
                 }
                 
                 // 获取已完成提醒（最近30天内完成的）
                 self.completedReminders = ReminderService.getRecentlyCompletedReminders(modelContext: context)
                 self.logger.info("✅ Completed Reminders: \(self.completedReminders.count)")
                 for reminder in self.completedReminders {
-                    self.logger.info("  - Completed: \(reminder.tag.name) (ID: \(reminder.id.uuidString.prefix(8)))")
+                    let tagName = reminder.tag?.name ?? "Unknown"
+                    self.logger.info("  - Completed: \(tagName) (ID: \(reminder.id.uuidString.prefix(8)))")
                 }
                 
                 // 检查重复ID
@@ -157,7 +160,7 @@ class RemindersViewModel {
         if !searchText.isEmpty {
             filtered = filtered.filter { reminder in
                 // 搜索标签名称
-                let tagMatches = reminder.tag.name.localizedCaseInsensitiveContains(searchText)
+                let tagMatches = reminder.tag?.name.localizedCaseInsensitiveContains(searchText) ?? false
                 
                 // 搜索备注
                 let notesMatches = reminder.notes?.localizedCaseInsensitiveContains(searchText) ?? false

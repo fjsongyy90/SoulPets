@@ -47,7 +47,7 @@ class NotificationService {
             }
             
             // 获取标签名称，如果为空则使用默认值
-            let tagName = reminder.tag.name.isEmpty ? String(localized: "reminder.default_title") : reminder.tag.name
+            let tagName = reminder.tag?.name.isEmpty == false ? reminder.tag!.name : String(localized: "reminder.default_title")
             
             // 构建通知内容
             let content = UNMutableNotificationContent()
@@ -121,7 +121,7 @@ class NotificationService {
     
     /// 创建单个通知实例
     private static func scheduleIndividualNotification(reminder: Reminder, pet: Pet, triggerDate: Date, instanceIndex: Int) {
-        let tagName = reminder.tag.name.isEmpty ? String(localized: "reminder.default_title") : reminder.tag.name
+        let tagName = reminder.tag?.name.isEmpty == false ? reminder.tag!.name : String(localized: "reminder.default_title")
         
         // 构建通知内容
         let content = UNMutableNotificationContent()
@@ -185,7 +185,11 @@ class NotificationService {
     }
     
     /// 根据标签获取通知文案
-    static func getNotificationBodyForTag(tag: Tag, petName: String) -> String {
+    static func getNotificationBodyForTag(tag: Tag?, petName: String) -> String {
+        guard let tag = tag else {
+            return String(localized: "reminder.default_body")
+        }
+        
         // 根据标签的code获取对应的本地化文案
         let localizationKey = "notification.tag.\(tag.code)"
         let localizedText = String(localized: LocalizedStringResource(stringLiteral: localizationKey))

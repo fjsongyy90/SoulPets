@@ -158,19 +158,23 @@ class WeightService {
             
             // 打印所有目标的详细信息
             for (index, goal) in allGoals.enumerated() {
-                logger.info("目标 \(index + 1): 宠物ID=\(goal.pet.id), 宠物名=\(goal.pet.name), 目标体重=\(goal.targetWeight), 单位=\(goal.unit.rawValue), 是否活跃=\(goal.isActive), 目标日期=\(goal.targetDate)")
+                let petId = goal.pet?.id.uuidString ?? "无"
+                let petName = goal.pet?.name ?? "未知"
+                let unitStr = goal.unit?.rawValue ?? "kg"
+                logger.info("目标 \(index + 1): 宠物ID=\(petId), 宠物名=\(petName), 目标体重=\(goal.targetWeight), 单位=\(unitStr), 是否活跃=\(goal.isActive), 目标日期=\(goal.targetDate)")
             }
             
             // 在内存中过滤特定宠物的活跃目标
             let activeGoal = allGoals.first { goal in
-                let isPetMatch = goal.pet.id == pet.id
+                let isPetMatch = goal.pet?.id == pet.id
                 let isActive = goal.isActive == true
                 logger.debug("检查目标: 宠物匹配=\(isPetMatch), 活跃状态=\(isActive)")
                 return isPetMatch && isActive
             }
             
             if let goal = activeGoal {
-                logger.info("✅ 找到活跃体重目标: 目标体重=\(goal.targetWeight) \(goal.unit.rawValue), 目标日期=\(goal.targetDate)")
+                let unitStr = goal.unit?.rawValue ?? "kg"
+                logger.info("✅ 找到活跃体重目标: 目标体重=\(goal.targetWeight) \(unitStr), 目标日期=\(goal.targetDate)")
             } else {
                 logger.info("❌ 未找到宠物 \(pet.name) 的活跃体重目标")
             }
@@ -230,13 +234,14 @@ class WeightService {
             
             // 在内存中过滤特定宠物的活跃目标
             let activeGoals = allGoals.filter { goal in
-                goal.pet.id == pet.id && goal.isActive == true
+                goal.pet?.id == pet.id && goal.isActive == true
             }
         
             logger.info("📊 找到 \(activeGoals.count) 个需要设为非活跃的目标")
             
             for goal in activeGoals {
-                logger.info("🔄 将目标设为非活跃: 目标体重=\(goal.targetWeight) \(goal.unit.rawValue)")
+                let unitStr = goal.unit?.rawValue ?? "kg"
+                logger.info("🔄 将目标设为非活跃: 目标体重=\(goal.targetWeight) \(unitStr)")
                 goal.isActive = false
                 goal.updatedAt = Date()
             }

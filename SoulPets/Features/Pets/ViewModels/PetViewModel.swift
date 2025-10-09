@@ -189,20 +189,20 @@ class PetViewModel: ObservableObject {
     /// 加载宠物数据到表单
     func loadPet(_ pet: Pet) {
         name = pet.name
-        petType = pet.petType
+        petType = pet.petType ?? .cat  // 提供默认值
         breed = pet.breed
         if let avatarData = pet.avatar {
             avatar = UIImage(data: avatarData)
         } else {
             avatar = nil
         }
-        gender = pet.gender
+        gender = pet.gender ?? .male  // 提供默认值
         isNeutered = pet.isNeutered
         birthday = pet.birthday
         adoptionDay = pet.adoptionDay ?? Date()
         microchipID = pet.microchipID
         insurancePolicyNo = pet.insurancePolicyNo
-        self.weightUnitPreference = pet.weightUnitPreference
+        self.weightUnitPreference = pet.weightUnitPreference ?? .kg  // 提供默认值
         personality = pet.personality
         story = pet.story
     }

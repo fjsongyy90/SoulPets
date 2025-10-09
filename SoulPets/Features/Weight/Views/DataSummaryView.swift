@@ -123,7 +123,8 @@ struct DataSummaryView: View {
             // 第一行：目标信息和进度
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Target: \(goal.targetWeight, specifier: "%.1f") \(goal.pet.weightUnitPreference.rawValue)")
+                    let unitStr = goal.pet?.weightUnitPreference?.rawValue ?? goal.unit?.rawValue ?? "kg"
+                    Text("Target: \(goal.targetWeight, specifier: "%.1f") \(unitStr)")
                         .font(.appBody)
                         .foregroundColor(.appTextPrimary)
                     
@@ -261,7 +262,8 @@ struct DataSummaryView: View {
                 }
                 .onAppear {
                     if let goal = viewModel.activeWeightGoal {
-                        logger.debug("🎯 显示活跃体重目标: \(goal.targetWeight) \(goal.unit.rawValue)")
+                        let unitStr = goal.unit?.rawValue ?? "kg"
+                        logger.debug("🎯 显示活跃体重目标: \(goal.targetWeight) \(unitStr)")
                     }
                 }
             } else {

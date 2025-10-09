@@ -213,8 +213,8 @@ struct AddRecordPetAndEventView: View {
     private func filterRecentlyUsedTags() -> [Tag] {
         guard !viewModel.selectedPets.isEmpty else { return [] }
         
-        // 获取选择的宠物类型
-        let selectedPetTypes = Set(viewModel.selectedPets.map { $0.petType })
+        // 获取选择的宠物类型（过滤掉nil值）
+        let selectedPetTypes = Set(viewModel.selectedPets.compactMap { $0.petType })
         
         // 过滤最近使用的标签，只保留适用于选择宠物类型的标签
         return viewModel.recentlyUsedTags.filter { tag in
@@ -227,8 +227,8 @@ struct AddRecordPetAndEventView: View {
         // 如果没有选择宠物，返回空数组
         guard !viewModel.selectedPets.isEmpty else { return [] }
         
-        // 获取所有选中宠物的类型
-        let selectedPetTypes = viewModel.selectedPets.map { $0.petType }
+        // 获取所有选中宠物的类型（过滤掉nil值）
+        let selectedPetTypes = viewModel.selectedPets.compactMap { $0.petType }
         
         // 筛选同时适用于所有选中宠物类型的标签，并排除隐藏的标签
         return tags.filter { tag in

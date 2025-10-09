@@ -124,8 +124,9 @@ struct RemindersView: View {
                 } else {
                     // 从详情页编辑：只显示详情编辑页
                     NavigationStack {
+                        let tagName = reminder.tag?.name ?? "Unknown"
                         AddReminderDetailsView(viewModel: AddEditReminderViewModel(reminder: reminder))
-                            .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                            .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                             .navigationBarTitleDisplayMode(.inline)
                             .toolbar {
                                 ToolbarItem(placement: .navigationBarLeading) {
@@ -257,7 +258,8 @@ struct RemindersView: View {
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(pet.petType.defaultImageName)
+                            let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                            Image(imageName)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
@@ -382,7 +384,8 @@ struct RemindersView: View {
                                             .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
-                                Image(pet.petType.defaultImageName)
+                                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                                Image(imageName)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 40, height: 40)
@@ -890,7 +893,8 @@ struct RemindersView: View {
         if let newRecord = viewModel.showCreateRecordFromReminder(reminder, modelContext: modelContext) {
             // 记录创建成功，发送通知让记录模块刷新数据
             NotificationCenter.default.post(name: .recordCreated, object: newRecord)
-            logger.info("✅ 从提醒创建了新记录: \(newRecord.id), 标签: \(newRecord.tag.name)")
+            let tagName = newRecord.tag?.name ?? "Unknown"
+            logger.info("✅ 从提醒创建了新记录: \(newRecord.id), 标签: \(tagName)")
         } else {
             logger.error("❌ 从提醒创建记录失败")
         }
@@ -1046,7 +1050,8 @@ struct TodayReminderCardView: View {
                     
                     // 标签图标 - 放大显示作为情感化插画
                     VStack {
-                        Image(reminder.tag.iconName)
+                        let iconName = reminder.tag?.iconName ?? "questionmark.circle"
+                        Image(iconName)
                             .resizable()
                             .scaledToFill()
                             .frame(width: 72, height: 72) // 稍微增大图标
@@ -1067,7 +1072,8 @@ struct TodayReminderCardView: View {
                 // 中部：大号标题和状态
                 VStack(alignment: .leading, spacing: 12) {
                     // 提醒标题 - 增强字体层级
-                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                    let tagName = reminder.tag?.name ?? "Unknown"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                         .font(.appTitle2) // 从Title3升级到Title2
                         .fontWeight(.bold)
                         .foregroundColor(textColor)
@@ -1142,7 +1148,8 @@ struct TodayReminderCardView: View {
                                             .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                                             .frame(width: 24, height: 24)
                                         
-                                        Image(firstPet.petType.defaultImageName)
+                                        let imageName = firstPet.petType?.defaultImageName ?? "default_pet"
+                                        Image(imageName)
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 16, height: 16)
@@ -1508,7 +1515,8 @@ struct UpcomingReminderCardView: View {
             // 左侧：标签图标 + 提醒标题
             HStack(spacing: 10) {
                 // 小图标
-                Image(reminder.tag.iconName)
+                let iconName = reminder.tag?.iconName ?? "questionmark.circle"
+                Image(iconName)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 32, height: 32)
@@ -1516,7 +1524,8 @@ struct UpcomingReminderCardView: View {
                 
                 VStack(alignment: .leading, spacing: 2) {
                     // 提醒标题 - 增强字重到semibold
-                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                    let tagName = reminder.tag?.name ?? "Unknown"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                         .font(.appSubheadline)
                         .fontWeight(.bold) // 从semibold提升到bold，增强对比度
                         .foregroundColor(textColor)
@@ -1542,7 +1551,8 @@ struct UpcomingReminderCardView: View {
                                             .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                                             .frame(width: 16, height: 16)
                                         
-                                        Image(pet.petType.defaultImageName)
+                                        let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                                        Image(imageName)
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 10, height: 10)

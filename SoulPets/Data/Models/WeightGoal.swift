@@ -3,29 +3,28 @@ import SwiftData
 
 @Model
 final class WeightGoal {
-    // MARK: - 属性
-    var id: UUID
-    var targetWeight: Double
-    var unit: WeightUnit
-    var startDate: Date
-    var targetDate: Date
-    var isActive: Bool
-    var createdAt: Date
-    var updatedAt: Date
+    // MARK: - 属性 (CloudKit要求所有属性可选或有默认值)
+    var id: UUID = UUID()
+    var targetWeight: Double = 0.0
+    var unit: WeightUnit?  // CloudKit要求枚举类型必须可选
+    var startDate: Date = Date()
+    var targetDate: Date = Date()
+    var isActive: Bool = true
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
-    // MARK: - 关系
-    @Relationship
-    var pet: Pet
+    // MARK: - 关系 (CloudKit要求关系可选，inverse已在Pet.weightGoals定义)
+    var pet: Pet?
     
     // MARK: - 初始化
     init(
         id: UUID = UUID(),
-        targetWeight: Double,
-        unit: WeightUnit,
-        startDate: Date,
-        targetDate: Date,
+        targetWeight: Double = 0.0,
+        unit: WeightUnit? = nil,
+        startDate: Date = Date(),
+        targetDate: Date = Date(),
         isActive: Bool = true,
-        pet: Pet,
+        pet: Pet? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -45,22 +44,22 @@ final class WeightGoal {
 extension WeightGoal {
     /// 目标体重是否为减肥
     var isWeightLoss: Bool {
-        guard let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first else {
+        guard let pet = pet, let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first else {
             return false
         }
         
-        let latestWeightValue = unit == .kg ? latestWeight.weightInKg : latestWeight.weightInLbs()
+        let latestWeightValue = (unit ?? .kg) == .kg ? latestWeight.weightInKg : latestWeight.weightInLbs()
         return targetWeight < latestWeightValue
     }
     
     /// 获取标准化的体重值（统一单位）
     var normalizedTargetWeight: Double {
-        return unit == .kg ? targetWeight : targetWeight / 2.20462
+        return (unit ?? .kg) == .kg ? targetWeight : targetWeight / 2.20462
     }
     
     /// 计算目标进度（0-100%）
     func calculateProgress() -> Double? {
-        guard let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first else {
+        guard let pet = pet, let latestWeight = pet.weights?.sorted(by: { $0.date > $1.date }).first else {
             return nil
         }
         
@@ -121,7 +120,8 @@ extension WeightGoal {
         let formattedWeight = formatter.string(from: NSNumber(value: targetWeight)) ?? "\(targetWeight)"
         
         let type = isWeightLoss ? String(localized: "Lose to") : String(localized: "Gain to")
-        return "\(type) \(formattedWeight) \(unit.rawValue)"
+        let unitString = (unit ?? .kg).rawValue
+        return "\(type) \(formattedWeight) \(unitString)"
     }
     
     /// 剩余天数

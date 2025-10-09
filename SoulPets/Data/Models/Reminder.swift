@@ -25,20 +25,20 @@ enum RepeatUnit: String, Codable, CaseIterable {
 
 @Model
 final class Reminder {
-    // MARK: - 属性
-    var id: UUID
-    var startDate: Date
+    // MARK: - 属性 (CloudKit要求所有属性可选或有默认值)
+    var id: UUID = UUID()
+    var startDate: Date = Date()
     var notes: String?
     var repeatInterval: Int?
-    var repeatUnit: RepeatUnit?
-    var createdAt: Date
-    var updatedAt: Date
+    var repeatUnit: RepeatUnit?  // CloudKit要求枚举类型必须可选(已经是可选)
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
-    // MARK: - 关系
+    // MARK: - 关系 (CloudKit要求关系可选)
     @Relationship(deleteRule: .nullify)
-    var tag: Tag
+    var tag: Tag?
     
-    @Relationship(deleteRule: .nullify)
+    // inverse已在Pet.reminders定义
     var pets: [Pet]?
     
     @Relationship(deleteRule: .cascade, inverse: \ReminderCompletion.reminder)
@@ -47,11 +47,11 @@ final class Reminder {
     // MARK: - 初始化
     init(
         id: UUID = UUID(),
-        startDate: Date,
+        startDate: Date = Date(),
         notes: String? = nil,
         repeatInterval: Int? = nil,
         repeatUnit: RepeatUnit? = nil,
-        tag: Tag,
+        tag: Tag? = nil,
         pets: [Pet]? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
@@ -70,21 +70,20 @@ final class Reminder {
 
 @Model
 final class ReminderCompletion {
-    // MARK: - 属性
-    var id: UUID
-    var completionDate: Date
-    var createdAt: Date
-    var updatedAt: Date
+    // MARK: - 属性 (CloudKit要求所有属性可选或有默认值)
+    var id: UUID = UUID()
+    var completionDate: Date = Date()
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
-    // MARK: - 关系
-    @Relationship(deleteRule: .nullify)
-    var reminder: Reminder
+    // MARK: - 关系 (CloudKit要求关系可选，inverse已在Reminder.completions定义)
+    var reminder: Reminder?
     
     // MARK: - 初始化
     init(
         id: UUID = UUID(),
-        completionDate: Date,
-        reminder: Reminder,
+        completionDate: Date = Date(),
+        reminder: Reminder? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -200,7 +199,7 @@ extension Reminder {
     
     /// 生成提醒标题
     var title: String {
-        return tag.name
+        return tag?.name ?? ""
     }
     
     /// 格式化重复规则为易读文本

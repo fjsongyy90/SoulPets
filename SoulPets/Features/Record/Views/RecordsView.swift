@@ -230,7 +230,8 @@ struct RecordsView: View {
                                 .frame(width: 20, height: 20)
                                 .clipShape(Circle())
                         } else {
-                            Image(pet.petType.defaultImageName)
+                            let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                            Image(imageName)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
@@ -398,7 +399,8 @@ struct RecordsView: View {
                                             .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
                                     )
                             } else {
-                                Image(pet.petType.defaultImageName)
+                                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                                Image(imageName)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 40, height: 40)
@@ -520,7 +522,8 @@ struct RecordsView: View {
                                 }
                             } label: {
                                 VStack(spacing: 4) {
-                                    Image(tag.iconName)
+                                    let iconName = tag.iconName
+                                    Image(iconName)
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: 32, height: 32)
@@ -757,7 +760,7 @@ struct RecordsView: View {
     private func getUsedTags() -> [Tag] {
         // 获取所有记录中使用过的标签
         let allRecords = RecordService.getAllRecords(modelContext: modelContext)
-        let usedTagIds = Set(allRecords.map { $0.tag.id })
+        let usedTagIds = Set(allRecords.compactMap { $0.tag?.id })
         return allTags.filter { usedTagIds.contains($0.id) }
     }
     
@@ -791,13 +794,15 @@ struct RecordCardView: View {
             HStack(alignment: .top) {
                 // 左侧：标签图标和名称
                 HStack(spacing: 8) {
-                    Image(record.tag.iconName)
+                    let iconName = record.tag?.iconName ?? "questionmark.circle"
+                    Image(iconName)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 32, height: 32)
                         .clipShape(Circle())
                     
-                    Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
+                    let tagName = record.tag?.name ?? "Unknown"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                         .font(.appHeadline)
                         .foregroundColor(textColor)
                         .lineLimit(1)
@@ -916,7 +921,8 @@ struct RecordCardView: View {
                     .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                     .frame(width: size, height: size)
                 
-                Image(pet.petType.defaultImageName)
+                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: size * 0.7, height: size * 0.7)

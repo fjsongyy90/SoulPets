@@ -185,7 +185,8 @@ struct AddEditWeightView: View {
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
             } else {
-                Image(pet.petType.defaultImageName)
+                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 50, height: 50)

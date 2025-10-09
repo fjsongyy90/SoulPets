@@ -128,7 +128,7 @@ struct WeightChartView: View {
                         Text(String.localizedStringWithFormat(
                             NSLocalizedString("Target: %.1f %@", comment: ""),
                             goal.targetWeight,
-                            goal.pet.weightUnitPreference.rawValue
+                            goal.pet?.weightUnitPreference?.rawValue ?? "kg"
                         ))
                             .font(.appCaption)
                             .foregroundColor(.appWarning)

@@ -70,8 +70,9 @@ struct ReminderDetailView: View {
             .fullScreenCover(isPresented: $showingEditView) {
                 // 🔧 从详情页编辑：直接显示详情编辑页，使用 fullScreenCover 保持与新增提醒一致
                 NavigationStack {
+                    let tagName = reminder.tag?.name ?? "Unknown"
                     AddReminderDetailsView(viewModel: AddEditReminderViewModel(reminder: reminder))
-                        .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                        .navigationTitle(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarLeading) {
@@ -114,19 +115,22 @@ struct ReminderDetailView: View {
     private var tagInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(reminder.tag.iconName)
+                let iconName = reminder.tag?.iconName ?? "questionmark.circle"
+                Image(iconName)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.name)))
+                    let tagName = reminder.tag?.name ?? "Unknown"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(textColor)
                     
-                    Text(String(localized: LocalizedStringResource(stringLiteral: reminder.tag.category.rawValue)))
+                    let categoryName = reminder.tag?.category?.rawValue ?? "other"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: categoryName)))
                         .font(.subheadline)
                         .foregroundColor(labelColor)
                 }
@@ -354,7 +358,8 @@ struct ReminderDetailView: View {
                     .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                     .frame(width: size, height: size)
                 
-                Image(pet.petType.defaultImageName)
+                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: size * 0.7, height: size * 0.7)

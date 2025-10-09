@@ -227,7 +227,8 @@ class WeightViewModel: ObservableObject {
                 
                 logger.info("✅ 成功加载体重数据: \(weights.count)条记录")
                 if let goal = goal {
-                    logger.info("🎯 找到活跃体重目标: 目标\(goal.targetWeight)\(goal.unit.rawValue)，到期日期\(goal.targetDate)")
+                    let unitStr = goal.unit?.rawValue ?? "kg"
+                    logger.info("🎯 找到活跃体重目标: 目标\(goal.targetWeight)\(unitStr)，到期日期\(goal.targetDate)")
                     logger.info("📊 目标进度: \(String(format: "%.1f", goal.calculateProgress() ?? 0.0))%")
                 } else {
                     logger.info("❌ 未找到活跃体重目标")

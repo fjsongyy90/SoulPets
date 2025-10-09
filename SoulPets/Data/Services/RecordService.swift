@@ -44,7 +44,7 @@ class RecordService {
             
             // 在内存中过滤符合标签的记录
             return records.filter { record in
-                record.tag.id == tag.id
+                record.tag?.id == tag.id
             }
         } catch {
             logger.error("按标签搜索记录时出错: \(error.localizedDescription)")
@@ -67,7 +67,7 @@ class RecordService {
             // 在内存中进行过滤
             return allRecords.filter { record in
                 let notesMatch = record.notes?.range(of: keyword, options: [.caseInsensitive, .diacriticInsensitive]) != nil
-                let tagMatch = record.tag.name.range(of: keyword, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+                let tagMatch = record.tag?.name.range(of: keyword, options: [.caseInsensitive, .diacriticInsensitive]) != nil
                 return notesMatch || tagMatch
             }
         } catch {

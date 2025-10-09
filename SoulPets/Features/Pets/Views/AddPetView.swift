@@ -151,7 +151,7 @@ struct AddPetView: View {
             print("📝 当前数据库中共有 \(reminders.count) 个提醒")
             
             let birthdayReminders = reminders.filter { reminder in
-                reminder.tag.code == "planning.birthday" && 
+                reminder.tag?.code == "planning.birthday" && 
                 reminder.pets?.contains(where: { $0.id == pet.id }) == true
             }
             print("🎂 \(pet.name)的生日提醒数量: \(birthdayReminders.count)")

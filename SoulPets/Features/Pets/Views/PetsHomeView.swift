@@ -364,7 +364,8 @@ struct PetsHomeView: View {
     
     /// 格式化宠物信息（品种和性别）
     private func formatPetInfo(pet: Pet) -> String {
-        return "\(pet.breed) · \(pet.gender.rawValue)"
+        let genderStr = pet.gender?.rawValue ?? "unknown"
+        return "\(pet.breed) · \(genderStr)"
     }
     
     /// 格式化年龄

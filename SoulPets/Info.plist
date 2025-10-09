@@ -11,5 +11,9 @@
 		<string>Nunito-Light.ttf</string>
 		<string>Nunito-ExtraBold.ttf</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

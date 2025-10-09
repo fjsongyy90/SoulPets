@@ -118,7 +118,7 @@ class RecordViewModel: ObservableObject {
         if !searchText.isEmpty {
             records = records.filter { record in
                 record.notes?.localizedCaseInsensitiveContains(searchText) == true ||
-                record.tag.name.localizedCaseInsensitiveContains(searchText)
+                (record.tag?.name.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
         
@@ -161,7 +161,7 @@ class RecordViewModel: ObservableObject {
         if !searchText.isEmpty {
             records = records.filter { record in
                 record.notes?.localizedCaseInsensitiveContains(searchText) == true ||
-                record.tag.name.localizedCaseInsensitiveContains(searchText)
+                (record.tag?.name.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
         
@@ -186,14 +186,14 @@ class RecordViewModel: ObservableObject {
         
         // 按标签筛选
         records = baseRecords.filter { record in
-            record.tag.id == tag.id
+            record.tag?.id == tag.id
         }
         
         // 应用搜索过滤
         if !searchText.isEmpty {
             records = records.filter { record in
                 record.notes?.localizedCaseInsensitiveContains(searchText) == true ||
-                record.tag.name.localizedCaseInsensitiveContains(searchText)
+                (record.tag?.name.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
         
@@ -422,8 +422,7 @@ class RecordViewModel: ObservableObject {
             // 统计标签使用次数
             var tagUsageCount: [Tag: Int] = [:]
             for record in relevantRecords {
-                let tag = record.tag
-                if !tag.isHidden {
+                if let tag = record.tag, tag.isHidden == false {
                     tagUsageCount[tag, default: 0] += 1
                 }
             }

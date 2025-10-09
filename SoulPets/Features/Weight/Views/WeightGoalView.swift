@@ -179,7 +179,8 @@ struct WeightGoalView: View {
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
             } else {
-                Image(pet.petType.defaultImageName)
+                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 50, height: 50)
@@ -367,7 +368,7 @@ struct WeightGoalView: View {
         logger.info("🐾 为宠物 \(pet.name) 设置初始值")
         
         // 设置单位偏好
-        selectedUnit = pet.weightUnitPreference
+        selectedUnit = pet.weightUnitPreference ?? .kg
         logger.info("📏 设置单位偏好: \(selectedUnit.rawValue)")
         
         // 查找现有的活跃目标
@@ -377,7 +378,7 @@ struct WeightGoalView: View {
             // 编辑模式：使用现有目标数据
             logger.info("✏️ 编辑模式: 找到现有目标")
             targetWeight = String(format: "%.1f", goal.targetWeight)
-            selectedUnit = goal.unit
+            selectedUnit = goal.unit ?? .kg
             targetDate = goal.targetDate
             logger.info("📝 加载现有目标数据: 体重=\(targetWeight), 单位=\(selectedUnit.rawValue), 日期=\(targetDate)")
         } else {

@@ -23,25 +23,25 @@ enum WeightUnit: String, Codable, CaseIterable {
 /// 宠物模型
 @Model
 final class Pet {
-    // MARK: - 属性
-    var id: UUID
-    var name: String
-    var petType: PetType
-    var breed: String
+    // MARK: - 属性 (CloudKit要求所有属性可选或有默认值)
+    var id: UUID = UUID()
+    var name: String = ""
+    var petType: PetType?  // CloudKit要求枚举类型必须可选
+    var breed: String = ""
     var avatar: Data?
-    var gender: Gender
-    var isNeutered: Bool
-    var birthday: Date
+    var gender: Gender?  // CloudKit要求枚举类型必须可选
+    var isNeutered: Bool = false
+    var birthday: Date = Date()
     var adoptionDay: Date?
-    var microchipID: String
-    var insurancePolicyNo: String
-    var weightUnitPreference: WeightUnit
+    var microchipID: String = ""
+    var insurancePolicyNo: String = ""
+    var weightUnitPreference: WeightUnit?  // CloudKit要求枚举类型必须可选
     /// 宠物的性格描述
     var personality: String?
     /// 与主人的故事
     var story: String?
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
     // MARK: - 关系
     @Relationship(deleteRule: .cascade, inverse: \Weight.pet)
@@ -50,7 +50,7 @@ final class Pet {
     @Relationship(deleteRule: .cascade, inverse: \WeightGoal.pet)
     var weightGoals: [WeightGoal]?
     
-    @Relationship(deleteRule: .nullify)
+    @Relationship(deleteRule: .nullify, inverse: \Record.pets)
     var records: [Record]?
     
     @Relationship(deleteRule: .nullify, inverse: \Reminder.pets)
@@ -59,17 +59,17 @@ final class Pet {
     // MARK: - 初始化
     init(
         id: UUID = UUID(),
-        name: String,
-        petType: PetType,
-        breed: String,
+        name: String = "",
+        petType: PetType? = nil,
+        breed: String = "",
         avatar: Data? = nil,
-        gender: Gender,
-        isNeutered: Bool,
-        birthday: Date,
+        gender: Gender? = nil,
+        isNeutered: Bool = false,
+        birthday: Date = Date(),
         adoptionDay: Date? = nil,
         microchipID: String = "",
         insurancePolicyNo: String = "",
-        weightUnitPreference: WeightUnit = .kg,
+        weightUnitPreference: WeightUnit? = nil,
         personality: String? = nil,
         story: String? = nil,
         createdAt: Date = Date(),

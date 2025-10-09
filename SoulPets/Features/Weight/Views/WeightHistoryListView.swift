@@ -75,7 +75,8 @@ struct WeightHistoryListView: View {
                 // --- MODIFICATION START ---
                 // 1. 在体重数值后拼接单位
                 if let pet = weight.pet {
-                    Text("\(weight.formattedWeight()) \(pet.weightUnitPreference.rawValue)")
+                    let unitStr = pet.weightUnitPreference?.rawValue ?? "kg"
+                    Text("\(weight.formattedWeight()) \(unitStr)")
                         .font(.appBody)
                         .fontWeight(.medium)
                         .foregroundColor(.appTextPrimary)

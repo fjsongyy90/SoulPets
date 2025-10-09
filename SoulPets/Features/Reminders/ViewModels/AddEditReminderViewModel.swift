@@ -114,8 +114,8 @@ class AddEditReminderViewModel: ObservableObject {
                 if self.selectedPets.isEmpty {
                     self.availableTags = allTags.filter { !$0.isHidden && $0.defaultIsReminder }
                 } else {
-                    // 获取所有选择宠物的共同标签
-                    let petTypes = Set(self.selectedPets.map { $0.petType })
+                    // 获取所有选择宠物的共同标签（过滤掉nil值）
+                    let petTypes = Set(self.selectedPets.compactMap { $0.petType })
                     self.availableTags = allTags.filter { tag in
                         !tag.isHidden &&
                         tag.defaultIsReminder &&
@@ -151,8 +151,8 @@ class AddEditReminderViewModel: ObservableObject {
             var seenTagIds: Set<UUID> = []
             
             for reminder in recentReminders.prefix(20) { // 最多查看最近20个提醒
-                let tag = reminder.tag
-                if !seenTagIds.contains(tag.id),
+                if let tag = reminder.tag,
+                   !seenTagIds.contains(tag.id),
                    !tag.isHidden,
                    tag.defaultIsReminder {
                     usedTags.append(tag)

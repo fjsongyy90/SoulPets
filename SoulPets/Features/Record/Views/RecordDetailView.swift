@@ -149,19 +149,22 @@ struct RecordDetailView: View {
     private var tagInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(record.tag.iconName)
+                let iconName = record.tag?.iconName ?? "questionmark.circle"
+                Image(iconName)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.name)))
+                    let tagName = record.tag?.name ?? "Unknown"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: tagName)))
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(textColor)
                     
-                    Text(String(localized: LocalizedStringResource(stringLiteral: record.tag.category.rawValue)))
+                    let categoryName = record.tag?.category?.rawValue ?? "other"
+                    Text(String(localized: LocalizedStringResource(stringLiteral: categoryName)))
                         .font(.subheadline)
                         .foregroundColor(labelColor)
                 }
@@ -289,7 +292,8 @@ struct RecordDetailView: View {
                     .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
                     .frame(width: size, height: size)
                 
-                Image(pet.petType.defaultImageName)
+                let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: size * 0.7, height: size * 0.7)

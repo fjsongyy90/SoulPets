@@ -34,7 +34,8 @@ struct PetAvatarView: View {
                         .frame(width: size, height: size)
                         .clipShape(Circle())
                 } else {
-                    Image(pet.petType.defaultImageName)
+                    let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                    Image(imageName)
                         .resizable()
                         .scaledToFill()
                         .frame(width: size, height: size)

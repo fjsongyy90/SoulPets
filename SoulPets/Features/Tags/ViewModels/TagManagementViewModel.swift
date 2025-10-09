@@ -29,8 +29,8 @@ class TagManagementViewModel: ObservableObject {
             let petDescriptor = FetchDescriptor<Pet>()
             let pets = try modelContext.fetch(petDescriptor)
             
-            // 获取用户拥有的宠物类型
-            let petTypes = Set(pets.map { $0.petType })
+            // 获取用户拥有的宠物类型（过滤掉nil值）
+            let petTypes = Set(pets.compactMap { $0.petType })
             availablePetTypes = Array(petTypes).sorted { $0.rawValue < $1.rawValue }
             
             // 自动选择第一个宠物类型（无论是一个还是多个）

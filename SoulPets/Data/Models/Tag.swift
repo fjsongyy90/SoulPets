@@ -22,29 +22,36 @@ enum TagCategory: String, CaseIterable, Codable {
 @Model
 final class Tag {
     // MARK: - 属性
-    var id: UUID
-    var code: String
-    var name: String
-    var iconName: String
-    var category: TagCategory
-    var defaultIsReminder: Bool
-    var isHidden: Bool // 标签是否隐藏
-    var sortOrder: Int // 用于排序的字段
-    var associatedPetTypes: String // 使用逗号分隔的字符串存储宠物类型
-    var createdAt: Date
-    var updatedAt: Date
+    var id: UUID = UUID()
+    var code: String = ""
+    var name: String = ""
+    var iconName: String = ""
+    var category: TagCategory?  // CloudKit要求枚举类型必须可选
+    var defaultIsReminder: Bool = true
+    var isHidden: Bool = false // 标签是否隐藏
+    var sortOrder: Int = 0 // 用于排序的字段
+    var associatedPetTypes: String = "" // 使用逗号分隔的字符串存储宠物类型
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
+    
+    // MARK: - 关系 (CloudKit要求反向关系)
+    @Relationship(deleteRule: .nullify, inverse: \Record.tag)
+    var records: [Record]?
+    
+    @Relationship(deleteRule: .nullify, inverse: \Reminder.tag)
+    var reminders: [Reminder]?
     
     // MARK: - 初始化
     init(
         id: UUID = UUID(),
-        code: String,
-        name: String,
-        iconName: String,
-        category: TagCategory,
+        code: String = "",
+        name: String = "",
+        iconName: String = "",
+        category: TagCategory? = nil,
         defaultIsReminder: Bool = true,
         isHidden: Bool = false,
         sortOrder: Int = 0,
-        associatedPetTypes: [PetType],
+        associatedPetTypes: [PetType] = [],
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {

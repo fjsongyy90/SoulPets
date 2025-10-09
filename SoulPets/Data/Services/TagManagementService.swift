@@ -21,7 +21,8 @@ class TagManagementService {
             }
             
             // 按分类分组，每个分类内的标签已经按sortOrder排序
-            let grouped = Dictionary(grouping: applicableTags) { $0.category }
+            // 过滤掉category为nil的标签
+            let grouped = Dictionary(grouping: applicableTags.filter { $0.category != nil }) { $0.category! }
             return grouped
         } catch {
             print("获取标签数据失败: \(error.localizedDescription)")
@@ -38,7 +39,8 @@ class TagManagementService {
         do {
             let allTags = try modelContext.fetch(descriptor)
             // 按分类分组，每个分类内的标签已经按sortOrder排序
-            let grouped = Dictionary(grouping: allTags) { $0.category }
+            // 过滤掉category为nil的标签
+            let grouped = Dictionary(grouping: allTags.filter { $0.category != nil }) { $0.category! }
             return grouped
         } catch {
             print("获取标签数据失败: \(error.localizedDescription)")
@@ -114,20 +116,14 @@ class TagManagementService {
         do {
             // 统计使用此标签的记录数量
             let tagId = tag.id
-            let recordDescriptor = FetchDescriptor<Record>(
-                predicate: #Predicate<Record> { record in
-                    record.tag.id == tagId
-                }
-            )
-            let recordCount = try modelContext.fetch(recordDescriptor).count
+            
+            // 由于tag现在是可选的，需要手动过滤
+            let allRecords = try modelContext.fetch(FetchDescriptor<Record>())
+            let recordCount = allRecords.filter { $0.tag?.id == tagId }.count
             
             // 统计使用此标签的提醒数量
-            let reminderDescriptor = FetchDescriptor<Reminder>(
-                predicate: #Predicate<Reminder> { reminder in
-                    reminder.tag.id == tagId
-                }
-            )
-            let reminderCount = try modelContext.fetch(reminderDescriptor).count
+            let allReminders = try modelContext.fetch(FetchDescriptor<Reminder>())
+            let reminderCount = allReminders.filter { $0.tag?.id == tagId }.count
             
             return (recordCount: recordCount, reminderCount: reminderCount)
         } catch {
@@ -143,12 +139,10 @@ class TagManagementService {
         // 检查是否有使用此标签的活跃提醒
         do {
             let tagId = tag.id
-            let reminderDescriptor = FetchDescriptor<Reminder>(
-                predicate: #Predicate<Reminder> { reminder in
-                    reminder.tag.id == tagId
-                }
-            )
-            let activeReminders = try modelContext.fetch(reminderDescriptor)
+            
+            // 由于tag现在是可选的，需要手动过滤
+            let allReminders = try modelContext.fetch(FetchDescriptor<Reminder>())
+            let activeReminders = allReminders.filter { $0.tag?.id == tagId }
             
             // 如果有活跃的提醒使用此标签，建议不要隐藏
             return activeReminders.isEmpty

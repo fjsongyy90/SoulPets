@@ -35,9 +35,9 @@ struct PetDetailView: View {
                 // 基本信息卡片
                 infoCard(title: String(localized: "Basic Information")) {
                     infoRow(label: String(localized: "Name"), value: pet.name)
-                    infoRow(label: String(localized: "Type"), value: pet.petType.rawValue)
+                    infoRow(label: String(localized: "Type"), value: pet.petType?.rawValue ?? "unknown")
                     infoRow(label: String(localized: "Breed / Color"), value: pet.breed)
-                    infoRow(label: String(localized: "Gender"), value: pet.gender.rawValue)
+                    infoRow(label: String(localized: "Gender"), value: pet.gender?.rawValue ?? "unknown")
                     infoRow(label: String(localized: "Neutered / Spayed"), value: pet.isNeutered ? String(localized: "Yes") : String(localized: "No"))
                 }
                 
@@ -79,7 +79,7 @@ struct PetDetailView: View {
                         infoRow(label: String(localized: "Insurance Policy No."), value: String(localized: "Not set"))
                     }
                     
-                    infoRow(label: String(localized: "Weight Unit"), value: pet.weightUnitPreference.rawValue)
+                    infoRow(label: String(localized: "Weight Unit"), value: pet.weightUnitPreference?.rawValue ?? "kg")
                 }
                 
                 // 性格和故事卡片 - 始终显示

@@ -4,23 +4,22 @@ import SwiftData
 /// 体重记录模型
 @Model
 final class Weight {
-    // MARK: - 属性
-    var id: UUID
-    var date: Date
-    var weightInKg: Double
-    var createdAt: Date
-    var updatedAt: Date
+    // MARK: - 属性 (CloudKit要求所有属性可选或有默认值)
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var weightInKg: Double = 0.0
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
     
-    // MARK: - 关系
-    @Relationship(deleteRule: .nullify)
+    // MARK: - 关系 (CloudKit要求关系可选，inverse已在Pet.weights定义)
     var pet: Pet?
     
     // MARK: - 初始化
     init(
         id: UUID = UUID(),
-        date: Date,
-        weightInKg: Double,
-        pet: Pet,
+        date: Date = Date(),
+        weightInKg: Double = 0.0,
+        pet: Pet? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {

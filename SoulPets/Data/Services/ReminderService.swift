@@ -26,7 +26,7 @@ class ReminderService {
                     let comparison = calendar.compare(nextReminderDate, to: today, toGranularity: .day)
                     if (comparison == .orderedSame || comparison == .orderedAscending) && !reminder.isCompletedOn(date: nextReminderDate) {
                         todayReminders.append(reminder)
-                        logger.info("📅 今日待办: \(reminder.tag.name) - 日期: \(nextReminderDate)")
+                        logger.info("📅 今日待办: \(reminder.tag?.name ?? "未知") - 日期: \(nextReminderDate)")
                     }
                 }
             }
@@ -62,7 +62,7 @@ class ReminderService {
                         // 🔧 关键修复：检查该日期的提醒是否已完成
                         if daysDifference <= daysAhead && !reminder.isCompletedOn(date: nextReminderDate) {
                             upcomingReminders.append(reminder)
-                            logger.info("📈 未来安排: \(reminder.tag.name) - 日期: \(nextReminderDate)")
+                            logger.info("📈 未来安排: \(reminder.tag?.name ?? "未知") - 日期: \(nextReminderDate)")
                         }
                     }
                 }
@@ -327,11 +327,11 @@ class ReminderService {
             for reminder in allReminders {
                 // 获取该提醒的所有完成记录
                 guard let completions = reminder.completions, !completions.isEmpty else { 
-                    logger.debug("提醒 \(reminder.tag.name) 没有完成记录")
+                    logger.debug("提醒 \(reminder.tag?.name ?? "未知") 没有完成记录")
                     continue 
                 }
                 
-                logger.debug("提醒 \(reminder.tag.name) 有 \(completions.count) 条完成记录")
+                logger.debug("提醒 \(reminder.tag?.name ?? "未知") 有 \(completions.count) 条完成记录")
                 
                 // 找出最近30天内的完成记录（使用日期比较）
                 let recentCompletions = completions.filter { completion in
@@ -346,7 +346,7 @@ class ReminderService {
                 // 如果有最近的完成记录，取最新的一条
                 if let latestCompletion = recentCompletions.sorted(by: { $0.completionDate > $1.completionDate }).first {
                     completedRemindersWithDate.append((reminder: reminder, completionDate: latestCompletion.completionDate))
-                    logger.info("✅ 找到已完成提醒: \(reminder.tag.name), 完成日期: \(latestCompletion.completionDate)")
+                    logger.info("✅ 找到已完成提醒: \(reminder.tag?.name ?? "未知"), 完成日期: \(latestCompletion.completionDate)")
                 }
             }
             
