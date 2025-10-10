@@ -374,8 +374,8 @@
 "settings.about.privacy_policy" = "Privacy Policy";
 "settings.about.terms_of_service" = "Terms of Service";
 "settings.about.version" = "Version";
-"settings.about.privacy_policy_url" = "https://legal.soulpets.app/privacy/en";
-"settings.about.terms_of_service_url" = "https://legal.soulpets.app/terms/en";
+"settings.about.privacy_policy_url" = "https://soulpets.app/legal/privacy/en";
+"settings.about.terms_of_service_url" = "https://soulpets.app/legal/terms/en";
 
 // 设置页面 - Debug功能（仅Debug模式）
 "settings.debug.title" = "Debug Tools";
