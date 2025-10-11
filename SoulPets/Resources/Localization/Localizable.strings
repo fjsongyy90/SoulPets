@@ -179,6 +179,7 @@
 
 // 通知文案 - 按标签类型
 "notification.reminder_body" = "It's time for %@'s %@";
+"notification.multiple_pets_body" = "It's time for %@ to have %@";
 
 // 日常生活
 "notification.tag.daily.dinner_food" = "It's time to fill that cute little tummy!";

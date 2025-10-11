@@ -224,7 +224,7 @@ class PetService {
 			logger.info("成功为\(pet.name)创建生日提醒，起始日期: \(pet.birthday)")
 			
 			// 设置通知
-			NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
+			NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pet)
 			
 		} catch {
 			logger.error("创建生日提醒时出错: \(error.localizedDescription)")
@@ -289,7 +289,7 @@ class PetService {
 			logger.info("成功为\(pet.name)创建领养纪念日提醒")
 			
 			// 设置通知
-			NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
+			NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pet)
 			
 		} catch {
 			logger.error("创建领养纪念日提醒时出错: \(error.localizedDescription)")

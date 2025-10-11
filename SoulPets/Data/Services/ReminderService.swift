@@ -211,10 +211,14 @@ class ReminderService {
             
             // 🔧 如果是重复提醒，为下一个周期重新创建通知
             if reminder.repeatInterval != nil && reminder.repeatUnit != nil {
-                // 重新设置通知（NotificationService会自动处理重复提醒）
+                // 重新设置通知（根据宠物数量选择策略）
                 if let pets = reminder.pets, !pets.isEmpty {
-                    for pet in pets {
-                        NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pet)
+                    if pets.count == 1 {
+                        // 单宠物：使用原有逻辑
+                        NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pets[0])
+                    } else {
+                        // 多宠物：只发送一条通知
+                        NotificationService.scheduleRepeatingReminderNotificationsForMultiplePets(reminder: reminder)
                     }
                     logger.info("🔔 已为重复提醒的未来周期重新创建通知")
                 }
@@ -229,19 +233,26 @@ class ReminderService {
     
     /// 检查并为新创建的提醒设置通知
     static func setupNotificationsForReminder(reminder: Reminder) {
-        guard let pets = reminder.pets else {
+        guard let pets = reminder.pets, !pets.isEmpty else {
             logger.warning("提醒没有关联的宠物，无法设置通知")
             return
         }
         
-        // 为每个关联的宠物创建通知
-        for pet in pets {
-            // 如果是重复提醒，使用重复通知方法
+        // 🔧 修复：根据宠物数量选择通知策略
+        if pets.count == 1 {
+            // 单宠物：使用原有逻辑
+            let pet = pets[0]
             if reminder.repeatInterval != nil && reminder.repeatUnit != nil {
                 NotificationService.scheduleRepeatingReminderNotifications(reminder: reminder, pet: pet)
             } else {
-                // 单次提醒
                 NotificationService.scheduleReminderNotification(reminder: reminder, pet: pet)
+            }
+        } else {
+            // 多宠物：只发送一条通知，包含所有宠物信息
+            if reminder.repeatInterval != nil && reminder.repeatUnit != nil {
+                NotificationService.scheduleRepeatingReminderNotificationsForMultiplePets(reminder: reminder)
+            } else {
+                NotificationService.scheduleReminderNotificationForMultiplePets(reminder: reminder)
             }
         }
         

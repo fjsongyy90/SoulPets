@@ -37,7 +37,7 @@ class NotificationService {
         }
     }
     
-    /// 为提醒创建本地通知
+    /// 为提醒创建本地通知（单次提醒）
     static func scheduleReminderNotification(reminder: Reminder, pet: Pet) {
         // 首先检查通知权限
         checkAuthorizationStatus { status in
@@ -84,6 +84,72 @@ class NotificationService {
         }
     }
     
+    /// 为提醒创建本地通知（多宠物版本 - 只发送一条通知）
+    static func scheduleReminderNotificationForMultiplePets(reminder: Reminder) {
+        // 首先检查通知权限
+        checkAuthorizationStatus { status in
+            guard status == .authorized || status == .provisional else {
+                logger.warning("通知权限未授权，无法创建通知。当前状态: \(status.rawValue)")
+                return
+            }
+            
+            guard let pets = reminder.pets, !pets.isEmpty else {
+                logger.warning("提醒没有关联的宠物，无法创建通知")
+                return
+            }
+            
+            // 获取标签名称，如果为空则使用默认值
+            let tagName = reminder.tag?.name.isEmpty == false ? reminder.tag!.name : String(localized: "reminder.default_title")
+            
+            // 构建通知内容
+            let content = UNMutableNotificationContent()
+            
+            // 根据宠物数量构建标题
+            if pets.count == 1 {
+                content.title = "\(pets[0].name): \(tagName)"
+            } else {
+                let petNames = pets.map { $0.name }.joined(separator: ", ")
+                content.title = "\(petNames): \(tagName)"
+            }
+            
+            // 构建通知正文
+            if let notes = reminder.notes, !notes.isEmpty {
+                content.body = notes
+            } else {
+                if pets.count == 1 {
+                    content.body = getNotificationBodyForTag(tag: reminder.tag, petName: pets[0].name)
+                } else {
+                    // 多宠物时使用通用文案
+                    let petNames = pets.map { $0.name }.joined(separator: ", ")
+                    content.body = String(localized: "notification.multiple_pets_body", defaultValue: "It's time for \(petNames) to have \(tagName)")
+                }
+            }
+            
+            content.sound = .default
+            
+            // 为通知设置唯一标识符（只使用提醒ID，不包含宠物ID）
+            let identifier = "reminder-\(reminder.id.uuidString)"
+            
+            // 设置触发器
+            let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminder.startDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+            
+            // 创建通知请求
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+            
+            // 添加通知请求到通知中心
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    logger.error("添加多宠物通知失败: \(error.localizedDescription)")
+                } else {
+                    let petNames = pets.map { $0.name }.joined(separator: ", ")
+                    logger.info("成功为\(petNames)的\(tagName)添加通知，ID: \(identifier)")
+                    logger.debug("通知将在 \(reminder.startDate) 触发")
+                }
+            }
+        }
+    }
+    
     /// 为重复提醒创建多个通知（用于处理重复提醒）
     static func scheduleRepeatingReminderNotifications(reminder: Reminder, pet: Pet, maxNotifications: Int = 10) {
         // 首先检查通知权限
@@ -111,6 +177,46 @@ class NotificationService {
                     
                     if isInFuture && isNotCompleted {
                         scheduleIndividualNotification(reminder: reminder, pet: pet, triggerDate: nextDate, instanceIndex: i)
+                    }
+                } else {
+                    break
+                }
+            }
+        }
+    }
+    
+    /// 为重复提醒创建多个通知（多宠物版本 - 只发送一条通知）
+    static func scheduleRepeatingReminderNotificationsForMultiplePets(reminder: Reminder, maxNotifications: Int = 10) {
+        // 首先检查通知权限
+        checkAuthorizationStatus { status in
+            guard status == .authorized || status == .provisional else {
+                logger.warning("通知权限未授权，无法创建重复通知。当前状态: \(status.rawValue)")
+                return
+            }
+            
+            guard let pets = reminder.pets, !pets.isEmpty else {
+                logger.warning("提醒没有关联的宠物，无法创建通知")
+                return
+            }
+            
+            guard let repeatInterval = reminder.repeatInterval,
+                  let repeatUnit = reminder.repeatUnit else {
+                // 如果不是重复提醒，则只创建一次性通知
+                scheduleReminderNotificationForMultiplePets(reminder: reminder)
+                return
+            }
+            
+            let calendar = Calendar.current
+            
+            // 创建多个未来的通知实例（最多10个）
+            for i in 0..<maxNotifications {
+                if let nextDate = calendar.date(byAdding: repeatUnit.calendarComponent, value: repeatInterval * i, to: reminder.startDate) {
+                    // 只为未来的日期创建通知，且该日期未被标记为完成
+                    let isInFuture = nextDate > Date()
+                    let isNotCompleted = !reminder.isCompletedOn(date: nextDate)
+                    
+                    if isInFuture && isNotCompleted {
+                        scheduleIndividualNotificationForMultiplePets(reminder: reminder, triggerDate: nextDate, instanceIndex: i)
                     }
                 } else {
                     break
@@ -152,6 +258,62 @@ class NotificationService {
                 logger.error("添加重复通知失败: \(error.localizedDescription)")
             } else {
                 logger.info("成功为\(pet.name)的\(tagName)添加重复通知，ID: \(identifier)，触发时间: \(triggerDate)")
+            }
+        }
+    }
+    
+    /// 创建单个通知实例（多宠物版本）
+    private static func scheduleIndividualNotificationForMultiplePets(reminder: Reminder, triggerDate: Date, instanceIndex: Int) {
+        guard let pets = reminder.pets, !pets.isEmpty else {
+            logger.warning("提醒没有关联的宠物，无法创建通知")
+            return
+        }
+        
+        let tagName = reminder.tag?.name.isEmpty == false ? reminder.tag!.name : String(localized: "reminder.default_title")
+        
+        // 构建通知内容
+        let content = UNMutableNotificationContent()
+        
+        // 根据宠物数量构建标题
+        if pets.count == 1 {
+            content.title = "\(pets[0].name): \(tagName)"
+        } else {
+            let petNames = pets.map { $0.name }.joined(separator: ", ")
+            content.title = "\(petNames): \(tagName)"
+        }
+        
+        // 构建通知正文
+        if let notes = reminder.notes, !notes.isEmpty {
+            content.body = notes
+        } else {
+            if pets.count == 1 {
+                content.body = getNotificationBodyForTag(tag: reminder.tag, petName: pets[0].name)
+            } else {
+                // 多宠物时使用通用文案
+                let petNames = pets.map { $0.name }.joined(separator: ", ")
+                content.body = String(localized: "notification.multiple_pets_body", defaultValue: "It's time for \(petNames) to have \(tagName)")
+            }
+        }
+        
+        content.sound = .default
+        
+        // 为通知设置唯一标识符（只使用提醒ID和实例索引，不包含宠物ID）
+        let identifier = "reminder-\(reminder.id.uuidString)-\(instanceIndex)"
+        
+        // 设置触发器
+        let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        
+        // 创建通知请求
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        
+        // 添加通知请求到通知中心
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                logger.error("添加多宠物重复通知失败: \(error.localizedDescription)")
+            } else {
+                let petNames = pets.map { $0.name }.joined(separator: ", ")
+                logger.info("成功为\(petNames)的\(tagName)添加重复通知，ID: \(identifier)，触发时间: \(triggerDate)")
             }
         }
     }
