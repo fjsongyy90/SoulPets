@@ -16,6 +16,7 @@ struct SettingsView: View {
     @State private var selectedResetOptions: Set<SettingsService.ResetDataOption> = []
     @State private var showingResetSuccessAlert = false
     @State private var showingPrivacyPromiseSheet = false
+    @State private var showingFamilySharingAlert = false
     
     // 颜色定义
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15) // #E5B487
@@ -103,6 +104,11 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingPrivacyPromiseSheet) {
             privacyPromiseView
+        }
+        .alert(String(localized: "settings.privacy.family_sharing.coming_soon.title"), isPresented: $showingFamilySharingAlert) {
+            Button(String(localized: "common.ok"), role: .cancel) { }
+        } message: {
+            Text(String(localized: "settings.privacy.family_sharing.coming_soon.message"))
         }
     }
     
@@ -354,7 +360,58 @@ struct SettingsView: View {
             )
             
             Divider()
-                .padding(.leading, 16)
+                .padding(.leading, 52)
+            
+            // iCloud 家庭共享（Pro功能预告）
+            Button {
+                showingFamilySharingAlert = true
+            } label: {
+                HStack(spacing: 12) {
+                    // 左侧图标
+                    Image(systemName: "person.2.fill")
+                        .font(.title3)
+                        .foregroundColor(adaptiveAccentColor)
+                        .frame(width: 24, height: 24)
+                    
+                    // 标题
+                    Text(String(localized: "settings.privacy.family_sharing"))
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                    
+                    Spacer()
+                    
+                    // Pro徽章
+                    Text("Pro")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.orange, Color.orange.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                    
+                    // 箭头
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Divider()
+                .padding(.leading, 52)
             
             // 我们的隐私承诺
             SettingsRowView(

@@ -356,6 +356,9 @@
 "settings.privacy.promise" = "Our Privacy Promise";
 "settings.privacy.icloud_sync" = "iCloud Sync";
 "settings.privacy.icloud_sync.enabled" = "Enabled";
+"settings.privacy.family_sharing" = "iCloud Family Sharing";
+"settings.privacy.family_sharing.coming_soon.title" = "Coming Soon";
+"settings.privacy.family_sharing.coming_soon.message" = "iCloud Family Sharing will be available in SoulPets Pro. Share your pets' data with family members across different Apple IDs.";
 
 // 设置页面 - 隐私承诺详情页
 "settings.privacy.promise.title" = "A Private Space for You and Your Pet";
