@@ -32,15 +32,17 @@ struct SoulPetsApp: App {
             cloudKitDatabase: .automatic
         )
         
+        let setupLogger = Logger(subsystem: "com.byte.driver.SoulPets", category: "ModelContainer")
+        
         do {
             // 尝试创建容器
             let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            print("✅ 成功创建ModelContainer，CloudKit已启用")
+            setupLogger.info("✅ 成功创建ModelContainer，CloudKit已启用")
             return container
         } catch {
             // 如果遇到迁移错误，删除旧的存储文件并创建新的容器
-            print("❌ 创建ModelContainer失败: \(error)")
-            print("🗑️ 尝试删除旧的存储文件并重新创建")
+            setupLogger.error("❌ 创建ModelContainer失败: \(error.localizedDescription)")
+            setupLogger.warning("🗑️ 尝试删除旧的存储文件并重新创建")
             
             // 删除旧的存储文件
             let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
@@ -49,16 +51,16 @@ struct SoulPetsApp: App {
                 try? FileManager.default.removeItem(at: storeURL)
                 try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
                 try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
-                print("🗑️ 已删除旧的存储文件: \(storeURL)")
+                setupLogger.info("🗑️ 已删除旧的存储文件: \(storeURL.path)")
             }
             
             do {
                 let newContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
-                print("✅ 成功重新创建ModelContainer")
+                setupLogger.info("✅ 成功重新创建ModelContainer")
                 return newContainer
             } catch {
-                print("❌ 重新创建ModelContainer也失败: \(error)")
-                print("🧠 使用内存模式创建临时容器")
+                setupLogger.error("❌ 重新创建ModelContainer也失败: \(error.localizedDescription)")
+                setupLogger.warning("🧠 使用内存模式创建临时容器")
                 
                 // 作为最后的备选方案，创建内存容器
                 let memoryConfig = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -143,23 +145,22 @@ struct SoulPetsApp: App {
         logger.info("🔔 已设置通知代理")
     }
     
-    // 在后台线程初始化数据库
+    // 在主线程初始化数据库
+    @MainActor
     private func initializeDatabase() async throws {
         // 直接在主线程上执行数据库初始化
-        _ = await MainActor.run {
-            Task {
-                await ModelRegistration.initializeDatabase(modelContext: self.sharedModelContainer.mainContext)
-            }
-        }
+        await ModelRegistration.initializeDatabase(modelContext: self.sharedModelContainer.mainContext)
     }
     
     // 保留此方法但默认不使用，仅在需要重置数据时手动调用
     static func clearSwiftDataStore() {
         // 仅在开发环境中或首次安装时清除数据库
         #if DEBUG
+        let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "DataClear")
+        
         // 获取应用程序支持目录
         guard let appSupportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            print("无法获取应用程序支持目录")
+            logger.error("无法获取应用程序支持目录")
             return
         }
         
@@ -170,12 +171,12 @@ struct SoulPetsApp: App {
         if FileManager.default.fileExists(atPath: storeDirectory.path) {
             do {
                 try FileManager.default.removeItem(at: storeDirectory)
-                print("成功删除SwiftData存储目录")
+                logger.info("成功删除SwiftData存储目录")
             } catch {
-                print("删除SwiftData存储目录失败: \(error)")
+                logger.error("删除SwiftData存储目录失败: \(error.localizedDescription)")
             }
         } else {
-            print("SwiftData存储目录不存在")
+            logger.info("SwiftData存储目录不存在")
         }
         #endif
     }
@@ -187,6 +188,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     var modelContext: ModelContext?
     
     // 当应用在前台时收到通知
+    @MainActor
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         logger.info("📱 应用在前台收到通知: \(notification.request.identifier)")
         
@@ -200,6 +202,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
     
     // 用户点击通知时调用
+    @MainActor
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         logger.info("📱 用户点击了通知: \(response.notification.request.identifier)")
         

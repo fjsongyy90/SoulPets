@@ -204,19 +204,16 @@ class NotificationService {
     
     /// 更新应用角标数量 - 显示逾期未完成 + 今日未完成的待办数量
     static func updateApplicationBadge(modelContext: ModelContext) {
-        Task {
+        Task { @MainActor in
             // 🔧 修复：使用ReminderService的正确计算方法（包含逾期）
             let uncompletedCount = ReminderService.calculateBadgeCount(modelContext: modelContext)
             
-            // 在主线程更新应用角标
-            await MainActor.run {
-                // 使用UNUserNotificationCenter设置角标数量，替代已弃用的applicationIconBadgeNumber
-                UNUserNotificationCenter.current().setBadgeCount(uncompletedCount) { error in
-                    if let error = error {
-                        logger.error("设置角标数量失败: \(error.localizedDescription)")
-                    } else {
-                        logger.info("更新应用角标数量: \(uncompletedCount) (逾期未完成 + 今日未完成)")
-                    }
+            // 使用UNUserNotificationCenter设置角标数量，替代已弃用的applicationIconBadgeNumber
+            UNUserNotificationCenter.current().setBadgeCount(uncompletedCount) { error in
+                if let error = error {
+                    logger.error("设置角标数量失败: \(error.localizedDescription)")
+                } else {
+                    logger.info("更新应用角标数量: \(uncompletedCount) (逾期未完成 + 今日未完成)")
                 }
             }
             

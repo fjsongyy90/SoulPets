@@ -114,10 +114,10 @@ struct ContentView: View {
         // 简单测试模型上下文是否可用
         do {
             let pets = try modelContext.fetch(FetchDescriptor<Pet>())
-            print("📊 当前数据库中有 \(pets.count) 只宠物")
+            logger.info("📊 当前数据库中有 \(pets.count) 只宠物")
             
             let tags = try modelContext.fetch(FetchDescriptor<Tag>())
-            print("🏷️ 当前数据库中有 \(tags.count) 个标签")
+            logger.info("🏷️ 当前数据库中有 \(tags.count) 个标签")
             
             isModelReady = true
             errorMessage = nil
