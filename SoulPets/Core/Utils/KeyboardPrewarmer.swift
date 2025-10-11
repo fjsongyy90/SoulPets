@@ -1,72 +1,73 @@
 import UIKit
 import OSLog
 
-/// 键盘预热器 - 在启动时预加载键盘以提升首次弹出性能
+/// 键盘预热器 - 采用“侵入式”策略，尝试触发更深层的键盘加载和JIT编译
 final class KeyboardPrewarmer {
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "KeyboardPrewarmer")
+    
     /// 单例
     static let shared = KeyboardPrewarmer()
     
     private var isPrewarmed = false
     
-    // ✨ 核心修改 1 of 3: 持有一个对“幽灵窗口”的引用 ✨
+    // 持有一个对“幽灵窗口”的强引用，防止被过早释放
     private var prewarmWindow: UIWindow?
     
     private init() {}
     
-    /// 预热键盘 - 在启动页调用
+    /// 执行侵入式预热
     func prewarmKeyboard() {
+        // 防止重复执行
         guard !isPrewarmed else {
             logger.info("⌨️ 键盘已预热，跳过")
             return
         }
+        isPrewarmed = true
         
-        logger.info("⌨️ 开始预热键盘...")
+        logger.info("⌨️ 开始执行“侵入式”键盘预热...")
         
+        // 必须在主线程执行UI操作
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             
-            // ✨ 核心修改 2 of 3: 创建并配置一个不可见的幽灵窗口 ✨
-            let window = UIWindow(frame: .zero)
-            window.alpha = 0
-            window.isHidden = true
-            // 持有对窗口的强引用，防止被立即释放
+            // 1. 找到当前活跃的UIWindowScene
+            // 这是让新窗口被系统“承认”的关键一步
+            guard let scene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
+                self.logger.warning("❌ 未找到活跃的UIWindowScene，预热失败")
+                return
+            }
+
+            // 2. 创建一个依附于该场景的窗口
+            let window = UIWindow(windowScene: scene)
+            
+            // 3. 设置窗口为1x1像素，并将其放置在屏幕外，用户不会看到它
+            window.frame = CGRect(x: 0, y: -1, width: 1, height: 1)
+            
+            // 4. 【核心改动】让窗口变为“可见”，这是欺骗系统进行JIT编译的关键
+            window.isHidden = false
+            
+            // 持有它
             self.prewarmWindow = window
-            
-            // 创建一个不可见的临时输入框
+
+            // 创建一个临时的输入框
             let textField = UITextField(frame: .zero)
-            textField.alpha = 0
-            textField.isEnabled = false
+            window.addSubview(textField)
             
-            // 将输入框添加到我们新的幽灵窗口中
-            self.prewarmWindow?.addSubview(textField)
-            
-            // 激活键盘（触发键盘资源加载）
-            // 因为 textField 所在的窗口是不可见的，所以这个操作不会影响主窗口的布局
+            // 激活键盘
             textField.becomeFirstResponder()
-            
-            // 短暂延迟后关闭键盘并清理
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+
+            // 5. 给予系统更长的响应时间后，再进行清理
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 textField.resignFirstResponder()
+                textField.removeFromSuperview()
                 
-                // 再延迟一点确保键盘完全隐藏后再清理
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    textField.removeFromSuperview()
-                    
-                    // ✨ 核心修改 3 of 3: 释放对幽灵窗口的引用，让其被销毁 ✨
-                    self.prewarmWindow = nil
-                    
-                    self.isPrewarmed = true
-                    self.logger.info("✅ 键盘预热完成")
-                }
+                // 彻底销毁窗口
+                self.prewarmWindow?.isHidden = true
+                self.prewarmWindow = nil
+                
+                self.logger.info("✅ “侵入式”键盘预热完成")
             }
         }
-    }
-    
-    /// 重置预热状态（用于测试）
-    func reset() {
-        isPrewarmed = false
-        prewarmWindow = nil // 确保窗口也被清理
-        logger.info("🔄 键盘预热状态已重置")
     }
 }

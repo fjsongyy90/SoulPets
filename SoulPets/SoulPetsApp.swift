@@ -92,6 +92,11 @@ struct SoulPetsApp: App {
                         // 更新应用角标
                         NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
                         
+                        // 此时主窗口已激活，预热效果最好
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            KeyboardPrewarmer.shared.prewarmKeyboard()
+                        }
+                        
                         // 在后台线程初始化数据库
                         Task {
                             try? await initializeDatabase()

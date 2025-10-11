@@ -46,11 +46,6 @@ struct SplashView: View {
             elementsOpacity = 1.0
         }
         
-        // ⌨️ 键盘预热 - 在动画开始后0.5秒触发，不影响用户体验
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            KeyboardPrewarmer.shared.prewarmKeyboard()
-        }
-        
         // 第二阶段：心跳动画（延迟0.8秒开始）
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             startHeartbeatAnimation()
