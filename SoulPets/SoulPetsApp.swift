@@ -221,13 +221,14 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     var modelContext: ModelContext?
     
     // 当应用在前台时收到通知
-    @MainActor
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         logger.info("📱 应用在前台收到通知: \(notification.request.identifier)")
         
-        // 更新角标
+        // 更新角标 - 需要在主线程执行
         if let modelContext = modelContext {
-            NotificationService.updateApplicationBadge(modelContext: modelContext)
+            Task { @MainActor in
+                NotificationService.updateApplicationBadge(modelContext: modelContext)
+            }
         }
         
         // 在前台显示通知
@@ -235,13 +236,14 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
     
     // 用户点击通知时调用
-    @MainActor
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         logger.info("📱 用户点击了通知: \(response.notification.request.identifier)")
         
-        // 更新角标
+        // 更新角标 - 需要在主线程执行
         if let modelContext = modelContext {
-            NotificationService.updateApplicationBadge(modelContext: modelContext)
+            Task { @MainActor in
+                NotificationService.updateApplicationBadge(modelContext: modelContext)
+            }
         }
         
         // TODO: 可以在这里添加打开对应提醒页面的逻辑
