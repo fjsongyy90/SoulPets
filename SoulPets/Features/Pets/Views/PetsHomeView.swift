@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import Charts
 
 /// 宠物主页视图
 struct PetsHomeView: View {
@@ -25,9 +24,6 @@ struct PetsHomeView: View {
     // 新增：使用pet ID来避免对象引用问题
     @State private var detailViewPetID: UUID?
     
-    // Charts 框架预加载标志
-    @State private var shouldPreloadCharts = true
-    
     // 背景和强调色
     private let backgroundColor = Color(red: 0.98, green: 0.97, blue: 0.94)
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
@@ -38,10 +34,6 @@ struct PetsHomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // 🚀 性能优化：隐形图表预加载 Charts 框架（放在最底层）
-                if shouldPreloadCharts {
-                    preloadChartsView
-                }
                 
                 // 🔧 修复：使用ScrollView替代ZStack，解决横屏滑动问题
                 ScrollView {
@@ -336,30 +328,7 @@ struct PetsHomeView: View {
             SettingsView()
         }
     }
-    
-    // MARK: - Charts 框架预加载
-    
-    /// 隐形图表视图，用于提前加载 Charts 框架
-    /// 这样当用户切换到体重页面时，框架已经加载完毕，避免卡顿
-    private var preloadChartsView: some View {
-        Chart {
-            // 创建一个最简单的图表，只为预加载框架
-            LineMark(
-                x: .value("X", 0),
-                y: .value("Y", 0)
-            )
-        }
-        .frame(width: 0, height: 0)
-        .opacity(0) // 几乎完全透明，用户看不到
-        .allowsHitTesting(false) // 不响应用户交互
-        .onAppear {
-            // 框架加载后，1秒后移除这个视图以释放资源
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                shouldPreloadCharts = false
-            }
-        }
-    }
-    
+        
     // MARK: - 数据格式化方法
     
     /// 格式化宠物信息（品种和性别）

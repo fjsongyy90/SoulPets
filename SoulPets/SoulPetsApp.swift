@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import OSLog
 import UserNotifications
+import Charts
 
 @main
 struct SoulPetsApp: App {
@@ -16,6 +17,7 @@ struct SoulPetsApp: App {
     @State private var showSplash = true
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
     private let startTime = Date()
+    @State private var shouldPreloadCharts = true
     
     // 🔧 新增：通知代理，用于处理通知接收和角标更新
     private let notificationDelegate = NotificationDelegate()
@@ -72,47 +74,53 @@ struct SoulPetsApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if showSplash {
-                SplashView(showSplash: $showSplash)
-            } else if hasCompletedOnboarding {
-                ContentView()
-                    .modelContainer(sharedModelContainer)
-                    .onAppear {
-                        // 记录启动时间
-                        let launchTime = Date().timeIntervalSince(startTime)
-                        logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
-                        
-                        // 应用保存的外观设置
-                        UserSettings.shared.applyCurrentAppearance()
-                        
-                        // 请求通知权限并设置代理
-                        requestNotificationPermission()
-                        setupNotificationDelegate()
-                        
-                        // 更新应用角标
-                        NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
-                        
-                        // 此时主窗口已激活，预热效果最好
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            KeyboardPrewarmer.shared.prewarmKeyboard()
+            ZStack {
+                // 4. 将预加载视图放在最底层
+                if shouldPreloadCharts {
+                    preloadChartsView()
+                }
+                if showSplash {
+                    SplashView(showSplash: $showSplash)
+                } else if hasCompletedOnboarding {
+                    ContentView()
+                        .modelContainer(sharedModelContainer)
+                        .onAppear {
+                            // 记录启动时间
+                            let launchTime = Date().timeIntervalSince(startTime)
+                            logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
+                            
+                            // 应用保存的外观设置
+                            UserSettings.shared.applyCurrentAppearance()
+                            
+                            // 请求通知权限并设置代理
+                            requestNotificationPermission()
+                            setupNotificationDelegate()
+                            
+                            // 更新应用角标
+                            NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
+                            
+                            // 此时主窗口已激活，预热效果最好
+                            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                                KeyboardPrewarmer.shared.prewarmKeyboard()
+                            }
+                            
+                            // 在后台线程初始化数据库
+                            Task {
+                                try? await initializeDatabase()
+                            }
                         }
-                        
-                        // 在后台线程初始化数据库
-                        Task {
-                            try? await initializeDatabase()
-                        }
-                    }
                     // 🔧 新增：监听应用生命周期事件
-                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                        logger.info("📱 应用即将进入前台，更新角标")
-                        NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                        logger.info("📱 应用已变为活跃状态，更新角标")
-                        NotificationService.updateApplicationBadge(modelContext: sharedModelContainer.mainContext)
-                    }
-            } else {
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                            logger.info("📱 应用即将进入前台，更新角标")
+                            NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                            logger.info("📱 应用已变为活跃状态，更新角标")
+                            NotificationService.updateApplicationBadge(modelContext: sharedModelContainer.mainContext)
+                        }
+                } else {
+                    OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                }
             }
         }
     }
@@ -184,6 +192,26 @@ struct SoulPetsApp: App {
             logger.info("SwiftData存储目录不存在")
         }
         #endif
+    }
+    
+    @ViewBuilder
+    private func preloadChartsView() -> some View {
+        Chart {
+            LineMark(
+                x: .value("X", 0),
+                y: .value("Y", 0)
+            )
+        }
+        .frame(width: 1, height: 1)
+        .position(x: -100, y: -100)
+        .opacity(0)
+        .allowsHitTesting(false)
+        .onAppear {
+            // 框架加载后，1秒后移除这个视图以释放资源
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                shouldPreloadCharts = false
+            }
+        }
     }
 }
 
