@@ -45,6 +45,11 @@ struct AddRecordInfoView: View {
                 .padding(.vertical, 20) // 增加垂直padding
             }
             
+            // 3. 【添加点击手势，用于收起键盘
+            .onTapGesture {
+                hideKeyboard()
+            }
+            
             // 🔧 备用方案：浮动的Done按钮（当键盘激活时显示）
             if isNotesFieldFocused || isCostFieldFocused {
                 VStack {
@@ -83,33 +88,6 @@ struct AddRecordInfoView: View {
         }
         // 都能继承这个更深、对比度更高的颜色。
         .accentColor(Color(red: 0.60, green: 0.35, blue: 0.15))
-        // 🔧 修复：为 fullScreenCover 模式添加键盘工具栏
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                HStack {
-                    // Debug: Toolbar 已加载（隐藏不显示）
-                    Spacer()
-                    
-                    Button(String(localized: "Done")) {
-                        logger.info("🔧 键盘工具栏完成按钮被点击")
-                        logger.info("🔧 当前焦点状态 - Notes: \(isNotesFieldFocused), Cost: \(isCostFieldFocused)")
-                        
-                        // 关闭键盘
-                        isNotesFieldFocused = false
-                        isCostFieldFocused = false
-                        
-                        // 备用方法：使用 UIApplication 方式关闭键盘
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        logger.info("🔧 键盘关闭操作已执行")
-                    }
-                    .foregroundColor(accentColor)
-                    .onAppear {
-                        logger.info("🔧 Done按钮已创建")
-                    }
-                }
-            }
-        }
         .onAppear {
             logger.info("📱 AddRecordInfoView onAppear - 键盘工具栏应该已加载")
             
@@ -147,6 +125,11 @@ struct AddRecordInfoView: View {
         } message: {
             Text(String(localized: "With Pro features, you can track all expenses and generate annual reports."))
         }
+    }
+    
+    private func hideKeyboard() {
+        logger.info("🔧 正在收起键盘...")
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     // MARK: - 子视图组件
