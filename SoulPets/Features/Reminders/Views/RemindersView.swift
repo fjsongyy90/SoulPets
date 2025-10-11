@@ -1143,43 +1143,54 @@ struct TodayReminderCardView: View {
                 VStack(spacing: 10) {
                     // 宠物信息行 - 重新布局
                     HStack(alignment: .center) {
-                        // 左侧：宠物头像和名字
+                        // 左侧：宠物头像（重叠显示，最多3只）
                         if let pets = reminder.pets, !pets.isEmpty {
-                            HStack(spacing: 8) {
-                                // 显示第一个宠物的头像
-                                let firstPet = pets[0]
-                                if let avatarData = firstPet.avatar, let uiImage = UIImage(data: avatarData) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 24, height: 24)
-                                        .clipShape(Circle())
-                                } else {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
-                                            .frame(width: 24, height: 24)
-                                        
-                                        let imageName = firstPet.petType?.defaultImageName ?? "default_pet"
-                                        Image(imageName)
+                            HStack(spacing: -4) { // 负间距实现重叠效果
+                                ForEach(pets.prefix(3)) { pet in
+                                    if let avatarData = pet.avatar, let uiImage = UIImage(data: avatarData) {
+                                        Image(uiImage: uiImage)
                                             .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 16, height: 16)
+                                            .scaledToFill()
+                                            .frame(width: 24, height: 24)
+                                            .clipShape(Circle())
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(cardColor, lineWidth: 2)
+                                            )
+                                    } else {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                                .frame(width: 24, height: 24)
+                                            
+                                            let imageName = pet.petType?.defaultImageName ?? "default_pet"
+                                            Image(imageName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 16, height: 16)
+                                        }
+                                        .overlay(
+                                            Circle()
+                                                .stroke(cardColor, lineWidth: 2)
+                                        )
                                     }
                                 }
                                 
-                                if pets.count == 1 {
-                                    Text(firstPet.name)
-                                        .font(.appSubheadline)
+                                // 如果超过3只宠物，显示"+N"徽章
+                                if pets.count > 3 {
+                                    Text("+\(pets.count - 3)")
+                                        .font(.caption2)
                                         .fontWeight(.medium)
                                         .foregroundColor(textColor)
-                                        .lineLimit(1)
-                                } else {
-                                    Text("\(firstPet.name) +\(pets.count - 1)")
-                                        .font(.appSubheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(textColor)
-                                        .lineLimit(1)
+                                        .frame(width: 24, height: 24)
+                                        .background(
+                                            Circle()
+                                                .fill(Color(red: 0.95, green: 0.88, blue: 0.80))
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(cardColor, lineWidth: 2)
+                                                )
+                                        )
                                 }
                             }
                         }
