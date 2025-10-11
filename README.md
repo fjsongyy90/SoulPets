@@ -240,4 +240,15 @@ TagItemView(
 2. **文档更新**: 在本文档中更新组件说明
 3. **测试验证**: 确保所有使用该组件的地方都正常工作
 
+## 官方链接与联系方式 (Official Links & Contact)
+
+欢迎通过以下方式关注我们的最新动态、阅读相关条款或与我们取得联系。
+
+- **官方网站 (Official Website):** https://soulpets.app
+- **隐私政策 (Privacy Policy):** [Privacy Policy](https://soulpets.app/legal/privacy/en)
+- **服务条款 (Terms of Service):** [Terms of Service](https://soulpets.app/legal/terms/en)
+- **联系我们 (Contact Us):**
+  - **用户反馈与支持:** `support@soulpets.app`
+  - **商务合作与媒体垂询:** `hello@soulpets.app`
+
 ---
