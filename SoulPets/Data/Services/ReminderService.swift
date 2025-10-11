@@ -53,30 +53,16 @@ class ReminderService {
             
             for reminder in allReminders {
                 // 获取每个提醒的下一次发生日期
+                // 🔧 getNextReminderDate 现在已经智能到可以自动跳过所有已完成的日期
                 if let nextReminderDate = getNextReminderDate(for: reminder, from: today) {
-                    var dateToCheck = nextReminderDate
-                    
-                    // 🔧 关键修复：如果返回的是今天且今天已完成，需要计算下一个周期
-                    if calendar.isDate(dateToCheck, inSameDayAs: today) && reminder.isCompletedOn(date: dateToCheck) {
-                        // 对于重复提醒，计算下一个周期的日期
-                        if let interval = reminder.repeatInterval,
-                           let unit = reminder.repeatUnit,
-                           interval > 0 {
-                            // 从今天计算下一个周期
-                            dateToCheck = calendar.date(byAdding: unit.calendarComponent, value: interval, to: dateToCheck) ?? dateToCheck
-                            logger.info("📅 今天已完成，计算下一个周期: \(reminder.tag?.name ?? "未知") - 新日期: \(dateToCheck)")
-                        }
-                    }
-                    
                     // 如果下一次提醒日期是明天或以后
-                    let comparison = calendar.compare(dateToCheck, to: today, toGranularity: .day)
+                    let comparison = calendar.compare(nextReminderDate, to: today, toGranularity: .day)
                     if comparison == .orderedDescending {
                         // 检查是否在指定天数范围内
-                        let daysDifference = calendar.dateComponents([.day], from: today, to: dateToCheck).day ?? 0
-                        // 检查该日期的提醒是否已完成
-                        if daysDifference <= daysAhead && !reminder.isCompletedOn(date: dateToCheck) {
+                        let daysDifference = calendar.dateComponents([.day], from: today, to: nextReminderDate).day ?? 0
+                        if daysDifference <= daysAhead {
                             upcomingReminders.append(reminder)
-                            logger.info("📈 未来安排: \(reminder.tag?.name ?? "未知") - 日期: \(dateToCheck)")
+                            logger.info("📈 未来安排: \(reminder.tag?.name ?? "未知") - 日期: \(nextReminderDate)")
                         }
                     }
                 }
@@ -110,8 +96,10 @@ class ReminderService {
         // 从起始日期开始计算
         var nextDate = reminder.startDate
         
-        // 如果起始日期已经过了，计算下一个周期
-        while calendar.compare(nextDate, to: date, toGranularity: .day) == .orderedAscending {
+        // 🔧 核心修改：循环的条件是 "日期早于今天" 或者 "这个日期已经被完成了"
+        // 这样它就会一直往后计算，直到找到一个未来的、且尚未完成的日期
+        while calendar.compare(nextDate, to: date, toGranularity: .day) == .orderedAscending 
+              || reminder.isCompletedOn(date: nextDate) {
             switch unit {
             case .daily:
                 nextDate = calendar.date(byAdding: .day, value: interval, to: nextDate) ?? nextDate

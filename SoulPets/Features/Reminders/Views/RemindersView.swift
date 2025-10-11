@@ -1676,26 +1676,9 @@ struct UpcomingReminderCardView: View {
     
     // 获取提醒的实际显示日期（下一次发生的日期）
     private var actualReminderDate: Date {
-        let calendar = Calendar.current
-        let today = Date()
-        
-        // 首先获取基础的下一次提醒日期
-        guard let nextDate = ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate as Date? else {
-            return reminder.startDate
-        }
-        
-        // 🔧 Bug修复：如果返回的是今天且今天已完成，需要计算下一个周期
-        if calendar.isDate(nextDate, inSameDayAs: today) && reminder.isCompletedOn(date: nextDate) {
-            // 对于重复提醒，计算下一个周期的日期
-            if let interval = reminder.repeatInterval,
-               let unit = reminder.repeatUnit,
-               interval > 0 {
-                // 从今天计算下一个周期
-                return calendar.date(byAdding: unit.calendarComponent, value: interval, to: nextDate) ?? nextDate
-            }
-        }
-        
-        return nextDate
+        // 🔧 getNextReminderDate 现在已经智能到可以自动跳过所有已完成的日期
+        // 所以这里直接调用即可，不需要额外的逻辑判断
+        return ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate
     }
     
     // 倒计时文本（仅用于未来计划）
