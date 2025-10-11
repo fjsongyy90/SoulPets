@@ -1246,6 +1246,8 @@ struct TodayReminderCardView: View {
     
     // 获取提醒的实际显示日期（下一次发生的日期）
     private var actualReminderDate: Date {
+        // TodayReminderCardView 专门用于今日待办，不需要额外逻辑
+        // 因为今日待办列表已经通过 getTodayReminders 筛选过了
         return ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate
     }
     
@@ -1260,7 +1262,10 @@ struct TodayReminderCardView: View {
     private var overdueDays: Int {
         if isOverdue {
             let calendar = Calendar.current
-            let components = calendar.dateComponents([.day], from: actualReminderDate, to: Date())
+            // 🔧 Bug修复：忽略时分秒，只比较日期
+            let reminderDay = calendar.startOfDay(for: actualReminderDate)
+            let today = calendar.startOfDay(for: Date())
+            let components = calendar.dateComponents([.day], from: reminderDay, to: today)
             return components.day ?? 0
         }
         return 0
@@ -1643,15 +1648,36 @@ struct UpcomingReminderCardView: View {
     
     // 获取提醒的实际显示日期（下一次发生的日期）
     private var actualReminderDate: Date {
-        return ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // 首先获取基础的下一次提醒日期
+        guard let nextDate = ReminderService.getNextReminderDate(for: reminder) ?? reminder.startDate as Date? else {
+            return reminder.startDate
+        }
+        
+        // 🔧 Bug修复：如果返回的是今天且今天已完成，需要计算下一个周期
+        if calendar.isDate(nextDate, inSameDayAs: today) && reminder.isCompletedOn(date: nextDate) {
+            // 对于重复提醒，计算下一个周期的日期
+            if let interval = reminder.repeatInterval,
+               let unit = reminder.repeatUnit,
+               interval > 0 {
+                // 从今天计算下一个周期
+                return calendar.date(byAdding: unit.calendarComponent, value: interval, to: nextDate) ?? nextDate
+            }
+        }
+        
+        return nextDate
     }
     
     // 倒计时文本
     private var countdownText: String {
         let calendar = Calendar.current
-        let today = Date()
+        // 🔧 Bug修复：忽略时分秒，只比较日期
+        let today = calendar.startOfDay(for: Date())
+        let targetDate = calendar.startOfDay(for: actualReminderDate)
         
-        if let days = calendar.dateComponents([.day], from: today, to: actualReminderDate).day {
+        if let days = calendar.dateComponents([.day], from: today, to: targetDate).day {
             if days == 1 {
                 return String(localized: "Tomorrow")
             } else if days > 1 {
