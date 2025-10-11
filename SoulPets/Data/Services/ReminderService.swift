@@ -54,15 +54,29 @@ class ReminderService {
             for reminder in allReminders {
                 // 获取每个提醒的下一次发生日期
                 if let nextReminderDate = getNextReminderDate(for: reminder, from: today) {
+                    var dateToCheck = nextReminderDate
+                    
+                    // 🔧 关键修复：如果返回的是今天且今天已完成，需要计算下一个周期
+                    if calendar.isDate(dateToCheck, inSameDayAs: today) && reminder.isCompletedOn(date: dateToCheck) {
+                        // 对于重复提醒，计算下一个周期的日期
+                        if let interval = reminder.repeatInterval,
+                           let unit = reminder.repeatUnit,
+                           interval > 0 {
+                            // 从今天计算下一个周期
+                            dateToCheck = calendar.date(byAdding: unit.calendarComponent, value: interval, to: dateToCheck) ?? dateToCheck
+                            logger.info("📅 今天已完成，计算下一个周期: \(reminder.tag?.name ?? "未知") - 新日期: \(dateToCheck)")
+                        }
+                    }
+                    
                     // 如果下一次提醒日期是明天或以后
-                    let comparison = calendar.compare(nextReminderDate, to: today, toGranularity: .day)
+                    let comparison = calendar.compare(dateToCheck, to: today, toGranularity: .day)
                     if comparison == .orderedDescending {
                         // 检查是否在指定天数范围内
-                        let daysDifference = calendar.dateComponents([.day], from: today, to: nextReminderDate).day ?? 0
-                        // 🔧 关键修复：检查该日期的提醒是否已完成
-                        if daysDifference <= daysAhead && !reminder.isCompletedOn(date: nextReminderDate) {
+                        let daysDifference = calendar.dateComponents([.day], from: today, to: dateToCheck).day ?? 0
+                        // 检查该日期的提醒是否已完成
+                        if daysDifference <= daysAhead && !reminder.isCompletedOn(date: dateToCheck) {
                             upcomingReminders.append(reminder)
-                            logger.info("📈 未来安排: \(reminder.tag?.name ?? "未知") - 日期: \(nextReminderDate)")
+                            logger.info("📈 未来安排: \(reminder.tag?.name ?? "未知") - 日期: \(dateToCheck)")
                         }
                     }
                 }
