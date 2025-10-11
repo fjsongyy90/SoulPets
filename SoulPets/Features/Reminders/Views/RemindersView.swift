@@ -1534,9 +1534,18 @@ struct UpcomingReminderCardView: View {
     let onComplete: (Reminder) -> Void
     let onEdit: (Reminder) -> Void
     let onDelete: (Reminder) -> Void
-    let isCompleted: Bool // 新增参数，标识是否是已完成状态
+    let isCompleted: Bool // 标识是否是已完成状态
     
     private let cardColor = Color(red: 1.0, green: 0.996, blue: 0.988)
+    
+    // 获取最近一次完成的日期
+    private var lastCompletionDate: Date? {
+        guard let completions = reminder.completions, !completions.isEmpty else {
+            return nil
+        }
+        // 按完成日期降序排序，取第一个（最近的）
+        return completions.sorted { $0.completionDate > $1.completionDate }.first?.completionDate
+    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -1613,26 +1622,45 @@ struct UpcomingReminderCardView: View {
                 Spacer()
             }
             
-            // 右侧：倒计时和具体日期
+            // 右侧：倒计时/完成标记 和具体日期
             VStack(alignment: .trailing, spacing: 4) {
-                // 倒计时
-                if !countdownText.isEmpty {
-                    Text(countdownText)
-                        .font(.appFootnote)
-                        .fontWeight(.semibold)
-                        .foregroundColor(accentColor)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule()
-                                .fill(accentColor.opacity(0.1))
-                        )
+                // 🔧 已完成状态显示完成标记，未来计划显示倒计时
+                if isCompleted {
+                    // 已完成标记
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 12))
+                        Text(String(localized: "Completed"))
+                            .font(.appFootnote)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.appSuccess)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill(Color.appSuccess.opacity(0.1))
+                    )
+                } else {
+                    // 未来计划显示倒计时
+                    if !countdownText.isEmpty {
+                        Text(countdownText)
+                            .font(.appFootnote)
+                            .fontWeight(.semibold)
+                            .foregroundColor(accentColor)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(accentColor.opacity(0.1))
+                            )
+                    }
                 }
                 
-                // 具体日期 - 降低透明度，增强层次感
-                Text(formattedDate)
+                // 具体日期 - 已完成显示最近完成时间，未来计划显示下次时间
+                Text(displayDate)
                     .font(.appCaption)
-                    .foregroundColor(labelColor.opacity(0.8)) // 降低透明度，让主次更分明
+                    .foregroundColor(labelColor.opacity(0.8))
             }
         }
         .padding(.horizontal, 20) // 从16增加到20，让内容离卡片边缘更远
@@ -1670,7 +1698,7 @@ struct UpcomingReminderCardView: View {
         return nextDate
     }
     
-    // 倒计时文本
+    // 倒计时文本（仅用于未来计划）
     private var countdownText: String {
         let calendar = Calendar.current
         // 🔧 Bug修复：忽略时分秒，只比较日期
@@ -1688,12 +1716,24 @@ struct UpcomingReminderCardView: View {
         return ""
     }
     
-    // 格式化日期
-    private var formattedDate: String {
+    // 显示的日期文本 - 根据状态决定显示完成时间还是下次时间
+    private var displayDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, HH:mm"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.string(from: actualReminderDate)
+        formatter.locale = Locale.current
+        
+        if isCompleted {
+            // 已完成：显示最近一次完成的时间
+            if let completionDate = lastCompletionDate {
+                return formatter.string(from: completionDate)
+            } else {
+                // 如果没有完成记录（理论上不应该发生），显示 "Completed"
+                return String(localized: "Completed")
+            }
+        } else {
+            // 未来计划：显示下次提醒时间
+            return formatter.string(from: actualReminderDate)
+        }
     }
 }
 
