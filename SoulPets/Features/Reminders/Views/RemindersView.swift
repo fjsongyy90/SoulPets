@@ -427,6 +427,18 @@ struct RemindersView: View {
                         showingSearchBar = false
                     }
                 }
+                .toolbar {
+                    // 键盘工具栏 - 添加Done按钮
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(String(localized: "Done")) {
+                            // 关闭键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                        .foregroundColor(accentColor)
+                    }
+                }
+            
             
             if !searchText.isEmpty {
                 Button {
