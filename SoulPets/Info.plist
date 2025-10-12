@@ -16,7 +16,9 @@
 		<string>remote-notification</string>
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>SoulPets needs access to your photo library to let you choose photos for your pet's profile picture.</string>
+	<string>SoulPets needs access to your photo library to let you choose photos for your pet&apos;s profile picture.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>SoulPets needs permission to save photos to your library.</string>
 </dict>
