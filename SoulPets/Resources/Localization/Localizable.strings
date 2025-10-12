@@ -46,6 +46,7 @@
 "avatar_editor.instruction" = "Move and pinch to adjust your photo";
 "avatar_editor.hint" = "The photo will be cropped to a circle";
 "Reset" = "Reset";
+"Loading..." = "Loading...";
 
 // 宠物信息表单
 "Name" = "Name";
