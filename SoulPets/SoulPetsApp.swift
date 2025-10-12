@@ -14,10 +14,10 @@ import Charts
 @main
 struct SoulPetsApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @State private var showSplash = true
+    // ✅ 1. 我们的核心状态，决定显示 Splash 还是主内容
+    @State private var isDatabaseReady = false
     
-    // ✅ 1. 新增状态：用一个可选的 State 变量来持有 ModelContainer
-    // 它初始为 nil，表示数据库尚未准备好
+    // ✅ 2. 将 container 也设为 State，以便异步初始化
     @State private var container: ModelContainer?
     
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
@@ -25,56 +25,51 @@ struct SoulPetsApp: App {
     @State private var shouldPreloadCharts = true
     private let notificationDelegate = NotificationDelegate()
     
-    // ❌ 2. 移除旧的、同步初始化的 sharedModelContainer 属性
 
     var body: some Scene {
-        WindowGroup {
-            ZStack {
-                if shouldPreloadCharts {
-                    preloadChartsView()
-                }
-                
-                if showSplash {
-                    SplashView(showSplash: $showSplash)
-                } else if hasCompletedOnboarding {
-                    // ✅ 3. 核心逻辑：根据 container 是否存在来决定显示哪个视图
-                    if let container = container {
-                        // 如果 container 存在，说明初始化已完成，显示主内容
+            WindowGroup {
+                ZStack {
+                    if shouldPreloadCharts {
+                        preloadChartsView()
+                    }
+                    
+                    // ✅ 3. 核心显示逻辑
+                    if !isDatabaseReady || container == nil {
+                        // 如果数据库未就绪，始终显示 SplashView
+                        SplashView()
+                            .onAppear {
+                                // 在 SplashView 出现时，立即开始异步加载数据库
+                                // 使用 Task.detached 确保它不会意外地在主线程上运行过长时间
+                                Task.detached(priority: .userInitiated) {
+                                    await setupContainerAndServices()
+                                }
+                            }
+                    } else if hasCompletedOnboarding {
+                        // 数据库就绪且已完成引导，显示主内容
                         ContentView()
-                            .modelContainer(container) // 注入已创建的容器
+                            .modelContainer(container!) // 此时 container 必然有值
                             .onAppear {
                                 let launchTime = Date().timeIntervalSince(startTime)
                                 logger.info("✅ 应用界面加载完成，总启动耗时: \(String(format: "%.3f", launchTime))秒")
                                 
                                 UserSettings.shared.applyCurrentAppearance()
-                                // 注意：大部分一次性初始化工作已移至 setupContainer()
-                                // 这里只保留每次视图出现时需要检查的逻辑
-                                NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: container.mainContext)
+                                NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: container!.mainContext)
                             }
                             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                                 logger.info("📱 应用即将进入前台，更新角标")
-                                NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: container.mainContext)
+                                NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: container!.mainContext)
                             }
                             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                                 logger.info("📱 应用已变为活跃状态，更新角标")
-                                NotificationService.updateApplicationBadge(modelContext: container.mainContext)
+                                NotificationService.updateApplicationBadge(modelContext: container!.mainContext)
                             }
                     } else {
-                        // 如果 container 是 nil，显示加载视图
-                        LoadingView()
-                            .onAppear {
-                                // 在 LoadingView 出现时，异步开始创建容器和初始化数据库
-                                Task {
-                                    await setupContainerAndServices()
-                                }
-                            }
+                        // 数据库就绪但未完成引导，显示引导页
+                        OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                     }
-                } else {
-                    OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                 }
             }
         }
-    }
     
     // ✅ 4. 新增方法：将所有耗时的初始化逻辑封装到一个异步函数中
     @MainActor
@@ -110,11 +105,23 @@ struct SoulPetsApp: App {
             // d. 预热服务
             prewarmCriticalServices()
             
-            // e. 所有准备工作完成，将创建好的容器赋值给 State 变量，触发UI刷新
-            self.container = createdContainer
+            // ✅ 5. 所有准备工作完成，回到主线程更新状态
+            await MainActor.run {
+                self.container = createdContainer
+                
+                // 添加一个最小显示时间，防止 Splash 闪烁过快
+                let minimumSplashTime = 2.8 // 与您之前的动画总时长匹配
+                let elapsedTime = Date().timeIntervalSince(startTime)
+                let delay = max(0, minimumSplashTime - elapsedTime)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    withAnimation(.easeOut(duration: 0.5)) {
+                        self.isDatabaseReady = true
+                    }
+                }
+            }
             
             logger.info("✅ 异步初始化流程全部完成！")
-            
         } catch {
             // 这里可以添加更复杂的错误处理，比如向用户展示一个错误页面
             fatalError("❌ 异步创建 ModelContainer 失败: \(error.localizedDescription)")
