@@ -244,7 +244,7 @@ struct PetsHomeView: View {
                     }
             }
         }
-        .fullScreenCover(isPresented: $showingPetDetailSheet) {
+        .sheet(isPresented: $showingPetDetailSheet) {
             // 主要逻辑：使用detailViewPetID查找宠物
             if let petID = detailViewPetID,
                let pet = pets.first(where: { $0.id == petID }) {

@@ -65,8 +65,13 @@ struct CircleImagePicker: View {
                                 
                                 await MainActor.run {
                                     selectedImage = uiImage
-                                    showingAvatarEditor = true
-                                    logger.info("📷 准备打开头像编辑器")
+                                    
+                                    // 🔧 关键修复：延迟0.5秒后打开编辑器
+                                    // 给PhotosPicker时间完全消失，避免窗口状态冲突
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        self.showingAvatarEditor = true
+                                        self.logger.info("📷 打开头像编辑器")
+                                    }
                                 }
                             }
                         }

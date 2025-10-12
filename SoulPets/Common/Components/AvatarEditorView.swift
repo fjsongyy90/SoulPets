@@ -31,9 +31,6 @@ struct AvatarEditorView: View {
                 // 深色背景
                 backgroundColor.ignoresSafeArea()
                 
-                // 优先显示优化后的图片，如果还没优化完就显示原始图片
-                let displayImage = optimizedImage ?? originalImage
-                
                 VStack(spacing: 0) {
                     // 说明文字
                     instructionText
@@ -44,7 +41,8 @@ struct AvatarEditorView: View {
                     GeometryReader { geometry in
                         ZStack {
                             // 底层：可移动和缩放的图片
-                            Image(uiImage: displayImage)
+                            // 优先使用优化后的图片，如果还没优化完就显示原始图片
+                            Image(uiImage: optimizedImage ?? originalImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: geometry.size.width, height: geometry.size.width)

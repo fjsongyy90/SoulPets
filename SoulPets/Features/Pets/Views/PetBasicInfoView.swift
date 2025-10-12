@@ -79,7 +79,12 @@ struct PetBasicInfoView: View {
                                    let image = UIImage(data: data) {
                                     await MainActor.run {
                                         selectedImage = image
-                                        showingAvatarEditor = true
+                                        
+                                        // 🔧 关键修复：延迟0.5秒后打开编辑器
+                                        // 给PhotosPicker时间完全消失，避免窗口状态冲突
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            showingAvatarEditor = true
+                                        }
                                     }
                                 }
                             }
