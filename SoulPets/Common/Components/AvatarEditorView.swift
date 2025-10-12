@@ -234,7 +234,7 @@ struct AvatarEditorView: View {
     }
     
     /// 调整图片大小（静态方法，避免主线程隔离问题）
-    private static func resizeImage(_ image: UIImage, targetSize: CGFloat) -> UIImage {
+    private static nonisolated func resizeImage(_ image: UIImage, targetSize: CGFloat) -> UIImage {
         let size = image.size
         let maxDimension = max(size.width, size.height)
         
