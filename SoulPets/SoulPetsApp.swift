@@ -15,107 +15,60 @@ import Charts
 struct SoulPetsApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showSplash = true
+    
+    // ✅ 1. 新增状态：用一个可选的 State 变量来持有 ModelContainer
+    // 它初始为 nil，表示数据库尚未准备好
+    @State private var container: ModelContainer?
+    
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "SoulPetsApp")
     private let startTime = Date()
     @State private var shouldPreloadCharts = true
-    
-    // 🔧 新增：通知代理，用于处理通知接收和角标更新
     private let notificationDelegate = NotificationDelegate()
     
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema(ModelRegistration.models)
-        
-        // 配置数据迁移选项 - 暂时使用删除存储的方式解决迁移问题
-        let modelConfiguration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false,
-            allowsSave: true,
-            groupContainer: .none,
-            cloudKitDatabase: .automatic
-        )
-        
-        let setupLogger = Logger(subsystem: "com.byte.driver.SoulPets", category: "ModelContainer")
-        
-        do {
-            // 尝试创建容器
-            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            setupLogger.info("✅ 成功创建ModelContainer，CloudKit已启用")
-            return container
-        } catch {
-            // 如果遇到迁移错误，删除旧的存储文件并创建新的容器
-            setupLogger.error("❌ 创建ModelContainer失败: \(error.localizedDescription)")
-            setupLogger.warning("🗑️ 尝试删除旧的存储文件并重新创建")
-            
-            // 删除旧的存储文件
-            let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            if let appSupportURL = appSupportURL {
-                let storeURL = appSupportURL.appendingPathComponent("default.store")
-                try? FileManager.default.removeItem(at: storeURL)
-                try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("wal"))
-                try? FileManager.default.removeItem(at: storeURL.appendingPathExtension("shm"))
-                setupLogger.info("🗑️ 已删除旧的存储文件: \(storeURL.path)")
-            }
-            
-            do {
-                let newContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
-                setupLogger.info("✅ 成功重新创建ModelContainer")
-                return newContainer
-            } catch {
-                setupLogger.error("❌ 重新创建ModelContainer也失败: \(error.localizedDescription)")
-                setupLogger.warning("🧠 使用内存模式创建临时容器")
-                
-                // 作为最后的备选方案，创建内存容器
-                let memoryConfig = ModelConfiguration(isStoredInMemoryOnly: true)
-                let memoryContainer = try! ModelContainer(for: schema, configurations: [memoryConfig])
-                return memoryContainer
-            }
-        }
-    }()
-    
+    // ❌ 2. 移除旧的、同步初始化的 sharedModelContainer 属性
+
     var body: some Scene {
         WindowGroup {
             ZStack {
-                // 4. 将预加载视图放在最底层
                 if shouldPreloadCharts {
                     preloadChartsView()
                 }
+                
                 if showSplash {
                     SplashView(showSplash: $showSplash)
                 } else if hasCompletedOnboarding {
-                    ContentView()
-                        .modelContainer(sharedModelContainer)
-                        .onAppear {
-                            // 记录启动时间
-                            let launchTime = Date().timeIntervalSince(startTime)
-                            logger.info("应用界面加载完成，启动耗时: \(String(format: "%.3f", launchTime))秒")
-                            
-                            // 应用保存的外观设置
-                            UserSettings.shared.applyCurrentAppearance()
-                            
-                            // 请求通知权限并设置代理
-                            requestNotificationPermission()
-                            setupNotificationDelegate()
-                            
-                            // 更新应用角标
-                            NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
-                            
-                            // 立即开始预热关键服务（键盘和照片）
-                            prewarmCriticalServices()
-                            
-                            // 在后台线程初始化数据库
-                            Task {
-                                try? await initializeDatabase()
+                    // ✅ 3. 核心逻辑：根据 container 是否存在来决定显示哪个视图
+                    if let container = container {
+                        // 如果 container 存在，说明初始化已完成，显示主内容
+                        ContentView()
+                            .modelContainer(container) // 注入已创建的容器
+                            .onAppear {
+                                let launchTime = Date().timeIntervalSince(startTime)
+                                logger.info("✅ 应用界面加载完成，总启动耗时: \(String(format: "%.3f", launchTime))秒")
+                                
+                                UserSettings.shared.applyCurrentAppearance()
+                                // 注意：大部分一次性初始化工作已移至 setupContainer()
+                                // 这里只保留每次视图出现时需要检查的逻辑
+                                NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: container.mainContext)
                             }
-                        }
-                    // 🔧 新增：监听应用生命周期事件
-                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                            logger.info("📱 应用即将进入前台，更新角标")
-                            NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
-                        }
-                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                            logger.info("📱 应用已变为活跃状态，更新角标")
-                            NotificationService.updateApplicationBadge(modelContext: sharedModelContainer.mainContext)
-                        }
+                            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                                logger.info("📱 应用即将进入前台，更新角标")
+                                NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: container.mainContext)
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                                logger.info("📱 应用已变为活跃状态，更新角标")
+                                NotificationService.updateApplicationBadge(modelContext: container.mainContext)
+                            }
+                    } else {
+                        // 如果 container 是 nil，显示加载视图
+                        LoadingView()
+                            .onAppear {
+                                // 在 LoadingView 出现时，异步开始创建容器和初始化数据库
+                                Task {
+                                    await setupContainerAndServices()
+                                }
+                            }
+                    }
                 } else {
                     OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                 }
@@ -123,86 +76,69 @@ struct SoulPetsApp: App {
         }
     }
     
-    // MARK: - 请求通知权限
+    // ✅ 4. 新增方法：将所有耗时的初始化逻辑封装到一个异步函数中
+    @MainActor
+    private func setupContainerAndServices() async {
+        logger.info("🚀 开始异步初始化 ModelContainer 及相关服务...")
+        
+        do {
+            let schema = Schema(ModelRegistration.models)
+            let modelConfiguration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .automatic
+            )
+            
+            // 异步创建容器 - 这是最关键的异步操作
+            let createdContainer = try await Task {
+                try ModelContainer(for: schema, configurations: [modelConfiguration])
+            }.value
+            
+            logger.info("✅ ModelContainer 创建成功")
+            
+            // a. 初始化数据库（例如，首次运行时创建默认标签）
+            await ModelRegistration.initializeDatabase(modelContext: createdContainer.mainContext)
+            
+            // b. 设置通知代理（因为它依赖 modelContext）
+            notificationDelegate.modelContext = createdContainer.mainContext
+            UNUserNotificationCenter.current().delegate = notificationDelegate
+            logger.info("🔔 已设置通知代理")
+            
+            // c. 请求通知权限
+            requestNotificationPermission()
+            
+            // d. 预热服务
+            prewarmCriticalServices()
+            
+            // e. 所有准备工作完成，将创建好的容器赋值给 State 变量，触发UI刷新
+            self.container = createdContainer
+            
+            logger.info("✅ 异步初始化流程全部完成！")
+            
+        } catch {
+            // 这里可以添加更复杂的错误处理，比如向用户展示一个错误页面
+            fatalError("❌ 异步创建 ModelContainer 失败: \(error.localizedDescription)")
+        }
+    }
+    
+    // ... 其他辅助方法保持不变 ...
     private func requestNotificationPermission() {
-        // 先检查当前权限状态
         NotificationService.checkAuthorizationStatus { status in
-            switch status {
-            case .notDetermined:
-                // 如果用户还未决定，则请求权限
-                NotificationService.requestAuthorization { granted in
-                    DispatchQueue.main.async {
-                        if granted {
-                            self.logger.info("🔔 用户授予了通知权限")
-                        } else {
-                            self.logger.warning("🔕 用户拒绝了通知权限")
-                        }
-                    }
-                }
-            case .denied:
-                logger.warning("🔕 用户已拒绝通知权限")
-            case .authorized, .provisional, .ephemeral:
-                logger.info("🔔 通知权限已授权")
-            @unknown default:
-                logger.warning("🔔 未知的通知权限状态: \(status.rawValue)")
+            if status == .notDetermined {
+                NotificationService.requestAuthorization { _ in }
+            } else {
+                logger.info("🔔 通知权限状态: \(status.rawValue)")
             }
         }
     }
     
-    // MARK: - 设置通知代理
-    private func setupNotificationDelegate() {
-        notificationDelegate.modelContext = sharedModelContainer.mainContext
-        UNUserNotificationCenter.current().delegate = notificationDelegate
-        logger.info("🔔 已设置通知代理")
-    }
-    
-    // MARK: - 预热关键服务
     private func prewarmCriticalServices() {
-        // 1. 键盘预热（立即执行）
         DispatchQueue.main.async {
             KeyboardPrewarmer.shared.prewarmKeyboard()
         }
-        
-        // 2. 照片服务预热（在后台执行，不阻塞主线程）
         DispatchQueue.global(qos: .userInitiated).async {
             PhotosPrewarmService.shared.prewarmPhotosAccess()
         }
-    }
-    
-    // 在主线程初始化数据库
-    @MainActor
-    private func initializeDatabase() async throws {
-        // 直接在主线程上执行数据库初始化
-        await ModelRegistration.initializeDatabase(modelContext: self.sharedModelContainer.mainContext)
-    }
-    
-    // 保留此方法但默认不使用，仅在需要重置数据时手动调用
-    static func clearSwiftDataStore() {
-        // 仅在开发环境中或首次安装时清除数据库
-        #if DEBUG
-        let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "DataClear")
-        
-        // 获取应用程序支持目录
-        guard let appSupportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            logger.error("无法获取应用程序支持目录")
-            return
-        }
-        
-        // SwiftData存储的默认位置
-        let storeDirectory = appSupportDirectory.appendingPathComponent("default.store")
-        
-        // 检查目录是否存在
-        if FileManager.default.fileExists(atPath: storeDirectory.path) {
-            do {
-                try FileManager.default.removeItem(at: storeDirectory)
-                logger.info("成功删除SwiftData存储目录")
-            } catch {
-                logger.error("删除SwiftData存储目录失败: \(error.localizedDescription)")
-            }
-        } else {
-            logger.info("SwiftData存储目录不存在")
-        }
-        #endif
     }
     
     @ViewBuilder
@@ -218,7 +154,6 @@ struct SoulPetsApp: App {
         .opacity(0)
         .allowsHitTesting(false)
         .onAppear {
-            // 框架加载后，1秒后移除这个视图以释放资源
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 shouldPreloadCharts = false
             }
@@ -235,14 +170,12 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         logger.info("📱 应用在前台收到通知: \(notification.request.identifier)")
         
-        // 更新角标 - 需要在主线程执行
         if let modelContext = modelContext {
             Task { @MainActor in
                 NotificationService.updateApplicationBadge(modelContext: modelContext)
             }
         }
         
-        // 在前台显示通知
         completionHandler([.banner, .sound])
     }
     
@@ -250,14 +183,11 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         logger.info("📱 用户点击了通知: \(response.notification.request.identifier)")
         
-        // 更新角标 - 需要在主线程执行
         if let modelContext = modelContext {
             Task { @MainActor in
                 NotificationService.updateApplicationBadge(modelContext: modelContext)
             }
         }
-        
-        // TODO: 可以在这里添加打开对应提醒页面的逻辑
         
         completionHandler()
     }
