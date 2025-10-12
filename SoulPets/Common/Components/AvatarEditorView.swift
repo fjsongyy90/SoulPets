@@ -14,7 +14,6 @@ struct AvatarEditorView: View {
     
     // 优化后的图片
     @State private var optimizedImage: UIImage?
-    @State private var isLoading: Bool = true
     
     // 裁剪圆的尺寸
     private let cropCircleSize: CGFloat = 280
@@ -29,70 +28,62 @@ struct AvatarEditorView: View {
                 // 深色背景
                 backgroundColor.ignoresSafeArea()
                 
-                if isLoading {
-                    // 加载状态
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                        
-                        Text(String(localized: "Loading..."))
-                            .font(.appSubheadline)
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                } else if let displayImage = optimizedImage {
-                    VStack(spacing: 0) {
-                        // 说明文字
-                        instructionText
-                            .padding(.top, 20)
-                            .padding(.bottom, 30)
-                        
-                        // 编辑区域
-                        GeometryReader { geometry in
-                            ZStack {
-                                // 底层：可移动和缩放的图片
-                                Image(uiImage: displayImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: geometry.size.width, height: geometry.size.width)
-                                    .scaleEffect(scale)
-                                    .offset(offset)
-                                    .clipped()
-                                    .gesture(dragGesture)
-                                    .gesture(magnificationGesture)
-                                
-                                // 中层：带圆形"洞"的黑色遮罩
-                                Color.black.opacity(0.7)
-                                    .frame(width: geometry.size.width, height: geometry.size.width)
-                                    .mask(
-                                        // 创建一个反向遮罩：整个区域是白色，中间圆形是透明
-                                        ZStack {
-                                            Rectangle()
-                                                .fill(Color.white)
-                                            
-                                            Circle()
-                                                .frame(width: cropCircleSize, height: cropCircleSize)
-                                                .blendMode(.destinationOut)
-                                        }
-                                        .compositingGroup()
-                                    )
-                                
-                                // 顶层：圆形裁剪框边框
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 3)
-                                    .frame(width: cropCircleSize, height: cropCircleSize)
-                            }
-                            .frame(width: geometry.size.width, height: geometry.size.width)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // 优先显示优化后的图片，如果还没优化完就显示原始图片
+                let displayImage = optimizedImage ?? originalImage
+                
+                VStack(spacing: 0) {
+                    // 说明文字
+                    instructionText
+                        .padding(.top, 20)
+                        .padding(.bottom, 30)
+                    
+                    // 编辑区域
+                    GeometryReader { geometry in
+                        ZStack {
+                            // 底层：可移动和缩放的图片
+                            Image(uiImage: displayImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: geometry.size.width, height: geometry.size.width)
+                                .scaleEffect(scale)
+                                .offset(offset)
+                                .clipped()
+                            
+                            // 中层：带圆形"洞"的黑色遮罩（不拦截触摸）
+                            Color.black.opacity(0.7)
+                                .frame(width: geometry.size.width, height: geometry.size.width)
+                                .mask(
+                                    // 创建一个反向遮罩：整个区域是白色，中间圆形是透明
+                                    ZStack {
+                                        Rectangle()
+                                            .fill(Color.white)
+                                        
+                                        Circle()
+                                            .frame(width: cropCircleSize, height: cropCircleSize)
+                                            .blendMode(.destinationOut)
+                                    }
+                                    .compositingGroup()
+                                )
+                                .allowsHitTesting(false)
+                            
+                            // 顶层：圆形裁剪框边框（不拦截触摸）
+                            Circle()
+                                .stroke(Color.white, lineWidth: 3)
+                                .frame(width: cropCircleSize, height: cropCircleSize)
+                                .allowsHitTesting(false)
                         }
-                        .aspectRatio(1, contentMode: .fit)
-                        .padding()
-                        
-                        // 操作提示和重置按钮
-                        controlsSection
-                            .padding(.top, 30)
-                            .padding(.bottom, 40)
+                        .frame(width: geometry.size.width, height: geometry.size.width)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .gesture(dragGesture)
+                        .gesture(magnificationGesture)
                     }
+                    .aspectRatio(1, contentMode: .fit)
+                    .padding()
+                    
+                    // 操作提示和重置按钮
+                    controlsSection
+                        .padding(.top, 30)
+                        .padding(.bottom, 40)
                 }
             }
             .navigationTitle(String(localized: "Edit Avatar"))
@@ -216,26 +207,26 @@ struct AvatarEditorView: View {
     
     // MARK: - 操作方法
     
-    /// 优化图片尺寸以提升性能
+    /// 优化图片尺寸以提升性能（在后台静默执行）
     private func optimizeImage() {
         Task {
             // 在后台线程处理
+            let originalImg = originalImage
             let optimized = await Task.detached {
                 // 目标尺寸：屏幕宽度的2倍（支持高清屏）
-                let targetSize = UIScreen.main.bounds.width * 2
-                return self.resizeImage(self.originalImage, targetSize: targetSize)
+                let targetSize = await UIScreen.main.bounds.width * 2
+                return Self.resizeImage(originalImg, targetSize: targetSize)
             }.value
             
-            // 回到主线程更新UI
+            // 回到主线程更新UI（无缝切换到优化后的图片）
             await MainActor.run {
                 optimizedImage = optimized
-                isLoading = false
             }
         }
     }
     
-    /// 调整图片大小
-    private func resizeImage(_ image: UIImage, targetSize: CGFloat) -> UIImage {
+    /// 调整图片大小（静态方法，避免主线程隔离问题）
+    private static func resizeImage(_ image: UIImage, targetSize: CGFloat) -> UIImage {
         let size = image.size
         let maxDimension = max(size.width, size.height)
         

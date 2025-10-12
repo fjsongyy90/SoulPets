@@ -61,14 +61,7 @@ struct FullScreenPhotoViewer: View {
                 .padding(.bottom, 50)
             }
         }
-        .onAppear {
-            // 隐藏系统状态栏
-            UIApplication.shared.setStatusBarHidden(true, with: .fade)
-        }
-        .onDisappear {
-            // 恢复系统状态栏
-            UIApplication.shared.setStatusBarHidden(false, with: .fade)
-        }
+        .statusBar(hidden: true)
     }
     
     @ViewBuilder
