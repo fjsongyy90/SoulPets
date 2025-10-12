@@ -8,6 +8,8 @@ struct PetBasicInfoView: View {
     @State private var photoItem: PhotosPickerItem?
     @FocusState private var focusedField: Field?
     @State private var keyboardHeight: CGFloat = 0
+    @State private var showingAvatarEditor = false
+    @State private var selectedImage: UIImage?
     @Environment(\.dismiss) private var dismiss
     
     // 定义更高对比度的颜色
@@ -76,7 +78,8 @@ struct PetBasicInfoView: View {
                                 if let data = try? await newValue?.loadTransferable(type: Data.self),
                                    let image = UIImage(data: data) {
                                     await MainActor.run {
-                                        viewModel.avatar = image
+                                        selectedImage = image
+                                        showingAvatarEditor = true
                                     }
                                 }
                             }
@@ -265,6 +268,24 @@ struct PetBasicInfoView: View {
             }
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
                 keyboardHeight = 0
+            }
+        }
+        .fullScreenCover(isPresented: $showingAvatarEditor) {
+            if let image = selectedImage {
+                AvatarEditorView(
+                    originalImage: image,
+                    onSave: { croppedImage in
+                        viewModel.avatar = croppedImage
+                        showingAvatarEditor = false
+                        selectedImage = nil
+                        photoItem = nil
+                    },
+                    onCancel: {
+                        showingAvatarEditor = false
+                        selectedImage = nil
+                        photoItem = nil
+                    }
+                )
             }
         }
         // 移除系统默认的工具栏

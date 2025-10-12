@@ -41,6 +41,12 @@
 "Soon" = "Soon";
 "We're working hard to support more adorable pets soon!" = "We're working hard to support more adorable pets soon!";
 
+// 头像编辑器
+"Edit Avatar" = "Edit Avatar";
+"avatar_editor.instruction" = "Move and pinch to adjust your photo";
+"avatar_editor.hint" = "The photo will be cropped to a circle";
+"Reset" = "Reset";
+
 // 宠物信息表单
 "Name" = "Name";
 "Breed / Color" = "Breed / Color (optional)";

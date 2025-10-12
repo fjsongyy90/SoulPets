@@ -5,6 +5,8 @@ import PhotosUI
 struct CircleImagePicker: View {
     @Binding var image: UIImage?
     @State private var photoItem: PhotosPickerItem?
+    @State private var showingAvatarEditor = false
+    @State private var selectedImage: UIImage?
     
     var size: CGFloat = 120
     var placeholderSystemName: String = "pawprint.circle.fill"
@@ -50,13 +52,32 @@ struct CircleImagePicker: View {
                         if let data = try await newValue.loadTransferable(type: Data.self),
                            let uiImage = UIImage(data: data) {
                             await MainActor.run {
-                                image = uiImage
+                                selectedImage = uiImage
+                                showingAvatarEditor = true
                             }
                         }
                     } catch {
                         print("Error loading image: \(error.localizedDescription)")
                     }
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $showingAvatarEditor) {
+            if let selectedImage = selectedImage {
+                AvatarEditorView(
+                    originalImage: selectedImage,
+                    onSave: { croppedImage in
+                        image = croppedImage
+                        showingAvatarEditor = false
+                        self.selectedImage = nil
+                        photoItem = nil
+                    },
+                    onCancel: {
+                        showingAvatarEditor = false
+                        self.selectedImage = nil
+                        photoItem = nil
+                    }
+                )
             }
         }
     }
