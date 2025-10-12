@@ -6,8 +6,7 @@ import OSLog
 struct CircleImagePicker: View {
     @Binding var image: UIImage?
     @State private var photoItem: PhotosPickerItem?
-    @State private var showingAvatarEditor = false
-    @State private var selectedImage: UIImage?
+    @State private var editableImage: EditableImage?
     
     private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "CircleImagePicker")
     
@@ -50,56 +49,32 @@ struct CircleImagePicker: View {
         }
         .onChange(of: photoItem) { _, newValue in
             Task {
-                if let newValue {
-                    let startTime = Date()
-                    logger.info("📷 开始加载选中的照片...")
+                if let data = try? await newValue?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
                     
-                    do {
-                        if let data = try await newValue.loadTransferable(type: Data.self) {
-                            let loadTime = Date().timeIntervalSince(startTime)
-                            logger.info("📷 照片数据加载完成，耗时: \(String(format: "%.3f", loadTime))秒，大小: \(data.count / 1024)KB")
-                            
-                            if let uiImage = UIImage(data: data) {
-                                let decodeTime = Date().timeIntervalSince(startTime)
-                                logger.info("📷 照片解码完成，总耗时: \(String(format: "%.3f", decodeTime))秒")
-                                
-                                await MainActor.run {
-                                    selectedImage = uiImage
-                                    
-                                    // 🔧 关键修复：延迟0.5秒后打开编辑器
-                                    // 给PhotosPicker时间完全消失，避免窗口状态冲突
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        self.showingAvatarEditor = true
-                                        self.logger.info("📷 打开头像编辑器")
-                                    }
-                                }
-                            }
-                        }
-                    } catch {
-                        logger.error("❌ 加载照片失败: \(error.localizedDescription)")
+                    // ✅ 第2步：加载成功后，直接设置我们的新状态
+                    await MainActor.run {
+                        self.editableImage = EditableImage(image: uiImage)
                     }
                 }
             }
         }
-        .fullScreenCover(isPresented: $showingAvatarEditor) {
-            if let selectedImage = selectedImage {
+        // ✅ 第3步：将 fullScreenCover 绑定到新的 item 状态
+            .fullScreenCover(item: $editableImage) { item in
                 AvatarEditorView(
-                    originalImage: selectedImage,
+                    originalImage: item.image,
                     onSave: { croppedImage in
                         image = croppedImage
-                        showingAvatarEditor = false
-                        self.selectedImage = nil
+                        editableImage = nil // 关闭 cover
                         photoItem = nil
                     },
                     onCancel: {
-                        showingAvatarEditor = false
-                        self.selectedImage = nil
+                        editableImage = nil // 关闭 cover
                         photoItem = nil
                     }
                 )
             }
         }
-    }
 }
 
 #Preview {

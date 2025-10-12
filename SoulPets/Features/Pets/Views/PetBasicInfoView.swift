@@ -8,8 +8,8 @@ struct PetBasicInfoView: View {
     @State private var photoItem: PhotosPickerItem?
     @FocusState private var focusedField: Field?
     @State private var keyboardHeight: CGFloat = 0
-    @State private var showingAvatarEditor = false
-    @State private var selectedImage: UIImage?
+    // ✅ 第1步：用一个可选的 EditableImage 状态替换掉之前的 Bool 和 UIImage 状态
+    @State private var editableImage: EditableImage?
     @Environment(\.dismiss) private var dismiss
     
     // 定义更高对比度的颜色
@@ -77,14 +77,10 @@ struct PetBasicInfoView: View {
                             Task {
                                 if let data = try? await newValue?.loadTransferable(type: Data.self),
                                    let image = UIImage(data: data) {
+                                    
+                                    // ✅ 第2步：加载成功后，直接设置我们的新状态
                                     await MainActor.run {
-                                        selectedImage = image
-                                        
-                                        // 🔧 关键修复：延迟0.5秒后打开编辑器
-                                        // 给PhotosPicker时间完全消失，避免窗口状态冲突
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                            showingAvatarEditor = true
-                                        }
+                                        self.editableImage = EditableImage(image: image)
                                     }
                                 }
                             }
@@ -275,26 +271,20 @@ struct PetBasicInfoView: View {
                 keyboardHeight = 0
             }
         }
-        .fullScreenCover(isPresented: $showingAvatarEditor) {
-            if let image = selectedImage {
-                AvatarEditorView(
-                    originalImage: image,
-                    onSave: { croppedImage in
-                        viewModel.avatar = croppedImage
-                        showingAvatarEditor = false
-                        selectedImage = nil
-                        photoItem = nil
-                    },
-                    onCancel: {
-                        showingAvatarEditor = false
-                        selectedImage = nil
-                        photoItem = nil
-                    }
-                )
-            }
-        }
-        // 移除系统默认的工具栏
-        // .toolbar(.hidden, for: .keyboard) // 不兼容的API，已移除
+        .fullScreenCover(item: $editableImage) { item in
+                    AvatarEditorView(
+                        originalImage: item.image,
+                        onSave: { croppedImage in
+                            viewModel.avatar = croppedImage
+                            editableImage = nil // 关闭 cover
+                            photoItem = nil
+                        },
+                        onCancel: {
+                            editableImage = nil // 关闭 cover
+                            photoItem = nil
+                        }
+                    )
+                }
     }
 }
 
