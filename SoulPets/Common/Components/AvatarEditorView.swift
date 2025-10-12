@@ -1,10 +1,13 @@
 import SwiftUI
+import OSLog
 
 /// 头像编辑视图 - 支持图片移动、缩放和圆形裁剪
 struct AvatarEditorView: View {
     let originalImage: UIImage
     let onSave: (UIImage) -> Void
     let onCancel: () -> Void
+    
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "AvatarEditor")
     
     // 图片变换状态
     @State private var scale: CGFloat = 1.0
@@ -89,6 +92,7 @@ struct AvatarEditorView: View {
             .navigationTitle(String(localized: "Edit Avatar"))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
+                logger.info("✅ 头像编辑器视图已显示")
                 optimizeImage()
             }
             .toolbar {
@@ -210,6 +214,9 @@ struct AvatarEditorView: View {
     /// 优化图片尺寸以提升性能（在后台静默执行）
     private func optimizeImage() {
         Task {
+            let startTime = Date()
+            logger.info("🖼️ 开始优化图片...")
+            
             // 在后台线程处理
             let originalImg = originalImage
             let optimized = await Task.detached {
@@ -217,6 +224,9 @@ struct AvatarEditorView: View {
                 let targetSize = await UIScreen.main.bounds.width * 2
                 return Self.resizeImage(originalImg, targetSize: targetSize)
             }.value
+            
+            let optimizeTime = Date().timeIntervalSince(startTime)
+            logger.info("✅ 图片优化完成，耗时: \(String(format: "%.3f", optimizeTime))秒")
             
             // 回到主线程更新UI（无缝切换到优化后的图片）
             await MainActor.run {

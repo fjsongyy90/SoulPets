@@ -99,10 +99,8 @@ struct SoulPetsApp: App {
                             // 更新应用角标
                             NotificationService.checkAndUpdateBadgeIfNeeded(modelContext: sharedModelContainer.mainContext)
                             
-                            // 此时主窗口已激活，预热效果最好
-                            DispatchQueue.main.asyncAfter(deadline: .now()) {
-                                KeyboardPrewarmer.shared.prewarmKeyboard()
-                            }
+                            // 立即开始预热关键服务（键盘和照片）
+                            prewarmCriticalServices()
                             
                             // 在后台线程初始化数据库
                             Task {
@@ -156,6 +154,19 @@ struct SoulPetsApp: App {
         notificationDelegate.modelContext = sharedModelContainer.mainContext
         UNUserNotificationCenter.current().delegate = notificationDelegate
         logger.info("🔔 已设置通知代理")
+    }
+    
+    // MARK: - 预热关键服务
+    private func prewarmCriticalServices() {
+        // 1. 键盘预热（立即执行）
+        DispatchQueue.main.async {
+            KeyboardPrewarmer.shared.prewarmKeyboard()
+        }
+        
+        // 2. 照片服务预热（在后台执行，不阻塞主线程）
+        DispatchQueue.global(qos: .userInitiated).async {
+            PhotosPrewarmService.shared.prewarmPhotosAccess()
+        }
     }
     
     // 在主线程初始化数据库

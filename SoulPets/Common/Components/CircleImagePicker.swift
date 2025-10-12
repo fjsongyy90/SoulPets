@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import OSLog
 
 /// 圆形图片选择器组件
 struct CircleImagePicker: View {
@@ -7,6 +8,8 @@ struct CircleImagePicker: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var showingAvatarEditor = false
     @State private var selectedImage: UIImage?
+    
+    private let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "CircleImagePicker")
     
     var size: CGFloat = 120
     var placeholderSystemName: String = "pawprint.circle.fill"
@@ -48,16 +51,27 @@ struct CircleImagePicker: View {
         .onChange(of: photoItem) { _, newValue in
             Task {
                 if let newValue {
+                    let startTime = Date()
+                    logger.info("📷 开始加载选中的照片...")
+                    
                     do {
-                        if let data = try await newValue.loadTransferable(type: Data.self),
-                           let uiImage = UIImage(data: data) {
-                            await MainActor.run {
-                                selectedImage = uiImage
-                                showingAvatarEditor = true
+                        if let data = try await newValue.loadTransferable(type: Data.self) {
+                            let loadTime = Date().timeIntervalSince(startTime)
+                            logger.info("📷 照片数据加载完成，耗时: \(String(format: "%.3f", loadTime))秒，大小: \(data.count / 1024)KB")
+                            
+                            if let uiImage = UIImage(data: data) {
+                                let decodeTime = Date().timeIntervalSince(startTime)
+                                logger.info("📷 照片解码完成，总耗时: \(String(format: "%.3f", decodeTime))秒")
+                                
+                                await MainActor.run {
+                                    selectedImage = uiImage
+                                    showingAvatarEditor = true
+                                    logger.info("📷 准备打开头像编辑器")
+                                }
                             }
                         }
                     } catch {
-                        print("Error loading image: \(error.localizedDescription)")
+                        logger.error("❌ 加载照片失败: \(error.localizedDescription)")
                     }
                 }
             }
