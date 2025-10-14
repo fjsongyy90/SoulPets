@@ -17,6 +17,8 @@ struct SettingsView: View {
     @State private var showingResetSuccessAlert = false
     @State private var showingPrivacyPromiseSheet = false
     @State private var showingFamilySharingAlert = false
+    // 👇 新增一个状态，用来控制分享界面的显示和隐藏
+    @State private var isShowingShareSheet = false
     
     // 颜色定义
     private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15) // #E5B487
@@ -267,7 +269,8 @@ struct SettingsView: View {
                     title: String(localized: "settings.support.share_app"),
                     showChevron: true,
                     action: {
-                        SettingsService.shareApp()
+                        // 只改变状态，不调用 service
+                        self.isShowingShareSheet = true
                     }
                 )
             }
@@ -276,6 +279,15 @@ struct SettingsView: View {
         .background(Color(.secondarySystemBackground)) // 使用系统二级背景色，适应深色模式
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        // 👇 在卡片（或任何方便的地方）后面加上 .sheet 修饰符
+        .sheet(isPresented: $isShowingShareSheet) {
+            // 当 isShowingShareSheet 为 true 时，弹出我们的 ShareSheet
+            let shareText = String(localized: "settings.support.share_app.text")
+            let appStoreURL = "tps://apps.apple.com/us/app/soulpets/id6753908611" // 替换为实际URL
+            let fullText = "\(shareText) \(appStoreURL)"
+            
+            ShareSheet(activityItems: [fullText])
+        }
     }
     
     // MARK: - Debug卡片
