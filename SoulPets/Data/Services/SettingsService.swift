@@ -286,7 +286,7 @@ final class SettingsService {
     static func shareApp() {
         // 🔧 修复：异步执行分享操作，避免阻塞主线程
         DispatchQueue.main.async {
-            let appStoreURL = "https://apps.apple.com/app/soulpets/id123456789" // 替换为实际的 App Store URL
+            let appStoreURL = "https://apps.apple.com/us/app/soulpets/id6753908611" // 替换为实际的 App Store URL
             let shareText = String(localized: "settings.support.share_app.text")
             let fullText = "\(shareText) \(appStoreURL)"
             
