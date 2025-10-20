@@ -72,16 +72,12 @@ struct WeightHistoryListView: View {
     private func weightHistoryRowLight(weight: Weight) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                // --- MODIFICATION START ---
-                // 1. 在体重数值后拼接单位
                 if let pet = weight.pet {
-                    let unitStr = pet.weightUnitPreference?.rawValue ?? "kg"
-                    Text("\(weight.formattedWeight()) \(unitStr)")
+                    Text(weight.formattedWeight())
                         .font(.appBody)
                         .fontWeight(.medium)
                         .foregroundColor(.appTextPrimary)
                 }
-                // --- MODIFICATION END ---
                 
                 Text(weight.date, style: .date)
                     .font(.appCaption)
