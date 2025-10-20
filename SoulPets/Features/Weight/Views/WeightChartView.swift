@@ -144,21 +144,23 @@ struct WeightChartView: View {
 
             // 目标线 (保持不变)
             if let goal = viewModel.activeWeightGoal {
-                RuleMark(y: .value("Target", goal.targetWeightInPreferredUnit)) // 使用转换后的体重值
+                RuleMark(y: .value("Target", goal.targetWeightInPreferredUnit))
                     .foregroundStyle(Color.appWarning)
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [8, 4]))
                     .annotation(position: .topTrailing) {
                         Text(String.localizedStringWithFormat(
                             NSLocalizedString("Target: %.1f %@", comment: ""),
-                            goal.targetWeightInPreferredUnit, // 显示转换后的目标体重
+                            goal.targetWeightInPreferredUnit,
                             goal.pet?.weightUnitPreference?.rawValue ?? "kg"
                         ))
                             .font(.appCaption)
                             .foregroundColor(.appWarning)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.cardBackground.opacity(0.8)) // 增加一点背景不透明度
+                            .background(Color.cardBackground.opacity(0.8))
                             .cornerRadius(6)
+                            // ✅ 新增：添加一个微小的向左偏移量
+                            .offset(x: 5) // 尝试 -5 或 -8 看看效果
                     }
             }
         }
