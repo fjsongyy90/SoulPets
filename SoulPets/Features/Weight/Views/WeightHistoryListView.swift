@@ -72,11 +72,16 @@ struct WeightHistoryListView: View {
     private func weightHistoryRowLight(weight: Weight) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                if let pet = weight.pet {
+                if weight.pet != nil{
                     Text(weight.formattedWeight())
                         .font(.appBody)
                         .fontWeight(.medium)
                         .foregroundColor(.appTextPrimary)
+                } else {
+                    // (可选) 如果 weight.pet 理论上不应为 nil，可以加一个错误提示
+                     Text("Error") // 或者显示 "-- kg" 等占位符
+                         .font(.appBody)
+                         .foregroundColor(.red)
                 }
                 
                 Text(weight.date, style: .date)

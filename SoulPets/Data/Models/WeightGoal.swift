@@ -128,4 +128,36 @@ extension WeightGoal {
     var remainingDays: Int {
         return Calendar.current.dateComponents([.day], from: Date(), to: targetDate).day ?? 0
     }
-} 
+    
+    /// 计算属性：获取根据宠物偏好单位转换后的目标体重值
+    var targetWeightInPreferredUnit: Double {
+        // 尝试获取宠物的偏好单位，如果获取不到，则使用目标本身记录的单位
+        guard let petUnit = pet?.weightUnitPreference else {
+            // 如果宠物对象不存在或偏好未设置，直接返回原始目标体重
+            // （理论上目标应该总是有宠物的，但这是一种安全回退）
+            return targetWeight
+        }
+
+        // 获取目标记录时使用的单位，如果缺失则无法转换，返回原始值
+        guard let goalUnit = unit else {
+            return targetWeight
+        }
+
+        // 单位一致，直接返回
+        if petUnit == goalUnit {
+            return targetWeight
+        }
+        // 从 公斤(kg) 转换到 磅(lbs)
+        else if petUnit == .lbs && goalUnit == .kg {
+            return targetWeight * 2.20462 // kg -> lbs
+        }
+        // 从 磅(lbs) 转换到 公斤(kg)
+        else if petUnit == .kg && goalUnit == .lbs {
+            return targetWeight / 2.20462 // lbs -> kg
+        }
+        // 其他无法处理的情况，返回原始值
+        else {
+            return targetWeight
+        }
+    }
+}
