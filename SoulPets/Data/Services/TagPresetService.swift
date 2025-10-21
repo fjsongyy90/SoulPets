@@ -61,10 +61,6 @@ class TagPresetService {
                         existingTag.defaultIsReminder = presetTag.defaultIsReminder
                         needsUpdate = true
                     }
-                    if existingTag.sortOrder != presetTag.sortOrder {
-                        existingTag.sortOrder = presetTag.sortOrder
-                        needsUpdate = true
-                    }
                     
                     // 【核心】检查宠物类型列表是否有变化
                     if existingTag.associatedPetTypes != presetTag.associatedPetTypes {
