@@ -11,19 +11,8 @@ class DataInitializationService {
         logger.info("开始初始化应用数据...")
         
         // 初始化预设标签
-        TagPresetService.initializePresetTags(modelContext: modelContext)
-        
-        // 初始化用户设置
-        initializeUserSettings(modelContext: modelContext)
-        
+        TagPresetService.syncPresetTags(modelContext: modelContext)
+                
         logger.info("应用数据初始化完成")
-    }
-    
-    /// 初始化用户设置
-    private static func initializeUserSettings(modelContext: ModelContext) {
-        // UserSettings现在使用UserDefaults存储，会在第一次访问时自动初始化
-        // 这里只需要确保UserSettings.shared被初始化即可
-        _ = UserSettings.shared
-        logger.info("用户设置已初始化（使用UserDefaults）")
     }
 } 

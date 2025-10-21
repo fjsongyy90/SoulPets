@@ -1,34 +1,104 @@
 import Foundation
 import SwiftData
+import OSLog // 建议添加日志，方便调试
 
 /// 标签预设服务，用于初始化和管理应用中的标签数据
 class TagPresetService {
-    /// 初始化预设标签数据
-    static func initializePresetTags(modelContext: ModelContext) {
-        // 检查是否已有标签数据
-        let descriptor = FetchDescriptor<Tag>()
-        do {
-            let existingTags = try modelContext.fetch(descriptor)
-            // 如果已有标签数据，则不再初始化
-            if !existingTags.isEmpty {
-                print("已存在标签数据，跳过初始化")
+    private static let logger = Logger(subsystem: "com.byte.driver.SoulPets", category: "TagPresetService")
+    ///**
+    ///同步预设标签数据。
+    
+    ///这个函数是“幂等”的：
+    ///1. 它会遍历代码中定义的所有预设标签（"真相"）。
+    ///2. 它会检查数据库中是否已存在该标签（通过唯一的 `code`）。
+    ///3. 如果标签不存在，则【插入】新标签。
+    ///4. 如果标签已存在，则【更新】其属性（名称、图标、宠物类型等），以匹配代码中的“真相”。
+    ///这确保了所有用户（新老用户）的标签库始终与最新版本代码一致。
+    ///*/
+    static func syncPresetTags(modelContext: ModelContext) {
+            logger.info("开始同步预设标签库...")
+
+            // 1. 获取"真相"：代码中定义的所有预设标签
+            let allPresetTags = createAllTags()
+            
+            // 2. 获取"现状"：数据库中已有的所有标签
+            let descriptor = FetchDescriptor<Tag>()
+            let existingTags: [Tag]
+            do {
+                existingTags = try modelContext.fetch(descriptor)
+            } catch {
+                logger.error("获取现有标签失败: \(error.localizedDescription)")
                 return
             }
-        } catch {
-            print("检查标签数据时发生错误: \(error.localizedDescription)")
-            return
+            
+            // 3. 将"现状"转为字典，用 code 作为 key 方便快速查找
+            var existingTagsDict = Dictionary(uniqueKeysWithValues: existingTags.map { ($0.code, $0) })
+            
+            var hasChanges = false // 跟踪是否有任何变更
+            
+            // 4. 遍历"真相"，与"现状"对比
+            for presetTag in allPresetTags {
+                if let existingTag = existingTagsDict[presetTag.code] {
+                    // ---------------------------------
+                    // 情况一：标签已存在，执行【更新】逻辑
+                    // ---------------------------------
+                    var needsUpdate = false
+                    
+                    // 检查各个属性是否有变化
+                    if existingTag.name != presetTag.name {
+                        existingTag.name = presetTag.name
+                        needsUpdate = true
+                    }
+                    if existingTag.iconName != presetTag.iconName {
+                        existingTag.iconName = presetTag.iconName
+                        needsUpdate = true
+                    }
+                    if existingTag.category != presetTag.category {
+                        existingTag.category = presetTag.category
+                        needsUpdate = true
+                    }
+                    if existingTag.defaultIsReminder != presetTag.defaultIsReminder {
+                        existingTag.defaultIsReminder = presetTag.defaultIsReminder
+                        needsUpdate = true
+                    }
+                    if existingTag.sortOrder != presetTag.sortOrder {
+                        existingTag.sortOrder = presetTag.sortOrder
+                        needsUpdate = true
+                    }
+                    
+                    // 【核心】检查宠物类型列表是否有变化
+                    if existingTag.associatedPetTypes != presetTag.associatedPetTypes {
+                        existingTag.associatedPetTypes = presetTag.associatedPetTypes
+                        needsUpdate = true
+                    }
+                    
+                    if needsUpdate {
+                        hasChanges = true
+                        logger.info("更新标签: \(existingTag.code)")
+                    }
+                    
+                } else {
+                    // ---------------------------------
+                    // 情况二：标签不存在，执行【插入】逻辑
+                    // ---------------------------------
+                    logger.info("新增标签: \(presetTag.code)")
+                    modelContext.insert(presetTag)
+                    hasChanges = true
+                }
+            }
+            
+            // 5. 如果有变更，统一保存
+            if hasChanges {
+                do {
+                    try modelContext.save()
+                    logger.info("预设标签数据同步完成。")
+                } catch {
+                    logger.error("保存标签变更失败: \(error.localizedDescription)")
+                }
+            } else {
+                logger.info("标签数据已是最新，无需同步。")
+            }
         }
-        
-        // 创建并保存预设标签
-        createAllTags().forEach { modelContext.insert($0) }
-        
-        do {
-            try modelContext.save()
-            print("成功初始化预设标签数据")
-        } catch {
-            print("保存预设标签时发生错误: \(error.localizedDescription)")
-        }
-    }
     
     /// 创建所有预设标签
     private static func createAllTags() -> [Tag] {
@@ -131,46 +201,4 @@ class TagPresetService {
             associatedPetTypes: petTypes
         )
     }
-    
-    /// 获取通用标签（同时适用于选中的多种宠物）
-    static func getCommonTags(for petTypes: [PetType], in modelContext: ModelContext) -> [Tag] {
-        guard !petTypes.isEmpty else { return [] }
-        
-        // 如果只有一种宠物类型，直接返回适用于该类型的所有标签
-        if petTypes.count == 1, let petType = petTypes.first {
-            // 创建一个函数来检查标签是否适用于指定的宠物类型
-            let petTypeString = petType.rawValue
-            
-            let descriptor = FetchDescriptor<Tag>()
-            do {
-                let allTags = try modelContext.fetch(descriptor)
-                return allTags.filter { tag in
-                    let petTypes = tag.associatedPetTypes.split(separator: ",").map { String($0) }
-                    return petTypes.contains(petTypeString)
-                }
-            } catch {
-                print("获取标签时出错: \(error.localizedDescription)")
-                return []
-            }
-        }
-        
-        // 如果有多种宠物类型，找出所有类型都支持的标签
-        var commonTags: [Tag] = []
-        let allTagsDescriptor = FetchDescriptor<Tag>()
-        
-        do {
-            let allTags = try modelContext.fetch(allTagsDescriptor)
-            commonTags = allTags.filter { tag in
-                // 检查所有选中的宠物类型是否都被此标签支持
-                return petTypes.allSatisfy { petType in
-                    let tagPetTypes = tag.associatedPetTypes.split(separator: ",").map { String($0) }
-                    return tagPetTypes.contains(petType.rawValue)
-                }
-            }
-            return commonTags
-        } catch {
-            print("获取标签时出错: \(error.localizedDescription)")
-            return []
-        }
-    }
-} 
+}

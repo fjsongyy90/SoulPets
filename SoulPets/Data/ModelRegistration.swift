@@ -40,45 +40,10 @@ struct ModelRegistration {
         }
         
         // 检查并创建预设标签
-        createDefaultTagsIfNeeded(modelContext: modelContext)
+        TagPresetService.syncPresetTags(modelContext: modelContext)
         
         let timeElapsed = Date().timeIntervalSince(startTime)
         logger.info("数据库初始化完成，耗时: \(String(format: "%.3f", timeElapsed))秒")
     }
     
-    /// 检查并创建预设标签
-    @MainActor
-    private static func createDefaultTagsIfNeeded(modelContext: ModelContext) {
-        let startTime = Date()
-        
-        // 检查是否已存在标签
-        let descriptor = FetchDescriptor<Tag>()
-        
-        do {
-            let existingTags = try modelContext.fetch(descriptor)
-            
-            // 如果没有标签，创建预设标签
-            if existingTags.isEmpty {
-                logger.info("创建预设标签")
-                
-                // 批量创建预设标签以提高性能
-                let defaultTags = Tag.createDefaultTags()
-                
-                // 添加到数据库
-                for tag in defaultTags {
-                    modelContext.insert(tag)
-                }
-                
-                // 保存更改
-                try modelContext.save()
-                
-                let timeElapsed = Date().timeIntervalSince(startTime)
-                logger.info("成功创建\(defaultTags.count)个预设标签，耗时: \(String(format: "%.3f", timeElapsed))秒")
-            } else {
-                logger.info("标签已存在，跳过创建")
-            }
-        } catch {
-            logger.error("检查或创建预设标签时出错: \(error.localizedDescription)")
-        }
-    }
 } 

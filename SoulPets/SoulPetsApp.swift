@@ -10,6 +10,7 @@ import SwiftData
 import OSLog
 import UserNotifications
 import Charts
+import CloudKit
 
 @main
 struct SoulPetsApp: App {
@@ -78,11 +79,26 @@ struct SoulPetsApp: App {
         
         do {
             let schema = Schema(ModelRegistration.models)
-            let modelConfiguration = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: false,
-                cloudKitDatabase: .automatic
-            )
+            
+            // 🔧 根据环境选择不同的iCloud容器
+            let modelConfiguration: ModelConfiguration
+            #if DEBUG
+                // 开发环境使用开发容器
+                modelConfiguration = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: false,
+                    cloudKitDatabase: .private("iCloud.com.byte.driver.SoulPets.dev")
+                )
+                logger.info("🔧 使用开发环境iCloud容器: iCloud.com.byte.driver.SoulPets.dev")
+            #else
+                // 生产环境使用生产容器
+                modelConfiguration = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: false,
+                    cloudKitDatabase: .private("iCloud.com.byte.driver.SoulPets")
+                )
+                logger.info("🔧 使用生产环境iCloud容器: iCloud.com.byte.driver.SoulPets")
+            #endif
             
             // 异步创建容器 - 这是最关键的异步操作
             let createdContainer = try await Task {
