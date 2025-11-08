@@ -101,79 +101,136 @@ class TagPresetService {
             }
         }
     
-    /// 创建所有预设标签
+    /// 创建所有预设标签（v1.1.0 - 60个标签，支持10种宠物）
     private static func createAllTags() -> [Tag] {
         var allTags: [Tag] = []
         var currentSortOrder = 0
         
-        // 日常生活标签
+        // 定义常用的宠物类型组合，简化代码
+        let allPets: [PetType] = [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .fish, .snake]
+        let smallMammals: [PetType] = [.rabbit, .hamster, .guineaPig]
+        let reptiles: [PetType] = [.lizard, .tortoise, .snake]
+        let herbivores: [PetType] = [.rabbit, .guineaPig, .bird, .lizard, .tortoise]
+        let carnivores: [PetType] = [.lizard, .tortoise, .bird, .snake]
+        let furryPets: [PetType] = [.cat, .dog, .rabbit, .hamster, .guineaPig]
+        let mostPets: [PetType] = [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]
+        
+        // ========================================
+        // 3.1 日常生活标签 (Daily Life) - 14项
+        // ========================================
         allTags.append(contentsOf: [
+            // v1.0 标签（保持不变）
             createTag(code: "daily.food", name: "Dinner/Food", iconName: "1_dinner_food", category: .dailyLife, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "daily.water", name: "Water", iconName: "2_water", category: .dailyLife, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "daily.water", name: "Water", iconName: "2_water", category: .dailyLife, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: mostPets), // 扩展到9种（除鱼）
             createTag(code: "daily.treats", name: "Treats/Wet Food", iconName: "3_treats_wet_food", category: .dailyLife, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat]),
             createTag(code: "daily.treats.dog", name: "Treats", iconName: "3_treats_wet_food", category: .dailyLife, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.dog]),
             createTag(code: "daily.walk", name: "Walk", iconName: "36_walk", category: .dailyLife, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.dog]),
             createTag(code: "daily.training", name: "Training", iconName: "37_training", category: .dailyLife, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "daily.play", name: "Play", iconName: "4_play", category: .dailyLife, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "daily.play", name: "Play", iconName: "4_play", category: .dailyLife, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird]), // 扩展
             createTag(code: "daily.milk", name: "Milk Feed", iconName: "5_milk_feed", category: .dailyLife, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "daily.potty", name: "Potty", iconName: "6_potty", category: .dailyLife, sortOrder: currentSortOrder + 8, defaultIsReminder: false, petTypes: [.cat, .dog])
-        ])
-        currentSortOrder += 20 // 为每个分类预留20个位置
-
-        // 日常保健标签
-        allTags.append(contentsOf: [
-            createTag(code: "health.medication", name: "Medication", iconName: "7_medication", category: .routineHealth, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "health.supplements", name: "Supplements", iconName: "8_supplements", category: .routineHealth, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "health.deworm", name: "Deworm/Flea & Tick", iconName: "9_deworm_flea_tick", category: .routineHealth, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "health.vaccine", name: "Vaccine", iconName: "10_vaccine", category: .routineHealth, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog])
+            createTag(code: "daily.potty", name: "Potty", iconName: "6_potty", category: .dailyLife, sortOrder: currentSortOrder + 8, defaultIsReminder: false, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig]), // 扩展
+            
+            // v1.1 新增标签
+            createTag(code: "daily.hay", name: "Hay Feed", iconName: "40_hay_feed", category: .dailyLife, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.rabbit, .guineaPig]),
+            createTag(code: "daily.veggies", name: "Veggies/Fruits", iconName: "41_veggies_fruits", category: .dailyLife, sortOrder: currentSortOrder + 10, defaultIsReminder: true, petTypes: herbivores),
+            createTag(code: "daily.insect", name: "Insect/Live Feed", iconName: "42_insect_live_feed", category: .dailyLife, sortOrder: currentSortOrder + 11, defaultIsReminder: true, petTypes: carnivores),
+            createTag(code: "daily.frozen", name: "Frozen Feed", iconName: "43_frozen_feed", category: .dailyLife, sortOrder: currentSortOrder + 12, defaultIsReminder: true, petTypes: [.lizard, .snake, .tortoise]),
+            createTag(code: "daily.fishfood", name: "Fish Feed", iconName: "44_fish_feed", category: .dailyLife, sortOrder: currentSortOrder + 13, defaultIsReminder: true, petTypes: [.fish])
         ])
         currentSortOrder += 20
 
-        // 美容清洁标签
+        // ========================================
+        // 3.2 日常保健标签 (Routine Health) - 4项
+        // ========================================
         allTags.append(contentsOf: [
-            createTag(code: "grooming.brushing", name: "Brushing", iconName: "11_brushing_grooming", category: .groomingCleaning, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "health.medication", name: "Medication", iconName: "7_medication", category: .routineHealth, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "health.supplements", name: "Supplements", iconName: "8_supplements", category: .routineHealth, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "health.deworm", name: "Deworm/Flea & Tick", iconName: "9_deworm_flea_tick", category: .routineHealth, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: mostPets), // 扩展到9种（除鱼）
+            createTag(code: "health.vaccine", name: "Vaccine", iconName: "10_vaccine", category: .routineHealth, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .bird]) // 扩展
+        ])
+        currentSortOrder += 20
+
+        // ========================================
+        // 3.3 美容清洁标签 (Grooming & Cleaning) - 11项
+        // ========================================
+        allTags.append(contentsOf: [
+            // v1.0 标签
+            createTag(code: "grooming.brushing", name: "Brushing", iconName: "11_brushing_grooming", category: .groomingCleaning, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: furryPets), // 扩展
             createTag(code: "grooming.teeth", name: "Teeth Brushing", iconName: "12_teeth_brushing", category: .groomingCleaning, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.nail", name: "Nail Trim", iconName: "13_nail_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.ear", name: "Ear Cleaning", iconName: "14_ear_cleaning", category: .groomingCleaning, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "grooming.nail", name: "Nail Trim", iconName: "13_nail_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise]), // 扩展
+            createTag(code: "grooming.ear", name: "Ear Cleaning", iconName: "14_ear_cleaning", category: .groomingCleaning, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig, .lizard]), // 扩展
             createTag(code: "grooming.bath", name: "Bath", iconName: "15_bash", category: .groomingCleaning, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "grooming.anal", name: "Anal Gland Express", iconName: "38_anal_gland_express", category: .groomingCleaning, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.dog])
+            createTag(code: "grooming.anal", name: "Anal Gland Express", iconName: "38_anal_gland_express", category: .groomingCleaning, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.dog]),
+            
+            // v1.1 新增标签
+            createTag(code: "grooming.teeth.check", name: "Teeth Check/Trim", iconName: "45_teeth_check_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: smallMammals),
+            createTag(code: "grooming.beak", name: "Beak Trim", iconName: "46_beak_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.bird]),
+            createTag(code: "grooming.wing", name: "Wing Clip", iconName: "47_wing_clip", category: .groomingCleaning, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.bird]),
+            createTag(code: "grooming.soak", name: "Soak", iconName: "48_soak", category: .groomingCleaning, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: reptiles),
+            createTag(code: "grooming.shedding", name: "Shedding", iconName: "49_shedding", category: .groomingCleaning, sortOrder: currentSortOrder + 10, defaultIsReminder: false, petTypes: [.lizard, .snake])
         ])
         currentSortOrder += 20
 
-        // 家居用品标签
+        // ========================================
+        // 3.4 家居用品标签 (Home & Supplies) - 10项
+        // ========================================
         allTags.append(contentsOf: [
-            createTag(code: "home.buy", name: "Buy Supplies", iconName: "16_buy_supplies", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "home.bowls", name: "Wash Bowls", iconName: "18_wash_bowls", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "home.refill", name: "Supplies Refill", iconName: "19_supplies_refill", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "home.buy", name: "Buy Supplies", iconName: "16_buy_supplies", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "home.bowls", name: "Wash Bowls", iconName: "18_wash_bowls", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: mostPets), // 扩展到9种（除鱼）
+            createTag(code: "home.refill", name: "Supplies Refill", iconName: "19_supplies_refill", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird]), // 扩展
             createTag(code: "home.scoop", name: "Scoop Litterbox", iconName: "17_scoop_litterbox", category: .homeSupplies, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat]),
             createTag(code: "home.litter", name: "Change Litter", iconName: "20_change_litter", category: .homeSupplies, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.cat]),
             createTag(code: "home.litterbox", name: "Wash Litterbox", iconName: "21_wash_litterbox", category: .homeSupplies, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.cat]),
             createTag(code: "home.bed.cat", name: "Wash Bed/Tree", iconName: "22_wash_bed_tree", category: .homeSupplies, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.cat]),
             createTag(code: "home.bed.dog", name: "Wash Bed", iconName: "22_wash_bed_tree", category: .homeSupplies, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.dog]),
             createTag(code: "home.crate", name: "Wash Crate/Pen", iconName: "39.wash_crate_pen", category: .homeSupplies, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.dog]),
-            createTag(code: "home.toys", name: "Wash Toys", iconName: "23_wash_toys", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.cat, .dog])
+            createTag(code: "home.toys", name: "Wash Toys", iconName: "23_wash_toys", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird]) // 扩展
         ])
         currentSortOrder += 20
 
-        // 医疗护理标签
+        // ========================================
+        // 3.5 栖息地与环境标签 (Habitat & Environment) - 新分类 - 10项
+        // ========================================
         allTags.append(contentsOf: [
-            createTag(code: "medical.checkup", name: "Check-up", iconName: "24_check_up", category: .medicalCare, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "medical.grooming", name: "Grooming Appointment", iconName: "25_grooming_appointment", category: .medicalCare, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "habitat.bedding", name: "Change Bedding/Substrate", iconName: "50_change_bedding", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
+            createTag(code: "habitat.clean", name: "Habitat Clean", iconName: "51_habitat_clean", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
+            createTag(code: "habitat.misting", name: "Misting/Spray", iconName: "52_misting_spray", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
+            createTag(code: "habitat.waterchange", name: "Water Change", iconName: "53_water_change", category: .homeSupplies, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.watertest", name: "Water Test", iconName: "54_water_test", category: .homeSupplies, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.filter", name: "Clean Filter", iconName: "55_clean_filter", category: .homeSupplies, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.plants", name: "Trim Plants", iconName: "56_trim_plants", category: .homeSupplies, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.conditioner", name: "Add Conditioner", iconName: "57_add_conditioner", category: .homeSupplies, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.uvb", name: "Change UVB Bulb", iconName: "58_change_uvb_bulb", category: .homeSupplies, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
+            createTag(code: "habitat.heat", name: "Change Heat Lamp", iconName: "59_change_heat_lamp", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.lizard, .tortoise, .snake])
+        ])
+        currentSortOrder += 20
+
+        // ========================================
+        // 3.6 医疗护理标签 (Medical Care) - 6项
+        // ========================================
+        allTags.append(contentsOf: [
+            createTag(code: "medical.checkup", name: "Check-up", iconName: "24_check_up", category: .medicalCare, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "medical.grooming", name: "Grooming Appointment", iconName: "25_grooming_appointment", category: .medicalCare, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig, .bird]), // 扩展
             createTag(code: "medical.antibody", name: "Antibody Titer", iconName: "26_antibody_titer", category: .medicalCare, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "medical.abnormal", name: "Abnormal Condition", iconName: "27_abnormal_condition", category: .medicalCare, sortOrder: currentSortOrder + 3, defaultIsReminder: false, petTypes: [.cat, .dog]),
-            createTag(code: "medical.surgery", name: "Surgery", iconName: "28_surgery", category: .medicalCare, sortOrder: currentSortOrder + 4, defaultIsReminder: false, petTypes: [.cat, .dog]),
-            createTag(code: "medical.hospitalization", name: "Hospitalization", iconName: "29_hospitalization", category: .medicalCare, sortOrder: currentSortOrder + 5, defaultIsReminder: false, petTypes: [.cat, .dog])
+            createTag(code: "medical.abnormal", name: "Abnormal Condition", iconName: "27_abnormal_condition", category: .medicalCare, sortOrder: currentSortOrder + 3, defaultIsReminder: false, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "medical.surgery", name: "Surgery", iconName: "28_surgery", category: .medicalCare, sortOrder: currentSortOrder + 4, defaultIsReminder: false, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "medical.hospitalization", name: "Hospitalization", iconName: "29_hospitalization", category: .medicalCare, sortOrder: currentSortOrder + 5, defaultIsReminder: false, petTypes: allPets) // 扩展到全部10种
         ])
         currentSortOrder += 20
 
-        // 规划与里程碑标签
+        // ========================================
+        // 3.7 计划与纪念日标签 (Planning & Milestones) - 7项
+        // ========================================
         allTags.append(contentsOf: [
-            createTag(code: "planning.sitter", name: "Pet Sitter", iconName: "30_pet_sitter", category: .planningMilestones, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.boarding", name: "Boarding", iconName: "31_boarding", category: .planningMilestones, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.cat, .dog]),
+            createTag(code: "planning.sitter", name: "Pet Sitter", iconName: "30_pet_sitter", category: .planningMilestones, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "planning.boarding", name: "Boarding", iconName: "31_boarding", category: .planningMilestones, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
             createTag(code: "planning.license", name: "License Renewal", iconName: "32_license_renewal", category: .planningMilestones, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.insurance", name: "Insurance Renewal", iconName: "33_insurance_renewal", category: .planningMilestones, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.birthday", name: "Birthday", iconName: "34_birthday", category: .planningMilestones, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.cat, .dog]),
-            createTag(code: "planning.adoption", name: "Adoption/Gotcha Day", iconName: "35_adoption_gotcha_day", category: .planningMilestones, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.cat, .dog])
+            createTag(code: "planning.insurance", name: "Insurance Renewal", iconName: "33_insurance_renewal", category: .planningMilestones, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "planning.birthday", name: "Birthday", iconName: "34_birthday", category: .planningMilestones, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            createTag(code: "planning.adoption", name: "Adoption/Gotcha Day", iconName: "35_adoption_gotcha_day", category: .planningMilestones, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
+            
+            // v1.1 新增标签
+            createTag(code: "planning.hibernation", name: "Hibernation/Brumation", iconName: "60_hibernation", category: .planningMilestones, sortOrder: currentSortOrder + 6, defaultIsReminder: false, petTypes: [.lizard, .tortoise, .snake, .hamster])
         ])
         currentSortOrder += 20
         

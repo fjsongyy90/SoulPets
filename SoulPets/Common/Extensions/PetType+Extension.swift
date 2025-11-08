@@ -12,11 +12,22 @@ extension PetType {
             return "pet_cat"
         case .dog:
             return "pet_dog"
-        // 未来扩展示例：
-        // case .rabbit:
-        //     return "pet_rabbit"
-        // case .bird:
-        //     return "pet_bird"
+        case .rabbit:
+            return "pet_rabbit"
+        case .hamster:
+            return "pet_hamster"
+        case .guineaPig:
+            return "pet_guinea_pig"
+        case .bird:
+            return "pet_bird"
+        case .lizard:
+            return "pet_lizard"
+        case .tortoise:
+            return "pet_tortoise"
+        case .fish:
+            return "pet_fish"
+        case .snake:
+            return "pet_snake"
         }
     }
     
@@ -34,11 +45,22 @@ extension PetType {
             return .orange
         case .dog:
             return .blue
-        // 未来扩展示例：
-        // case .rabbit:
-        //     return .pink
-        // case .bird:
-        //     return .cyan
+        case .rabbit:
+            return .pink
+        case .hamster:
+            return .brown
+        case .guineaPig:
+            return Color(red: 0.8, green: 0.6, blue: 0.4) // 浅棕色
+        case .bird:
+            return .cyan
+        case .lizard:
+            return .green
+        case .tortoise:
+            return Color(red: 0.4, green: 0.6, blue: 0.4) // 橄榄绿
+        case .fish:
+            return Color(red: 0.2, green: 0.6, blue: 0.8) // 海蓝色
+        case .snake:
+            return Color(red: 0.5, green: 0.7, blue: 0.3) // 草绿色
         }
     }
     
@@ -50,11 +72,22 @@ extension PetType {
             return "cat.fill"
         case .dog:
             return "dog.fill"
-        // 未来扩展示例：
-        // case .rabbit:
-        //     return "hare.fill"
-        // case .bird:
-        //     return "bird.fill"
+        case .rabbit:
+            return "hare.fill"
+        case .hamster:
+            return "pawprint.fill"
+        case .guineaPig:
+            return "pawprint.fill"
+        case .bird:
+            return "bird.fill"
+        case .lizard:
+            return "lizard.fill"
+        case .tortoise:
+            return "tortoise.fill"
+        case .fish:
+            return "fish.fill"
+        case .snake:
+            return "lizard.fill" // 蛇使用蜥蜴图标，因为没有专门的蛇图标
         }
     }
 }

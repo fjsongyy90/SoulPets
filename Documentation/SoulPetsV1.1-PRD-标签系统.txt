@@ -1,0 +1,112 @@
+SoulPets v1.1.0 PRD (产品需求文档) - 标签系统
+1. v1.1.0 核心目标
+•	1. 扩展宠物支持 (共10种)：在 v1.0 的 猫 (Cat) 和 狗 (Dog) 基础上，新增对8种新宠物的支持：
+o	兔子 (Rabbit)
+o	仓鼠 (Hamster)
+o	豚鼠 (Guinea Pig)
+o	鸟类 (Bird)
+o	蜥蜴 (Lizard)
+o	龟 (Tortoise)
+o	鱼 (Fish)
+o	蛇 (Snake)
+•	2. 完善标签系统 (共60项)：
+o	更新 v1.0 标签 (39项)：扩展现有标签的适用宠物范围（例如“生日”应适用于所有宠物）。
+o	新增 v1.1.0 标签 (21项)：引入新标签以满足新宠物的专属记录需求。
+2. 开发与数据迁移说明 (致开发者)
+•	依赖 TagPresetService 幂等性：本次更新依赖 TagPresetService.swift 中的 syncPresetTags 逻辑。
+•	v1.0 标签更新：syncPresetTags 函数会遍历所有 v1.0 标签 (如 planning.birthday)，当检测到代码中 associatedPetTypes 列表发生变化（例如从 [.cat, .dog] 变为 [.cat, .dog, .rabbit, ...]）时，它会自动更新 (UPDATE) 数据库中该条记录，而不会创建新标签。
+•	v1.1.0 标签新增：当检测到数据库中不存在的 code 时 (如 daily.hay)，它会自动插入 (INSERT) 新标签。
+•	结论：此方案可确保所有新老用户的标签库都能平滑升级到 v1.1.0 的最新标准，用户在 v1.0 创建的自定义排序、隐藏等设置均会保留。
+ 
+3. v1.1.0 标签系统 (Tag System) - 最终整合版 (60项)
+宠物图例 (共10种):
+•	猫 (Cat)
+•	狗 (Dog)
+•	兔子 (Rabbit)
+•	仓鼠 (Hamster)
+•	豚鼠 (Guinea Pig)
+•	鸟类 (Bird)
+•	蜥蜴 (Lizard)
+•	龟 (Tortoise)
+•	鱼 (Fish)
+•	蛇 (Snake)
+3.1 日常生活 (Daily Life)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+吃饭 (Dinner/Food)	✓	猫, 狗	是时候填饱可爱的小肚子啦！ / It's time to fill that cute little tummy!
+喝水 (Water)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟, 蛇	记得换上新鲜的水，保持活力一整天。 / Remember to refresh their water for a lively day.
+零食/罐头 (Treats/Wet Food)	✓	猫	幸福的味蕾时间到，今天也要开心哦！ / Happy treat time! Be a good and happy baby today.
+零食 (Treats)	✓	狗	表现真棒！来点小奖励吧！ / Good boy/girl! Time for a little treat.
+散步 (Walk)	✓	狗	外面的世界在召唤，一起去探险吧！ / The world outside is calling, let's go on an adventure!
+训练 (Training)	✓	狗	学习新技能，让我们变得更默契。 / Learning new tricks, so we can be a better team.
+玩耍 (Play)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类	放下忙碌，享受只属于你们的快乐时光。 / Step away from the busy-ness, enjoy your playtime.
+喂奶 (Milk Feed)	✓	猫, 狗	重要的营养补给，每一口都是成长的爱。 / An important boost of nutrients. Each sip is love for growth.
+尿便 (Potty)	✕	猫, 狗, 兔子, 仓鼠, 豚鼠	不适用 / N/A
+喂干草 (Hay Feed)	✓	兔子, 豚鼠	新鲜的干草时间到！ / It's time for some fresh hay!
+
+喂蔬菜/水果 (Veggies/Fruits)	✓	兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟	补充维生素的时间到啦！ / Time for their vitamins!
+喂昆虫/活食 (Insect/Live Feed)	✓	蜥蜴, 龟, 鸟类, 蛇	猎手的盛宴！开饭啦。 / Hunter's feast! It's mealtime.
+喂冻食 (Frozen Feed)	✓	蜥蜴, 蛇, 龟	晚餐（已解冻）准备好啦！ / Dinner is served (and thawed)!
+喂鱼粮 (Fish Feed)	✓	鱼	喂鱼时间到，让水族箱闪耀起来！ / Time to make the tank shimmer! It's feeding time.
+3.2 日常保健 (Routine Health)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+喂药 (Medication)	✓	全部 10 种	为了健康，我们一起加油！你真勇敢。 / For a healthy life, let's do this together! You are so brave.
+喂保健品 (Supplements)	✓	全部 10 种	今天的健康投资，是为了更长久的陪伴。 / Today's health investment is for a longer companionship.
+驱虫 (Deworm/Flea & Tick)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟, 蛇	讨厌的虫虫快走开，让宝贝自在玩耍！ / Pesky bugs go away! So our baby can play freely.
+打疫苗 (Vaccine)	✓	猫, 狗, 兔子, 鸟类	小小的保护针，给你大大的健康护盾。 / A tiny shot for a big health shield.
+3.3 美容清洁 (Grooming Cleaning)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+梳毛 (Brushing)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠	梳理每一寸毛发，都是爱意的表达。 / Every brush stroke is an expression of our love.
+刷牙 (Teeth Brushing)	✓	猫, 狗	保持口气清新，给你一个更亲密的贴贴。 / For fresh breath, get ready for a closer snuggle.
+剪指甲 (Nail Trim)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟	告别“哒哒”声，在地上安静地漫步吧。 / No more "click-clack", let's have quiet walks on the floor.
+洗耳朵 (Ear Cleaning)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 蜥蜴	清洁小耳朵，听清我说的每一句“我爱你”。 / Clean ears to hear every "I love you".
+洗澡 (Bath)	✓	猫, 狗	准备好变身香喷喷的小宝贝了吗？ / Are you ready to become a fresh and clean baby?
+挤肛门腺 (Anal Gland Express)	✓	狗	一点小小的护理，带来大大的舒适。 / A small grooming task for great comfort.
+牙齿检查/修剪 (Teeth Check/Trim)	✓	兔子, 仓鼠, 豚鼠	牙齿检查时间，保持健康微笑！ / Time for a dental check to keep that smile healthy!
+鸟喙修剪 (Beak Trim)	✓	鸟类	是时候修剪鸟喙，保持喙部舒适啦！ / Let's keep that beak sharp and comfy!
+羽毛修剪 (Wing Clip)	✓	鸟类	安全起见，该修剪羽毛了。 / A quick trim for safe adventures indoors.
+泡澡/泡水 (Soak)	✓	蜥蜴, 龟, 蛇	Spa时间到！来个舒服的泡澡吧。 / Spa day! Time for a nice, hydrating soak.
+蜕皮 (Shedding)	✕	蜥蜴, 蛇	不适用 / N/A
+3.4 家居用品 (Home Supplies) - (猫狗)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+购买耗材 (Buy Supplies)	✓	全部 10 种	TA的口粮/猫砂/零食快见底啦，该补货咯！ / Food/litter/treats are running low, time to restock!
+洗餐具 (Wash Bowls)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟, 蛇	干净的碗碗，才能吃得更香哦。 / Clean bowls make everything taste better.
+更换耗材 (Supplies Refill)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类	检查一下自动喂食器/饮水机，确保TA的补给充足。 / Check the feeder/water fountain to ensure their supplies are ready.
+
+铲屎 (Scoop Litterbox)	✓	猫	保持厕所干净，TA会更爱你哦。 / A clean bathroom makes them love you even more.
+换猫砂 (Change Litter)	✓	猫	是时候给TA一个全新的、洁净的如厕环境了。 / It's time to give them a fresh and clean bathroom.
+洗猫砂盆 (Wash Litterbox)	✓	猫	彻底清洁，告别异味，给TA五星级的厕所体验。 / A deep clean for a five-star bathroom experience.
+洗猫窝/猫爬架 (Wash Bed/Tree)	✓	猫	洗掉尘螨和浮毛，在干净的小窝里做个好梦吧。 / Wash away dust and fluff, let them have sweet dreams in a clean bed.
+洗狗窝/床 (Wash Bed)	✓	狗	让TA的小窝充满阳光的味道。 / Fill their bed with the smell of sunshine.
+洗笼子/围栏 (Wash Crate/Pen)	✓	狗	给TA一个干净整洁的私人空间。 / Give them a clean and tidy private space.
+洗玩具 (Wash Toys)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类	清洁心爱的玩具，让玩耍更安心。 / Clean their favorite toys for worry-free playtime.
+3.5 栖息地与环境 (Habitat & Environment) - (新宠物)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+更换垫料/基材 (Change Bedding/Substrate)	✓	兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟, 蛇	该换新垫料啦！干净的家更舒适。 / Time to refresh the home base! A clean space is a happy space.
+栖息地清洁 (Habitat Clean)	✓	兔子, 仓鼠, 豚鼠, 鸟类, 蜥蜴, 龟, 蛇	大扫除时间！给TA一个一尘不染的家。 / Spring cleaning time! Let's make their home spotless.
+环境喷淋 (Misting/Spray)	✓	蜥蜴, 龟	检查湿度！是时候“下雨”啦。 / Humidity check! Time to make it rain.
+换水 (Water Change)	✓	鱼	干净清澈的新水准备好啦！ / A fresh, clean pool is ready for you!
+
+水质测试 (Water Test)	✓	鱼	测试一下水质，让TA们游得更开心。 / Let's check the water quality to keep them swimming happily.
+清洁过滤器 (Clean Filter)	✓	鱼	该清洗过滤器了，保持水质清澈。 / Time to clean the filter for clear, healthy water.
+修剪水草 (Trim Plants)	✓	鱼	给水族箱做个“园艺”，保持美观。 / A little gardening to keep the aquarium beautiful.
+添加水质剂 (Add Conditioner)	✓	鱼	添加水质剂，让水质更完美。 / Adding some magic drops to make the water perfect.
+更换UVB灯 (Change UVB Bulb)	✓	蜥蜴, 龟	换个新“太阳”！该换UVB灯管了。 / New sunshine! Time to change the UVB bulb.
+更换加热灯 (Change Heat Lamp)	✓	蜥蜴, 龟, 蛇	保持温暖！该换加热灯了。 / Keep it cozy! Time to change the heat lamp.
+3.6 医疗护理 (Medical Care)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+体检 (Check-up)	✓	全部 10 种	全面的健康检查，是给TA最安心的礼物。 / A comprehensive check-up is the most reassuring gift.
+美容预约 (Grooming Appointment)	✓	猫, 狗, 兔子, 仓鼠, 豚鼠, 鸟类	预约美丽，让TA成为最闪亮的宝贝。 / Book an appointment for beauty, let them shine like a star.
+抗体水平 (Antibody Titer)	✓	猫, 狗	检查一下保护力是否足够，科学守护TA的健康。 / Check their antibody levels to scientifically protect their health.
+异常情况 (Abnormal Condition)	✕	全部 10 种	不适用 / N/A
+手术 (Surgery)	✕	全部 10 种	不适用 / N/A
+住院 (Hospitalization)	✕	全部 10 种	不适用 / N/A
+3.7 计划与纪念日 (Plans & Milestones)
+标签名称 (中/英)	可用于提醒	适用宠物	提醒文案 (中/英)
+宠物保姆 (Pet Sitter)	✓	全部 10 种	确认一下保姆日程，确保我不在时TA也能被妥善照顾。 / Confirm the pet sitter's schedule to ensure they're well cared for while I'm away.
+寄宿 (Boarding)	✓	全部 10 种	检查寄宿的准备事项，让TA在外也能安心。 / Check boarding preparations to ensure they're at ease while away from home.
+牌照续约 (License Renewal)	✓	猫, 狗	重要的“身份证”该更新啦，做个遵纪守法的好公民。 / Time to renew their important ID, be a good and lawful citizen.
+保险续约 (Insurance Renewal)	✓	全部 10 种	新一年的健康保障，让爱没有后顾之忧。 / New year's health protection, so our love has no worries.
+生日 (Birthday)	✓	全部 10 种	特别的日子，别忘了准备一份惊喜！ / It's a special day, don't forget to prepare a surprise!
+领养日 (Adoption/Gotcha Day)	✓	全部 10 种	纪念我们相遇的日子，感谢你来到我身边。 / A day to celebrate our meeting, thank you for coming into my life.
+冬眠 (Hibernation/Brumation)	✕	蜥蜴, 龟, 蛇, 仓鼠	不适用 / N/A
+

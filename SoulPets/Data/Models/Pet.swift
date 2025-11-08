@@ -5,6 +5,14 @@ import SwiftData
 enum PetType: String, Codable, CaseIterable {
     case cat = "Cat"
     case dog = "Dog"
+    case rabbit = "Rabbit"
+    case hamster = "Hamster"
+    case guineaPig = "Guinea Pig"
+    case bird = "Bird"
+    case lizard = "Lizard"
+    case tortoise = "Tortoise"
+    case fish = "Fish"
+    case snake = "Snake"
 }
 
 /// 性别枚举
