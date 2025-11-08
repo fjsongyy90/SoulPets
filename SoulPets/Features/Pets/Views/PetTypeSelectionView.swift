@@ -3,28 +3,31 @@ import SwiftUI
 /// 宠物类型选择视图
 struct PetTypeSelectionView: View {
     @Binding var selectedType: PetType
-    @State private var showUnsupportedAlert = false
     
-    // 支持的宠物类型
-    private let supportedTypes: [PetType] = [.cat, .dog]
+    // 支持的宠物类型（v1.1.0 - 全部10种）
+    private let supportedTypes: [PetType] = [
+        .cat, .dog, .rabbit, .hamster, .snake,.tortoise,.guineaPig,
+        .bird, .lizard,.fish
+    ]
     
-    // 未来支持的宠物类型配置
-    private let futureTypes = [
-        ("Rabbit", "hare.fill"),
-        ("Bird", "bird.fill"),
-        ("Fish", "fish.fill"),
-        ("Turtle", "tortoise.fill"),
-        ("Lizard", "lizard.fill"),
-        ("Mouse", "pawprint.fill"),
-        ("Insect", "ladybug.fill") // 用简单图标替代
+    // 宠物颜色配置
+    private let petColors: [PetType: Color] = [
+        .cat: .orange,
+        .dog: .blue,
+        .rabbit: .pink,
+        .hamster: .brown,
+        .snake: Color(red: 0.5, green: 0.7, blue: 0.3),
+        .tortoise: Color(red: 0.4, green: 0.6, blue: 0.4),
+        .guineaPig: Color(red: 0.8, green: 0.6, blue: 0.4),
+        .bird: .cyan,
+        .lizard: .green,
+        .fish: Color(red: 0.2, green: 0.6, blue: 0.8)
     ]
     
     // 定义更高对比度的颜色
     private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
     private let labelColor = Color(red: 0.3, green: 0.3, blue: 0.3)
     private let accentColor = Color(red: 0.69, green: 0.45, blue: 0.25)
-    private let catColor = Color.orange
-    private let dogColor = Color.blue
     
     var body: some View {
         VStack(spacing: 30) {
@@ -34,69 +37,26 @@ struct PetTypeSelectionView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
-            // 宠物类型网格
+            // 宠物类型网格 - v1.1.0 支持全部10种
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 25) {
-                // 支持的宠物类型 - 猫
-                PetTypeImageButton(
-                    type: "Cat",
-                    imageName: "pet_cat",
-                    isSelected: selectedType == .cat,
-                    isDisabled: false,
-                    backgroundColor: catColor
-                ) {
-                    selectedType = .cat
-                }
-                
-                // 支持的宠物类型 - 狗
-                PetTypeImageButton(
-                    type: "Dog",
-                    imageName: "pet_dog",
-                    isSelected: selectedType == .dog,
-                    isDisabled: false,
-                    backgroundColor: dogColor
-                ) {
-                    selectedType = .dog
-                }
-                
-                // 未来支持的宠物类型
-                ForEach(futureTypes.prefix(7), id: \.0) { type, icon in
-                    PetTypeCircleButton(
-                        type: type,
-                        iconName: icon,
-                        isSelected: false,
-                        isDisabled: true,
-                        backgroundColor: Color(.systemGray4)
+                ForEach(supportedTypes, id: \.self) { petType in
+                    PetTypeImageButton(
+                        type: petType.rawValue,
+                        imageName: petType.defaultImageName,
+                        isSelected: selectedType == petType,
+                        isDisabled: false,
+                        backgroundColor: petColors[petType] ?? .gray
                     ) {
-                        showUnsupportedAlert = true
+                        selectedType = petType
                     }
                 }
             }
-            .padding(.horizontal)
-            
-            // 信息提示
-            HStack(spacing: 12) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundColor(accentColor)
-                Text(LocalizedStringKey("We are working hard and will support more cute friends soon!"))
-                    .font(.appCaption)
-                    .foregroundColor(labelColor)
-                    .multilineTextAlignment(.leading)
-            }
-            .padding()
-            .background(Color(.systemGray6).opacity(0.5))
-            .cornerRadius(12)
             .padding(.horizontal)
             
             Spacer()
         }
         .padding(.top, 20)
         .background(Color(red: 0.99, green: 0.98, blue: 0.94))
-        .alert(LocalizedStringKey("Coming Soon"), isPresented: $showUnsupportedAlert) {
-            Button(LocalizedStringKey("OK"), role: .cancel) {}
-        } message: {
-            Text(LocalizedStringKey("We're working hard to support more lovely pets soon!"))
-                .foregroundColor(textColor)
-        }
     }
 }
 
@@ -142,55 +102,6 @@ struct PetTypeImageButton: View {
                 
                 Text(LocalizedStringKey(type))
                     .font(isSelected ? .appFootnote : .appCaption)
-                    .foregroundColor(isSelected ? backgroundColor : textColor)
-                    .opacity(isDisabled ? 0.6 : 1.0)
-            }
-        }
-        .disabled(isDisabled)
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-/// 圆形宠物类型按钮（用于未来支持的宠物类型）
-struct PetTypeCircleButton: View {
-    let type: String
-    let iconName: String
-    let isSelected: Bool
-    let isDisabled: Bool
-    let backgroundColor: Color
-    let action: () -> Void
-    
-    // 定义更高对比度的颜色
-    private let textColor = Color(red: 0.2, green: 0.2, blue: 0.2)
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(isDisabled ? Color(.systemGray5) : backgroundColor)
-                        .frame(width: 80, height: 80)
-                        .opacity(isDisabled ? 0.6 : 1.0)
-                        .overlay(
-                            Circle()
-                                .stroke(
-                                    isSelected ? backgroundColor : Color.clear,
-                                    lineWidth: 3
-                                )
-                                .scaleEffect(1.1)
-                        )
-                    
-                    Image(systemName: iconName)
-                        .font(.system(size: 35, weight: .medium))
-                        .foregroundColor(isDisabled ? Color(.systemGray3) : .white)
-                        .opacity(isDisabled ? 0.7 : 1.0)
-                }
-                .scaleEffect(isSelected ? 1.1 : 1.0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
-                
-                Text(LocalizedStringKey(type))
-                    .font(.caption)
-                    .fontWeight(isSelected ? .bold : .medium)
                     .foregroundColor(isSelected ? backgroundColor : textColor)
                     .opacity(isDisabled ? 0.6 : 1.0)
             }

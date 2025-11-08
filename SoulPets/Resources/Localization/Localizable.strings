@@ -35,9 +35,17 @@
 "Basic Information" = "Basic Information";
 "Important Dates" = "Important Dates";
 
-// 宠物类型
+// 宠物类型 (v1.1.0 - 全部10种)
 "Cat" = "Cat";
 "Dog" = "Dog";
+"Rabbit" = "Rabbit";
+"Hamster" = "Hamster";
+"Guinea Pig" = "Guinea Pig";
+"Bird" = "Bird";
+"Lizard" = "Lizard";
+"Tortoise" = "Tortoise";
+"Fish" = "Fish";
+"Snake" = "Snake";
 "Soon" = "Soon";
 "We're working hard to support more adorable pets soon!" = "We're working hard to support more adorable pets soon!";
 
@@ -237,6 +245,36 @@
 "notification.tag.planning.birthday" = "It's a special day, don't forget to prepare a surprise!";
 "notification.tag.planning.adoption_gotcha_day" = "A day to celebrate our meeting, thank you for coming into my life.";
 
+// v1.1.0 新增标签提醒文案
+// 日常生活 - 新增
+"notification.tag.daily.hay" = "It's time for some fresh hay!";
+"notification.tag.daily.veggies" = "Time for their vitamins!";
+"notification.tag.daily.insect" = "Hunter's feast! It's mealtime.";
+"notification.tag.daily.frozen" = "Dinner is served (and thawed)!";
+"notification.tag.daily.fishfood" = "Time to make the tank shimmer! It's feeding time.";
+
+// 美容清洁 - 新增
+"notification.tag.grooming.teeth_check" = "Time for a dental check to keep that smile healthy!";
+"notification.tag.grooming.beak" = "Let's keep that beak sharp and comfy!";
+"notification.tag.grooming.wing" = "A quick trim for safe adventures indoors.";
+"notification.tag.grooming.soak" = "Spa day! Time for a nice, hydrating soak.";
+"notification.tag.grooming.shedding" = "Shedding time observation.";
+
+// 栖息地与环境 - 新增
+"notification.tag.habitat.bedding" = "Time to refresh the home base! A clean space is a happy space.";
+"notification.tag.habitat.clean" = "Spring cleaning time! Let's make their home spotless.";
+"notification.tag.habitat.misting" = "Humidity check! Time to make it rain.";
+"notification.tag.habitat.waterchange" = "A fresh, clean pool is ready for you!";
+"notification.tag.habitat.watertest" = "Let's check the water quality to keep them swimming happily.";
+"notification.tag.habitat.filter" = "Time to clean the filter for clear, healthy water.";
+"notification.tag.habitat.plants" = "A little gardening to keep the aquarium beautiful.";
+"notification.tag.habitat.conditioner" = "Adding some magic drops to make the water perfect.";
+"notification.tag.habitat.uvb" = "New sunshine! Time to change the UVB bulb.";
+"notification.tag.habitat.heat" = "Keep it cozy! Time to change the heat lamp.";
+
+// 计划与纪念日 - 新增
+"notification.tag.planning.hibernation" = "Hibernation/brumation period tracking.";
+
 // 标签管理模块
 "Tag Management" = "Tag Management";
 "Tags for" = "Tags for";
@@ -435,17 +473,6 @@
 
 // 宠物类型选择页面
 "What kind of friend are you welcoming?" = "What kind of friend are you welcoming?";
-"We are working hard and will support more cute friends soon!" = "We are working hard and will support more cute friends soon!";
-"We're working hard to support more lovely pets soon!" = "We're working hard to support more lovely pets soon!";
-
-// 宠物类型 - 未来支持
-"Rabbit" = "Rabbit";
-"Bird" = "Bird";
-"Fish" = "Fish";
-"Turtle" = "Turtle";
-"Lizard" = "Lizard";
-"Mouse" = "Mouse";
-"Insect" = "Insect";
 "Add Custom Tag (Pro)" = "Add Custom Tag (Pro)";
 
 // 空状态页面副标题文案
