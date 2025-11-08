@@ -131,11 +131,11 @@ class TagPresetService {
             createTag(code: "daily.potty", name: "Potty", iconName: "6_potty", category: .dailyLife, sortOrder: currentSortOrder + 8, defaultIsReminder: false, petTypes: [.cat, .dog, .rabbit, .hamster, .guineaPig]), // 扩展
             
             // v1.1 新增标签
-            createTag(code: "daily.hay", name: "Hay Feed", iconName: "40_hay_feed", category: .dailyLife, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.rabbit, .guineaPig]),
-            createTag(code: "daily.veggies", name: "Veggies/Fruits", iconName: "41_veggies_fruits", category: .dailyLife, sortOrder: currentSortOrder + 10, defaultIsReminder: true, petTypes: herbivores),
-            createTag(code: "daily.insect", name: "Insect/Live Feed", iconName: "42_insect_live_feed", category: .dailyLife, sortOrder: currentSortOrder + 11, defaultIsReminder: true, petTypes: carnivores),
-            createTag(code: "daily.frozen", name: "Frozen Feed", iconName: "43_frozen_feed", category: .dailyLife, sortOrder: currentSortOrder + 12, defaultIsReminder: true, petTypes: [.lizard, .snake, .tortoise]),
-            createTag(code: "daily.fishfood", name: "Fish Feed", iconName: "44_fish_feed", category: .dailyLife, sortOrder: currentSortOrder + 13, defaultIsReminder: true, petTypes: [.fish])
+            createTag(code: "daily.hay", name: "Hay Feed", iconName: "41_hay_feed", category: .dailyLife, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.rabbit, .guineaPig]),
+            createTag(code: "daily.veggies", name: "Veggies/Fruits", iconName: "42_veggies_fruits", category: .dailyLife, sortOrder: currentSortOrder + 10, defaultIsReminder: true, petTypes: herbivores),
+            createTag(code: "daily.insect", name: "Insect/Live Feed", iconName: "43_insect_live_feed", category: .dailyLife, sortOrder: currentSortOrder + 11, defaultIsReminder: true, petTypes: carnivores),
+            createTag(code: "daily.frozen", name: "Frozen Feed", iconName: "44_frozen_feed", category: .dailyLife, sortOrder: currentSortOrder + 12, defaultIsReminder: true, petTypes: [.lizard, .snake, .tortoise]),
+            createTag(code: "daily.fishfood", name: "Fish Feed", iconName: "45_fish_feed", category: .dailyLife, sortOrder: currentSortOrder + 13, defaultIsReminder: true, petTypes: [.fish])
         ])
         currentSortOrder += 20
 
@@ -163,11 +163,11 @@ class TagPresetService {
             createTag(code: "grooming.anal", name: "Anal Gland Express", iconName: "38_anal_gland_express", category: .groomingCleaning, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.dog]),
             
             // v1.1 新增标签
-            createTag(code: "grooming.teeth.check", name: "Teeth Check/Trim", iconName: "45_teeth_check_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: smallMammals),
-            createTag(code: "grooming.beak", name: "Beak Trim", iconName: "46_beak_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.bird]),
-            createTag(code: "grooming.wing", name: "Wing Clip", iconName: "47_wing_clip", category: .groomingCleaning, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.bird]),
-            createTag(code: "grooming.soak", name: "Soak", iconName: "48_soak", category: .groomingCleaning, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: reptiles),
-            createTag(code: "grooming.shedding", name: "Shedding", iconName: "49_shedding", category: .groomingCleaning, sortOrder: currentSortOrder + 10, defaultIsReminder: false, petTypes: [.lizard, .snake])
+            createTag(code: "grooming.teeth.check", name: "Teeth Check/Trim", iconName: "46_teeth_check_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: smallMammals),
+            createTag(code: "grooming.beak", name: "Beak Trim", iconName: "47_beak_trim", category: .groomingCleaning, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.bird]),
+            createTag(code: "grooming.wing", name: "Wing Clip", iconName: "48_wing_clip", category: .groomingCleaning, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.bird]),
+            createTag(code: "grooming.soak", name: "Soak", iconName: "49_soak", category: .groomingCleaning, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: reptiles),
+            createTag(code: "grooming.shedding", name: "Shedding", iconName: "50_shedding", category: .groomingCleaning, sortOrder: currentSortOrder + 10, defaultIsReminder: false, petTypes: [.lizard, .snake])
         ])
         currentSortOrder += 20
 
@@ -192,16 +192,16 @@ class TagPresetService {
         // 3.5 栖息地与环境标签 (Habitat & Environment) - 新分类 - 10项
         // ========================================
         allTags.append(contentsOf: [
-            createTag(code: "habitat.bedding", name: "Change Bedding/Substrate", iconName: "50_change_bedding", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
-            createTag(code: "habitat.clean", name: "Habitat Clean", iconName: "51_habitat_clean", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
-            createTag(code: "habitat.misting", name: "Misting/Spray", iconName: "52_misting_spray", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
-            createTag(code: "habitat.waterchange", name: "Water Change", iconName: "53_water_change", category: .homeSupplies, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.watertest", name: "Water Test", iconName: "54_water_test", category: .homeSupplies, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.filter", name: "Clean Filter", iconName: "55_clean_filter", category: .homeSupplies, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.plants", name: "Trim Plants", iconName: "56_trim_plants", category: .homeSupplies, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.conditioner", name: "Add Conditioner", iconName: "57_add_conditioner", category: .homeSupplies, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.uvb", name: "Change UVB Bulb", iconName: "58_change_uvb_bulb", category: .homeSupplies, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
-            createTag(code: "habitat.heat", name: "Change Heat Lamp", iconName: "59_change_heat_lamp", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.lizard, .tortoise, .snake])
+            createTag(code: "habitat.bedding", name: "Change Bedding/Substrate", iconName: "51_change_bedding_substrate", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
+            createTag(code: "habitat.clean", name: "Habitat Clean", iconName: "52_habitat_clean", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
+            createTag(code: "habitat.misting", name: "Misting/Spray", iconName: "53_misting_spray", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
+            createTag(code: "habitat.waterchange", name: "Water Change", iconName: "54_water_change", category: .homeSupplies, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.watertest", name: "Water Test", iconName: "55_water_test", category: .homeSupplies, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.filter", name: "Clean Filter", iconName: "56_clean_filter", category: .homeSupplies, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.plants", name: "Trim Plants", iconName: "57_trim_plants", category: .homeSupplies, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.conditioner", name: "Add Conditioner", iconName: "58_add_conditioner", category: .homeSupplies, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.uvb", name: "Change UVB Bulb", iconName: "59_change_uvb_bulb", category: .homeSupplies, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
+            createTag(code: "habitat.heat", name: "Change Heat Lamp", iconName: "60_change_heat_lamp", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.lizard, .tortoise, .snake])
         ])
         currentSortOrder += 20
 
@@ -230,7 +230,7 @@ class TagPresetService {
             createTag(code: "planning.adoption", name: "Adoption/Gotcha Day", iconName: "35_adoption_gotcha_day", category: .planningMilestones, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: allPets), // 扩展到全部10种
             
             // v1.1 新增标签
-            createTag(code: "planning.hibernation", name: "Hibernation/Brumation", iconName: "60_hibernation", category: .planningMilestones, sortOrder: currentSortOrder + 6, defaultIsReminder: false, petTypes: [.lizard, .tortoise, .snake, .hamster])
+            createTag(code: "planning.hibernation", name: "Hibernation/Brumation", iconName: "61_hibernation_brumation", category: .planningMilestones, sortOrder: currentSortOrder + 6, defaultIsReminder: false, petTypes: [.lizard, .tortoise, .snake, .hamster])
         ])
         currentSortOrder += 20
         

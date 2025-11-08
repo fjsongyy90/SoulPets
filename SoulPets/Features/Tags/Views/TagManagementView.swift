@@ -116,7 +116,8 @@ struct TagManagementView: View {
             viewModel.selectPetType(petType)
         }) {
             HStack {
-                Image(petType == .cat ? "pet_cat" : "pet_dog")
+                // v1.1.0: 使用 PetType 扩展的 defaultImageName 属性获取正确的图标
+                Image(petType.defaultImageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 28, height: 28)
