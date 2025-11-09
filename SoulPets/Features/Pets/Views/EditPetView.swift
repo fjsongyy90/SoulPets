@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 import os.log
 
 /// 编辑宠物视图
@@ -109,7 +110,12 @@ struct EditPetView: View {
                 .font(.appHeadline)
                 .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.3))
             
-            CircleImagePicker(image: $viewModel.avatar, size: 120)
+            // v1.1.0: 自定义头像选择器，支持显示宠物类型默认图片
+            CustomAvatarPicker(
+                image: $viewModel.avatar,
+                petType: viewModel.petType,
+                size: 120
+            )
         }
         .padding(.vertical, 20)
     }
@@ -461,6 +467,80 @@ struct EditPetView: View {
             dismiss()
         } catch {
             logger.error("更新宠物信息时出错: \(error.localizedDescription)")
+        }
+    }
+}
+
+// MARK: - CustomAvatarPicker for EditPetView
+/// 自定义头像选择器，支持显示宠物类型默认图片
+struct CustomAvatarPicker: View {
+    @Binding var image: UIImage?
+    let petType: PetType
+    let size: CGFloat
+    
+    @State private var photoItem: PhotosPickerItem?
+    @State private var editableImage: EditableImage?
+    
+    private let accentColor = Color(red: 0.60, green: 0.35, blue: 0.15)
+    
+    var body: some View {
+        VStack {
+            PhotosPicker(selection: $photoItem, matching: .images) {
+                ZStack {
+                    Circle()
+                        .fill(Color(.systemGray6))
+                        .frame(width: size, height: size)
+                    
+                    if let image = image {
+                        // 显示用户上传的头像
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: size - 4, height: size - 4)
+                            .clipShape(Circle())
+                    } else {
+                        // v1.1.0: 显示宠物类型的默认图片
+                        Image(petType.defaultImageName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: size - 4, height: size - 4)
+                            .clipShape(Circle())
+                    }
+                    
+                    Circle()
+                        .stroke(accentColor, lineWidth: 2)
+                        .frame(width: size, height: size)
+                }
+            }
+            .buttonStyle(.plain)
+            
+            Text(LocalizedStringKey("Tap to select photo"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .onChange(of: photoItem) { _, newValue in
+            Task {
+                if let data = try? await newValue?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    await MainActor.run {
+                        self.editableImage = EditableImage(image: uiImage)
+                    }
+                }
+            }
+        }
+        .fullScreenCover(item: $editableImage) { item in
+            AvatarEditorView(
+                originalImage: item.image,
+                onSave: { croppedImage in
+                    image = croppedImage
+                    editableImage = nil
+                    photoItem = nil
+                },
+                onCancel: {
+                    editableImage = nil
+                    photoItem = nil
+                }
+            )
         }
     }
 }
