@@ -161,6 +161,8 @@ class TagManagementViewModel: ObservableObject {
             return String(localized: "Grooming & Cleaning")
         case .homeSupplies:
             return String(localized: "Home & Supplies")
+        case .habitatEnvironment:
+            return String(localized: "Habitat & Environment")
         case .medicalCare:
             return String(localized: "Medical Care")
         case .planningMilestones:

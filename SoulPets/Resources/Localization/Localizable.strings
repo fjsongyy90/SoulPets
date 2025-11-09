@@ -149,6 +149,7 @@
 "Routine Health" = "Routine Health";
 "Grooming & Cleaning" = "Grooming & Cleaning";
 "Home & Supplies" = "Home & Supplies";
+"Habitat & Environment" = "Habitat & Environment"; // v1.1.0: 新增栖息地与环境分类
 "Medical Care" = "Medical Care";
 "Planning & Milestones" = "Planning & Milestones";
 

@@ -7,6 +7,7 @@ enum TagCategory: String, CaseIterable, Codable {
     case routineHealth = "Routine Health"
     case groomingCleaning = "Grooming & Cleaning"
     case homeSupplies = "Home & Supplies"
+    case habitatEnvironment = "Habitat & Environment" // v1.1.0: 新增栖息地与环境分类
     case medicalCare = "Medical Care"
     case planningMilestones = "Planning & Milestones"
 }

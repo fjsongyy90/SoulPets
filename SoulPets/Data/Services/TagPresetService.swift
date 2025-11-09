@@ -192,16 +192,16 @@ class TagPresetService {
         // 3.5 栖息地与环境标签 (Habitat & Environment) - 新分类 - 10项
         // ========================================
         allTags.append(contentsOf: [
-            createTag(code: "habitat.bedding", name: "Change Bedding/Substrate", iconName: "51_change_bedding_substrate", category: .homeSupplies, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
-            createTag(code: "habitat.clean", name: "Habitat Clean", iconName: "52_habitat_clean", category: .homeSupplies, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
-            createTag(code: "habitat.misting", name: "Misting/Spray", iconName: "53_misting_spray", category: .homeSupplies, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
-            createTag(code: "habitat.waterchange", name: "Water Change", iconName: "54_water_change", category: .homeSupplies, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.watertest", name: "Water Test", iconName: "55_water_test", category: .homeSupplies, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.filter", name: "Clean Filter", iconName: "56_clean_filter", category: .homeSupplies, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.plants", name: "Trim Plants", iconName: "57_trim_plants", category: .homeSupplies, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.conditioner", name: "Add Conditioner", iconName: "58_add_conditioner", category: .homeSupplies, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.fish]),
-            createTag(code: "habitat.uvb", name: "Change UVB Bulb", iconName: "59_change_uvb_bulb", category: .homeSupplies, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
-            createTag(code: "habitat.heat", name: "Change Heat Lamp", iconName: "60_change_heat_lamp", category: .homeSupplies, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.lizard, .tortoise, .snake])
+            createTag(code: "habitat.bedding", name: "Change Bedding/Substrate", iconName: "51_change_bedding_substrate", category: .habitatEnvironment, sortOrder: currentSortOrder, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
+            createTag(code: "habitat.clean", name: "Habitat Clean", iconName: "52_habitat_clean", category: .habitatEnvironment, sortOrder: currentSortOrder + 1, defaultIsReminder: true, petTypes: [.rabbit, .hamster, .guineaPig, .bird, .lizard, .tortoise, .snake]),
+            createTag(code: "habitat.misting", name: "Misting/Spray", iconName: "53_misting_spray", category: .habitatEnvironment, sortOrder: currentSortOrder + 2, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
+            createTag(code: "habitat.waterchange", name: "Water Change", iconName: "54_water_change", category: .habitatEnvironment, sortOrder: currentSortOrder + 3, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.watertest", name: "Water Test", iconName: "55_water_test", category: .habitatEnvironment, sortOrder: currentSortOrder + 4, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.filter", name: "Clean Filter", iconName: "56_clean_filter", category: .habitatEnvironment, sortOrder: currentSortOrder + 5, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.plants", name: "Trim Plants", iconName: "57_trim_plants", category: .habitatEnvironment, sortOrder: currentSortOrder + 6, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.conditioner", name: "Add Conditioner", iconName: "58_add_conditioner", category: .habitatEnvironment, sortOrder: currentSortOrder + 7, defaultIsReminder: true, petTypes: [.fish]),
+            createTag(code: "habitat.uvb", name: "Change UVB Bulb", iconName: "59_change_uvb_bulb", category: .habitatEnvironment, sortOrder: currentSortOrder + 8, defaultIsReminder: true, petTypes: [.lizard, .tortoise]),
+            createTag(code: "habitat.heat", name: "Change Heat Lamp", iconName: "60_change_heat_lamp", category: .habitatEnvironment, sortOrder: currentSortOrder + 9, defaultIsReminder: true, petTypes: [.lizard, .tortoise, .snake])
         ])
         currentSortOrder += 20
 
