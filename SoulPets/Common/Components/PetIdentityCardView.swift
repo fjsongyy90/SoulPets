@@ -4,6 +4,7 @@ import SwiftUI
 struct PetIdentityCardView: View {
     // MARK: - 属性
     let petAvatar: Data?
+    let petType: PetType // v1.1.0: 新增宠物类型参数，用于显示默认头像
     let petName: String
     let petInfo: String
     let ageValue: String
@@ -51,9 +52,10 @@ struct PetIdentityCardView: View {
                             .resizable()
                             .scaledToFill()
                     } else {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(Color(hex: "E5B487"))
+                        // v1.1.0: 使用宠物类型的默认图片作为占位符
+                        Image(petType.defaultImageName)
+                            .resizable()
+                            .scaledToFill()
                     }
                 }
                 .frame(width: 90, height: 90)
@@ -152,6 +154,7 @@ struct PetIdentityCardView: View {
 #Preview("宠物身份卡") {
     PetIdentityCardView(
         petAvatar: nil,
+        petType: .cat,
         petName: "Mimi",
         petInfo: "British Shorthair · Female",
         ageValue: "2y 5m 3d",

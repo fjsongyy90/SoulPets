@@ -48,6 +48,7 @@ struct PetsHomeView: View {
                                     ForEach(Array(pets.enumerated()), id: \.element.id) { index, pet in
                                         PetIdentityCardView(
                                             petAvatar: pet.avatar,
+                                            petType: pet.petType ?? .cat, // v1.1.0: 传递宠物类型用于显示默认头像，使用cat作为后备
                                             petName: pet.name,
                                             petInfo: formatPetInfo(pet: pet),
                                             ageValue: formatAge(pet: pet),

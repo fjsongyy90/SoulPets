@@ -35,6 +35,7 @@ struct PetDetailView: View {
                 // 基本信息卡片
                 infoCard(title: String(localized: "Basic Information")) {
                     infoRow(label: String(localized: "Name"), value: pet.name)
+                    // v1.1.0: petType 使用可选链，因为 CloudKit 要求枚举类型必须可选
                     infoRow(label: String(localized: "Type"), value: pet.petType?.rawValue ?? "unknown")
                     infoRow(label: String(localized: "Breed / Color"), value: pet.breed)
                     infoRow(label: String(localized: "Gender"), value: pet.gender?.rawValue ?? "unknown")
@@ -152,9 +153,10 @@ struct PetDetailView: View {
                             .stroke(accentColor, lineWidth: 3)
                     )
             } else {
-                Image(pet.petType == .cat ? "pet_cat" : "pet_dog")
+                // v1.1.0: 使用 PetType 扩展的 defaultImageName 获取正确的默认图标
+                Image(pet.petType?.defaultImageName ?? "pet_cat")
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
                     .overlay(

@@ -20,15 +20,14 @@ extension PetType {
             return "pet_tortoise"
         case .snake:
             return "pet_snake"
-        // 以下暂时使用 pet_dog 替代，等待图标设计完成
         case .guineaPig:
-            return "pet_dog" // TODO: 替换为 pet_guinea_pig
+            return "pet_guinea_pig"
         case .bird:
-            return "pet_dog" // TODO: 替换为 pet_bird
+            return "pet_bird"
         case .lizard:
-            return "pet_dog" // TODO: 替换为 pet_lizard
+            return "pet_lizard"
         case .fish:
-            return "pet_dog" // TODO: 替换为 pet_fish
+            return "pet_fish" 
         }
     }
     
