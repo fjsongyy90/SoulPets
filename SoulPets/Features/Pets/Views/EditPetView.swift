@@ -165,23 +165,22 @@ struct EditPetView: View {
                 .font(.appSubheadline)
                 .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
             
-            // v1.1.0: 使用 Menu 样式替代 SegmentedPickerStyle，适配10种宠物类型
-            Picker(String(localized: "Pet Type"), selection: $viewModel.petType) {
-                ForEach(PetType.allCases, id: \.self) { type in
-                    HStack {
-                        Image(type.defaultImageName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                        Text(LocalizedStringKey(type.rawValue))
-                    }
-                    .tag(type)
-                }
+            // v1.1.0: 宠物类型不允许修改，只显示文本
+            HStack {
+                Text(LocalizedStringKey(viewModel.petType.rawValue))
+                    .font(.appBody)
+                    .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
+                
+                Spacer()
+                
+                // 显示一个锁图标表示不可编辑
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color.gray.opacity(0.5))
             }
-            .pickerStyle(MenuPickerStyle())
             .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color(UIColor.systemGray6))
+            .padding(.vertical, 10)
+            .background(Color(UIColor.systemGray6).opacity(0.5))
             .cornerRadius(8)
         }
     }

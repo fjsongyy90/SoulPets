@@ -34,7 +34,7 @@ class TagPresetService {
             // 3. 将"现状"转为字典，用 code 作为 key 方便快速查找
             // ✅ 修复：使用 (key, value) 冲突解决闭包，安全地处理重复键。
             // 如果遇到重复的 code，我们保留“更新时间(updatedAt)较新”的那个标签。
-            var existingTagsDict = Dictionary(existingTags.map { ($0.code, $0) }) { (tag1, tag2) -> Tag in
+            let existingTagsDict = Dictionary(existingTags.map { ($0.code, $0) }) { (tag1, tag2) -> Tag in
                 logger.warning("🏷️ 数据库中发现重复的标签 code: \(tag1.code)。正在合并...")
                 // 保留更新时间较晚（较新）的一个
                 return tag1.updatedAt > tag2.updatedAt ? tag1 : tag2
